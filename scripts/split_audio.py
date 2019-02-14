@@ -1,8 +1,11 @@
-from util import split_audio as sa
-
+import os
 import sys
 import glob
 import librosa
+
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from util import split_audio as sa
 
 def main():
     if len(sys.argv) < 2:

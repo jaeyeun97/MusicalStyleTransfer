@@ -2,14 +2,13 @@
 from __future__ import print_function
 import torch
 import numpy as np
-from PIL import Image
 import os
 
 
 def split_audio(y_path, y, sr, subdir='split'):
     splits = librosa.effects.split(y)
     filename = os.path.basename(y_path).split('.')[0]
-    dir = '{}/{}'.format(dirname(y_path), subdir)
+    dir = '{}/{}'.format(os.path.dirname(y_path), subdir)
     for i in range(len(splits)):
         if splits[i][0] - splits[i][1] > sr:
             librosa.output.write_wav(os.path.join(dir, '{}.{}.wav'.format(filename, i)),
