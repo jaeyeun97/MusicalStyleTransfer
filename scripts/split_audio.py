@@ -1,4 +1,4 @@
-from ..util import split_audio as sa
+from util import split_audio as sa
 
 import sys
 import glob
