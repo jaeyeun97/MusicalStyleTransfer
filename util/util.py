@@ -6,25 +6,15 @@ from PIL import Image
 import os
 
 
-def tensor2im(input_image, imtype=np.uint8):
-    """"Converts a Tensor array into a numpy image array.
-
-    Parameters:
-        input_image (tensor) --  the input image tensor array
-        imtype (type)        --  the desired type of the converted numpy array
-    """
-    if not isinstance(input_image, np.ndarray):
-        if isinstance(input_image, torch.Tensor):  # get the data from a variable
-            image_tensor = input_image.data
-        else:
-            return input_image
-        image_numpy = image_tensor[0].cpu().float().numpy()  # convert it into a numpy array
-        if image_numpy.shape[0] == 1:  # grayscale to RGB
-            image_numpy = np.tile(image_numpy, (3, 1, 1))
-        image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0 * 255.0  # post-processing: tranpose and scaling
-    else:  # if it is a numpy array, do nothing
-        image_numpy = input_image
-    return image_numpy.astype(imtype)
+def split_audio(y_path, y, sr):
+    splits = librosa.effects.split(y)
+    filename = os.path.basename(y_path).split('.')[0]
+    dir = dirname(y_path)
+    for i in range(len(splits)):
+        if splits[i][0] - splits[i][1] > sr:
+            librosa.output.write_wav(os.path.join(dir, '{}.{}.wav'.format(filename, i)),
+                                     y[splits[i][0]:splits[i][1]], sr)
+    print('Audio split completed for {}'.format(y_path))
 
 
 def diagnose_network(net, name='network'):
@@ -44,17 +34,6 @@ def diagnose_network(net, name='network'):
         mean = mean / count
     print(name)
     print(mean)
-
-
-def save_image(image_numpy, image_path):
-    """Save a numpy image to the disk
-
-    Parameters:
-        image_numpy (numpy array) -- input numpy array
-        image_path (str)          -- the path of the image
-    """
-    image_pil = Image.fromarray(image_numpy)
-    image_pil.save(image_path)
 
 
 def print_numpy(x, val=True, shp=False):

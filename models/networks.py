@@ -607,3 +607,5 @@ class PixelDiscriminator(nn.Module):
     def forward(self, input):
         """Standard forward."""
         return self.net(input)
+
+# TODO: need to add additional networks here in order to have it take audio
