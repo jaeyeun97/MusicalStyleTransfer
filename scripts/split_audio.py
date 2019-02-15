@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 import librosa
+import soundfile as sf
 
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -13,8 +14,9 @@ def main():
         return
     paths = glob.glob('{}/*.wav'.format(sys.argv[1]))
     for p in paths:
-        y, sr = librosa.load(p)
+        y, sr = sf.read(p)
         sa(p, y, sr)
+        del y
 
 if __name__ == '__main__':
     main()

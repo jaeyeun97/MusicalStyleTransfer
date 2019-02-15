@@ -4,17 +4,18 @@ import torch
 import numpy as np
 import os
 import librosa
+import soundfile as sf
 
 
 def split_audio(y_path, y, sr, subdir='splits'):
-    splits = librosa.effects.split(y)
+    splits = librosa.effects.split(y, top_db=50)
     filename = os.path.basename(y_path).split('.')[0]
     dir = '{}/{}'.format(os.path.dirname(y_path), subdir)
     mkdir(dir)
     for i in range(len(splits)):
         if splits[i][0] - splits[i][1] > sr:
-            librosa.output.write_wav(os.path.join(dir, '{}.{}.wav'.format(filename, i)),
-                                     y[splits[i][0]:splits[i][1]], sr)
+            sf.write(os.path.join(dir, '{}.{}.wav'.format(filename, i)), y[splits[i][0]:splits[i][1]], sr)
+    del splits
     print('Audio split completed for {}'.format(y_path))
 
 
