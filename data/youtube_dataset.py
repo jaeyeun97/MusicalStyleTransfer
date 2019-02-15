@@ -32,9 +32,11 @@ class YoutubeDataset(BaseDataset):
         Returns:
         the modified parser.
         """
-        parser.add_argument('--hop_length', type=float, default=90.0, help='new dataset option')
-        parser.add_argument('--frame_length', type=float, default=180.0, help='new dataset option')
-        parser.add_argument('--mel', type=float, default=1.0, help='new dataset option')
+        parser.add_argument('--hop_length', type=float, default=30.0, help='Stride in reading in audio')
+        parser.add_argument('--frame_length', type=float, default=60.0, help='Length of each audio sample when processing')
+        parser.add_argument('--stft-binsize', type=int, default=2048, help='Number of Frequency bins for STFT')
+        parser.add_argument('--mel', type=bool, default=False, help='Use the mel scale')
+        parser.add_argument('--subdir', type=str, default="splits", help='Subdir of audio data to use')
         parser.set_defaults(max_dataset_size=10, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
@@ -52,9 +54,11 @@ class YoutubeDataset(BaseDataset):
         # save the option and dataset root
         BaseDataset.__init__(self, opt)
         # get the audio path
-        self.audio_paths = sorted(make_dataset(self.root, opt.max_dataset_size))
+        dir = os.path.isdir('{}/{}', self.root, opt.subdir)
+        self.audio_paths = sorted(make_dataset(dir, opt.max_dataset_size))
         # load audio, pad, split, store it
-        # if audio analysed and stored, load it.
+        for p in self.audio_paths:
+            pass
         # otherwise, split the audio to set size and store
         # define the default transform function. You can use <base_dataset.get_transform>; You can also define your custom transform function
         # self.transform = get_transform(opt)
