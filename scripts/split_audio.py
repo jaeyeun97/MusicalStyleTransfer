@@ -17,8 +17,8 @@ def main():
     for p in paths:
         y, sr = sf.read(p, dtype='float32')
         y = y.sum(axis=1) / 2
+        print(y.shape)
         sa(p, y, sr)
-        del y
 
 if __name__ == '__main__':
     main()
