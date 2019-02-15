@@ -8,7 +8,7 @@ import soundfile as sf
 
 
 def split_audio(y_path, y, sr, subdir='splits'):
-    splits = librosa.effects.split(y, top_db=50)
+    splits = librosa.effects.split(y)
     filename = os.path.basename(y_path).split('.')[0]
     dir = '{}/{}'.format(os.path.dirname(y_path), subdir)
     mkdir(dir)

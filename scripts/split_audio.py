@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 import librosa
+import numpy as np
 import soundfile as sf
 
 
@@ -14,7 +15,8 @@ def main():
         return
     paths = glob.glob('{}/*.wav'.format(sys.argv[1]))
     for p in paths:
-        y, sr = sf.read(p)
+        y, sr = sf.read(p, dtype='float32')
+        y = y.sum(axis=1) / 2
         sa(p, y, sr)
         del y
 
