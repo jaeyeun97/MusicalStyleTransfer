@@ -6,7 +6,7 @@ so that this class can load images from both current directory and its subdirect
 
 import torch.utils.data as data
 
-import librosa
+import soundfile as sf
 import os
 import os.path
 
@@ -30,7 +30,7 @@ def make_dataset(dir, max_dataset_size=float("inf")):
 
 
 def default_loader(path):
-    return librosa.load(path)
+    return sf.read(path, dtype='float32')
 
 
 class AudioFolder(data.Dataset):
