@@ -61,17 +61,9 @@ class BaseDataset(data.Dataset, ABC):
         pass
 
     @staticmethod
-    def numpy_to_torch(numpy_arr):
-        torch.from_numpy(numpy_arr)
-
-    @staticmethod
-    def load_audio(path, **kwargs):
-        return librosa.load(path, **kwargs)
-
-    @staticmethod
     def hz_to_mel(y, *args):
         return librosa.hz_to_mel(y, *args)
 
     @staticmethod
-    def split(y, sr, length=180, stride=90):
+    def frame(y, sr, length=30, stride=15):
         return librosa.frame(y, frame_length=length*sr, hop_length=stride*sr)
