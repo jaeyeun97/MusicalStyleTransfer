@@ -14,6 +14,8 @@ import csv
 import os
 import librosa
 import torch
+import random
+import numpy as np
 
 
 class FMADataset(BaseDataset):
@@ -34,8 +36,8 @@ class FMADataset(BaseDataset):
         parser.add_argument('--mel', type=bool, default=False, help='Use the mel scale')
         parser.add_argument('--metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
-        parser.add_argument('--A_genre'), type=str, default='Classical', help='Genre title of domain A')
-        parser.add_argument('--B_genre'), type=str, default='Jazz', help='Genre title of domain B')
+        parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
+        parser.add_argument('--B_genre', type=str, default='Jazz', help='Genre title of domain B')
         parser.set_defaults(max_dataset_size=200, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
@@ -47,15 +49,18 @@ class FMADataset(BaseDataset):
         """
         # save the option and dataset root
         BaseDataset.__init__(self, opt)
+        self.opt = opt
         self.sample_rate = opt.sample_rate
         self.nfft = opt.nfft
         self.mel = opt.mel
+        self.A_genre = opt.A_genre
+        self.B_genre = opt.B_genre
 
         metapath = os.path.join(self.root, opt.metadata_subdir)
-        audiopath = os.path.join(self.root, opt.audio_path)
+        audiopath = os.path.join(self.root, opt.audio_subdir)
 
         self.fma = FMA(metapath, audiopath)
-        self.A_path, self.B_path = self.get_fma_tracks()
+        self.A_paths, self.B_paths = self.get_fma_tracks()
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
@@ -79,46 +84,47 @@ class FMADataset(BaseDataset):
         A = self.transform(A_audio)
         B = self.transform(B_audio)
 
-        return {'A': A, 'B': B, 'A_path': A_path, 'B_path', B_path}
+        return {'A': A, 'B': B, 'A_path': A_path, 'B_path': B_path}
 
     def __len__(self):
         """Return the total number of images."""
-        return len(self.frame_paths)
+        return max(len(self.A_paths), len(self.B_paths)) 
 
     def get_fma_tracks(self):
         all_genres = self.fma.get_all_genres()
-        if opt.A_genre not in all_genres or opt.B_genre not in all_genres:
+        if self.A_genre not in all_genres or self.B_genre not in all_genres:
             raise Exception('Genre not available! Available genres can be found in the documentation')
 
-        A_id = self.fma.get_genre_id(opt.A_genre)
-        B_id = self.fma.get_genre_id(opt.B_genre)
+        A_id = self.fma.get_genre_id(self.A_genre)
+        B_id = self.fma.get_genre_id(self.B_genre)
 
         A_paths = self.fma.get_track_ids_by_genre(A_id).map(self.fma.get_audio_path).tolist()
         B_paths = self.fma.get_track_ids_by_genre(B_id).map(self.fma.get_audio_path).tolist()
 
-        A_paths = trim_dataset(A_paths)
-        B_paths = trim_dataset(B_paths)
+        A_paths = self.trim_dataset(A_paths)
+        B_paths = self.trim_dataset(B_paths)
 
         return A_paths, B_paths
 
     def trim_dataset(self, paths):
-        return paths[:min(opt.max_dataset_size, len(paths)]
+        return paths[:min(self.opt.max_dataset_size, len(paths))]
 
     def retrieve_audio(self, path):
         # y, sr = sf.read(path, dtype='float32')
         # if sr != self.sample_rate:
         #     y = librosa.resample(y, sr, self.sample_rate)
         # return y
-        return librosa.load(path, sr=self.sample_rate)
+        y, sr = librosa.load(path, sr=self.sample_rate)
+        return y
 
-    def transform(self, frame):
+    def transform(self, y):
         if self.mel:
-            frame = self.hz_to_mel(frame)
+            y = self.hz_to_mel(y)
         # STFT
-        D = librosa.stft(frame, nfft=self.nfft)
+        D = librosa.stft(y, n_fft=self.nfft)
         lmag, agl = self.librosa_calc(D)
         # TODO: add normalization
-        return combine_mag_angle(lmag, agl)
+        return self.combine_mag_angle(lmag, agl)
 
     @staticmethod
     def librosa_calc(D):

@@ -15,7 +15,7 @@ import soundfile as sf
 import torch
 
 
-class FMADataset(BaseDataset):
+class UnalignedDataset(BaseDataset):
     """A template dataset class for you to implement custom datasets."""
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -81,7 +81,7 @@ class FMADataset(BaseDataset):
         A = self.transform(A_audio)
         B = self.transform(B_audio)
 
-        return {'A': A, 'B': B, 'A_path': A_path, 'B_path', B_path}
+        return {'A': A, 'B': B, 'A_path': A_path, 'B_path': B_path}
 
     def __len__(self):
         """Return the total number of images."""

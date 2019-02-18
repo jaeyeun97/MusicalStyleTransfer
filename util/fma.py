@@ -12,13 +12,13 @@ class FMA(object):
         self.matadata_dir = metadata_dir
         self.audio_dir = audio_dir
 
-        if audio_path.endswith('fma_small'):
+        if 'small' in audio_dir:
             self.audio_type = 'small'
-        elif audio_path.endswith('fma_medium'):
+        elif 'medium' in audio_dir:
             self.audio_type = 'medium'
-        elif audio_path.endswith('fma_large'):
+        elif 'large' in audio_dir:
             self.audio_type = 'large'
-        elif audio_path.endswith('fma_full'):
+        elif 'full' in audio_dir:
             self.audio_type = 'full'
         else:
             raise Exception('Data directory name should start with "fma_".')
@@ -49,7 +49,7 @@ class FMA(object):
     def load_genre(self):
         return pd.read_csv(os.path.join(self.matadata_dir, 'genres.csv'), index_col=0)
 
-    def load_track(filepath):
+    def load_track(self):
         tracks = pd.read_csv(os.path.join(self.matadata_dir, 'tracks.csv'), index_col=0, header=[0, 1])
 
         COLUMNS = [('track', 'tags'), ('album', 'tags'), ('artist', 'tags'),

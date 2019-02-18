@@ -1,7 +1,7 @@
 mkdir -p fma && cd fma
-curl -O https://os.unil.cloud.switch.ch/fma/fma_metadata.zip
-curl -O https://os.unil.cloud.switch.ch/fma/fma_small.zip
-curl -O https://os.unil.cloud.switch.ch/fma/fma_medium.zip
+#curl -O https://os.unil.cloud.switch.ch/fma/fma_metadata.zip
+#curl -O https://os.unil.cloud.switch.ch/fma/fma_small.zip
+#curl -O https://os.unil.cloud.switch.ch/fma/fma_medium.zip
 curl -O https://os.unil.cloud.switch.ch/fma/fma_large.zip
 
 echo "f0df49ffe5f2a6008d7dc83c6915b31835dfe733  fma_metadata.zip" | sha1sum -c -
