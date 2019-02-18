@@ -13,7 +13,6 @@ from util.fma import FMA
 import csv
 import os
 import librosa
-import soundfile as sf
 import torch
 
 
@@ -33,8 +32,8 @@ class FMADataset(BaseDataset):
         parser.add_argument('--sample_rate', type=int, default=22050, help='Sample Rate to resample')
         parser.add_argument('--nfft', type=int, default=2048, help='Number of Frequency bins for STFT')
         parser.add_argument('--mel', type=bool, default=False, help='Use the mel scale')
-        parser.add_argument('--metadata_path', type=str, default='./dataset/fma_metadata', help='FMA metadata directory')
-        parser.add_argument('--audio_path', type=str, default='./dataset/fma_medium', help='FMA audio data directory')
+        parser.add_argument('--metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
+        parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre'), type=str, default='Classical', help='Genre title of domain A')
         parser.add_argument('--B_genre'), type=str, default='Jazz', help='Genre title of domain B')
         parser.set_defaults(max_dataset_size=200, new_dataset_option=2.0)  # specify dataset-specific default values
@@ -52,7 +51,10 @@ class FMADataset(BaseDataset):
         self.nfft = opt.nfft
         self.mel = opt.mel
 
-        self.fma = FMA(opt.metadata_path, opt.audio_path)
+        metapath = os.path.join(self.root, opt.metadata_subdir)
+        audiopath = os.path.join(self.root, opt.audio_path)
+
+        self.fma = FMA(metapath, audiopath)
         self.A_path, self.B_path = self.get_fma_tracks()
 
         self.A_size = len(self.A_paths)
@@ -103,10 +105,11 @@ class FMADataset(BaseDataset):
         return paths[:min(opt.max_dataset_size, len(paths)]
 
     def retrieve_audio(self, path):
-        y, sr = sf.read(path, dtype='float32')
-        if sr != self.sample_rate:
-            y = librosa.resample(y, sr, self.sample_rate)
-        return y
+        # y, sr = sf.read(path, dtype='float32')
+        # if sr != self.sample_rate:
+        #     y = librosa.resample(y, sr, self.sample_rate)
+        # return y
+        return librosa.load(path, sr=self.sample_rate)
 
     def transform(self, frame):
         if self.mel:
