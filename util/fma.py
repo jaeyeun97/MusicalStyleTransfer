@@ -40,7 +40,7 @@ class FMA(object):
         @returns tracks (pd.Series): Tracks of said genre.
         """
         mask = self.tracks['track', 'genres_all'].apply(lambda row: genre_id in row)
-        return self.tracks[mask]
+        return self.tracks[mask].index
 
     def get_audio_path(self, track_id):
         tid_str = '{:06d}'.format(track_id)

@@ -26,7 +26,7 @@ def make_dataset(dir, max_dataset_size=float("inf")):
             if is_audio_file(fname):
                 path = os.path.join(root, fname)
                 audios.append(path)
-    return audios[:min(max_dataset_size, len(images))]
+    return audios[:min(max_dataset_size, len(audios))]
 
 
 def default_loader(path):

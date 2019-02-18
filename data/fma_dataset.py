@@ -91,8 +91,8 @@ class FMADataset(BaseDataset):
         A_id = self.fma.get_genre_id(opt.A_genre)
         B_id = self.fma.get_genre_id(opt.B_genre)
 
-        A_paths = self.fma.get_track_ids_by_genre(A_id).map(self.fma.get_audio_path)
-        B_paths = self.fma.get_track_ids_by_genre(B_id).map(self.fma.get_audio_path)
+        A_paths = self.fma.get_track_ids_by_genre(A_id).map(self.fma.get_audio_path).tolist()
+        B_paths = self.fma.get_track_ids_by_genre(B_id).map(self.fma.get_audio_path).tolist()
 
         A_paths = trim_dataset(A_paths)
         B_paths = trim_dataset(B_paths)
