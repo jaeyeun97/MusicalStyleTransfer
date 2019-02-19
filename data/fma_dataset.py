@@ -18,6 +18,9 @@ import random
 import numpy as np
 
 
+DATA_LEN = 30
+
+
 class FMADataset(BaseDataset):
     """A template dataset class for you to implement custom datasets."""
     @staticmethod
@@ -38,7 +41,7 @@ class FMADataset(BaseDataset):
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
         parser.add_argument('--B_genre', type=str, default='Jazz', help='Genre title of domain B')
-        parser.set_defaults(max_dataset_size=200, new_dataset_option=2.0)  # specify dataset-specific default values
+        parser.set_defaults(max_dataset_size=4, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
     def __init__(self, opt):
@@ -55,6 +58,18 @@ class FMADataset(BaseDataset):
         self.mel = opt.mel
         self.A_genre = opt.A_genre
         self.B_genre = opt.B_genre
+
+        """Generate (n, 2*n) tensors"""
+        self.tensor_size = int(self.nfft // 2 + 1)
+        ts = self.tensor_size * 2 + 3
+        self.hop_length = int(DATA_LEN * self.sample_rate // ts + 1)
+        self.audio_length = self.hop_length * ts
+        self.win_length = self.hop_length * 4
+
+        print("Tensor Size: {}".format(self.tensor_size))
+        print("Hop Length: {}".format(self.hop_length))
+        print("Win Length: {}".format(self.win_length))
+        print("Audio Length: {}".format(self.audio_length))
 
         metapath = os.path.join(self.root, opt.metadata_subdir)
         audiopath = os.path.join(self.root, opt.audio_subdir)
@@ -81,8 +96,14 @@ class FMADataset(BaseDataset):
         A_audio = self.retrieve_audio(A_path)
         B_audio = self.retrieve_audio(B_path)
 
+        print('Returning data index {}'.format(index))
+
+        print('A length: {}, B length: {}'.format(len(A_audio), len(B_audio)))
+
         A = self.transform(A_audio)
         B = self.transform(B_audio)
+
+        print("Sizes -- A:{}, B: {}".format(A.size(), B.size()))
 
         return {'A': A, 'B': B, 'A_path': A_path, 'B_path': B_path}
 
@@ -115,13 +136,14 @@ class FMADataset(BaseDataset):
         #     y = librosa.resample(y, sr, self.sample_rate)
         # return y
         y, sr = librosa.load(path, sr=self.sample_rate)
+        y = librosa.util.fix_length(y, self.audio_length)
         return y
 
     def transform(self, y):
         if self.mel:
             y = self.hz_to_mel(y)
         # STFT
-        D = librosa.stft(y, n_fft=self.nfft)
+        D = librosa.stft(y, n_fft=self.nfft, hop_length=self.hop_length, win_length=self.win_length)
         lmag, agl = self.librosa_calc(D)
         # TODO: add normalization
         return self.combine_mag_angle(lmag, agl)
@@ -143,4 +165,4 @@ class FMADataset(BaseDataset):
 
     @staticmethod
     def combine_mag_angle(mag, agl):
-        return torch.stack((mag, agl), 2)
+        return torch.stack((mag, agl), 0)
