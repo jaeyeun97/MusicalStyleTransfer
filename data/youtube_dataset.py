@@ -29,7 +29,7 @@ class YoutubeDataset(BaseDataset):
         """
         parser.add_argument('--stride', type=int, default=15, help='Stride in reading in audio (in secs)')
         parser.add_argument('--length', type=int, default=30, help='Length of each audio sample when processing (in secs)')
-        parser.add_argument('--sample_rate', type=int, default=22050, help='Sample Rate to resample')
+        parser.add_argument('--sample_rate', type=int, default=20480, help='Sample Rate to resample')
         parser.add_argument('--nfft', type=int, default=2048, help='Number of Frequency bins for STFT')
         parser.add_argument('--mel', type=bool, default=False, help='Use the mel scale')
         parser.add_argument('--subdir', type=str, default="splits", help='Subdir of audio data to use')
@@ -127,7 +127,7 @@ class YoutubeDataset(BaseDataset):
         return combine_mag_angle(lmag, agl)
 
     def librosa_stft(y, nfft=2048):
-        return librosa.stft(y, nfft=nfft)
+        return librosa.stft(y, nfft=nfft, win_length=30*self.sample_rate/1024)
 
     def torch_stft(x, nfft=2048):
         return torch.stft(x, nfft=nfft)
