@@ -41,7 +41,7 @@ class FMADataset(BaseDataset):
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
         parser.add_argument('--B_genre', type=str, default='Jazz', help='Genre title of domain B')
-        parser.set_defaults(max_dataset_size=4, new_dataset_option=2.0)  # specify dataset-specific default values
+        parser.set_defaults(max_dataset_size=1, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
     def __init__(self, opt):
@@ -53,23 +53,18 @@ class FMADataset(BaseDataset):
         # save the option and dataset root
         BaseDataset.__init__(self, opt)
         self.opt = opt
-        self.sample_rate = opt.sample_rate
+        # self.sample_rate = opt.sample_rate
         self.nfft = opt.nfft
         self.mel = opt.mel
         self.A_genre = opt.A_genre
         self.B_genre = opt.B_genre
-
-        """Generate (n, 2*n) tensors"""
+        # self.audio_length = self.sample_rate * DATA_LEN  # Input vector size = (1025 x 1292)
         self.tensor_size = int(self.nfft // 2 + 1)
-        ts = self.tensor_size * 2 + 3
-        self.hop_length = int(DATA_LEN * self.sample_rate // ts + 1)
-        self.audio_length = self.hop_length * ts
-        self.win_length = self.hop_length * 4
-
-        print("Tensor Size: {}".format(self.tensor_size))
-        print("Hop Length: {}".format(self.hop_length))
-        print("Win Length: {}".format(self.win_length))
-        print("Audio Length: {}".format(self.audio_length))
+        self.hop_length = int(self.nfft // 4)
+        self.audio_length = (self.tensor_size + 3) * self.hop_length 
+        self.sample_rate = int(self.audio_length / DATA_LEN)
+        
+        print("sample rate: {}".format(self.sample_rate))
 
         metapath = os.path.join(self.root, opt.metadata_subdir)
         audiopath = os.path.join(self.root, opt.audio_subdir)
@@ -143,7 +138,7 @@ class FMADataset(BaseDataset):
         if self.mel:
             y = self.hz_to_mel(y)
         # STFT
-        D = librosa.stft(y, n_fft=self.nfft, hop_length=self.hop_length, win_length=self.win_length)
+        D = librosa.stft(y, n_fft=self.nfft)
         lmag, agl = self.librosa_calc(D)
         # TODO: add normalization
         return self.combine_mag_angle(lmag, agl)
