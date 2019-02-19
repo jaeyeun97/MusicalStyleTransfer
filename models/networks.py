@@ -150,7 +150,7 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
         net = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     elif netG == 'unet_256':
         net = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
-    elif netG == 'unet_1024':
+    elif netG == 'unet_512':
         net = UnetGenerator(input_nc, output_nc, 9, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % netG)
@@ -336,10 +336,12 @@ class ResnetGenerator(nn.Module):
         else:
             use_bias = norm_layer == nn.InstanceNorm2d
 
-        # TODO: change this so that it generates the right dimensions
+        # change this so that it generates the right dimensions
         model = [
-                 nn.ReflectionPad2d((1, 1, 3, 3)),
+                 nn.ReflectionPad2d(3),
+                 # DebugPrintLayer('Generator before first convolution'),
                  nn.Conv2d(input_nc, ngf, 8, padding=0, bias=use_bias),
+                 # DebugPrintLayer('Generator after first convolution'),
                  norm_layer(ngf),
                  nn.ReLU(True)]
 
@@ -363,8 +365,10 @@ class ResnetGenerator(nn.Module):
                                          bias=use_bias),
                       norm_layer(int(ngf * mult / 2)),
                       nn.ReLU(True)]
-        model += [nn.ReflectionPad2d((6, 6, 4, 4))]
+        model += [nn.ReflectionPad2d(4)]
+        # model += [DebugPrintLayer('Generator before last convolution')]
         model += [nn.Conv2d(ngf, output_nc, 8, padding=0)]
+        # model += [DebugPrintLayer('Generator after last convolution')]
         model += [nn.Tanh()]
 
         self.model = nn.Sequential(*model)
@@ -556,7 +560,9 @@ class NLayerDiscriminator(nn.Module):
 
         kw = 4
         padw = 1
-        sequence = [nn.Conv2d(input_nc, ndf, kernel_size=kw, stride=2, padding=padw), nn.LeakyReLU(0.2, True)]
+        sequence = [nn.Conv2d(input_nc, ndf, kernel_size=kw, stride=2, padding=padw),
+                    DebugPrintLayer('discriminator, first layer'),
+                    nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
         for n in range(1, n_layers):  # gradually increase the number of filters
@@ -564,6 +570,7 @@ class NLayerDiscriminator(nn.Module):
             nf_mult = min(2 ** n, 8)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=2, padding=padw, bias=use_bias),
+                DebugPrintLayer('discriminator, {} layer'.format(n)),
                 norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
@@ -572,6 +579,7 @@ class NLayerDiscriminator(nn.Module):
         nf_mult = min(2 ** n_layers, 8)
         sequence += [
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=1, padding=padw, bias=use_bias),
+            DebugPrintLayer('discriminator, final layer'),
             norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
@@ -614,5 +622,3 @@ class PixelDiscriminator(nn.Module):
     def forward(self, input):
         """Standard forward."""
         return self.net(input)
-
-# TODO: need to add additional networks here in order to have it take audio

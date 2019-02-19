@@ -34,7 +34,7 @@ class FMADataset(BaseDataset):
         Returns:
         the modified parser.
         """
-        parser.add_argument('--sample_rate', type=int, default=22050, help='Sample Rate to resample')
+        parser.add_argument('--sr_to_dur_ratio', type=int, default=1536, help='Sample Rate to resample')
         parser.add_argument('--nfft', type=int, default=2048, help='Number of Frequency bins for STFT')
         parser.add_argument('--mel', type=bool, default=False, help='Use the mel scale')
         parser.add_argument('--metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
@@ -59,10 +59,11 @@ class FMADataset(BaseDataset):
         self.A_genre = opt.A_genre
         self.B_genre = opt.B_genre
         # self.audio_length = self.sample_rate * DATA_LEN  # Input vector size = (1025 x 1292)
-        self.tensor_size = int(self.nfft // 2 + 1)
-        self.hop_length = int(self.nfft // 4)
-        self.audio_length = (self.tensor_size + 3) * self.hop_length 
-        self.sample_rate = int(self.audio_length / DATA_LEN)
+        self.tensor_size = self.nfft // 2 + 1
+        self.hop_length = self.nfft // 4
+        self.audio_length = (self.tensor_size - 1) * self.hop_length 
+        self.duration = DATA_LEN * (1 + ((self.nfft - 2048) / 1536))
+        self.sample_rate = int(self.audio_length / self.duration) + 1
         
         print("sample rate: {}".format(self.sample_rate))
 
@@ -71,6 +72,9 @@ class FMADataset(BaseDataset):
 
         self.fma = FMA(metapath, audiopath)
         self.A_paths, self.B_paths = self.get_fma_tracks()
+
+        print("First in A: {}".format(self.A_paths[0]))
+        print("First in B: {}".format(self.B_paths[0]))
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
@@ -114,6 +118,8 @@ class FMADataset(BaseDataset):
         A_id = self.fma.get_genre_id(self.A_genre)
         B_id = self.fma.get_genre_id(self.B_genre)
 
+        print("A ID: {}, B ID: {}".format(A_id, B_id))
+
         A_paths = self.fma.get_track_ids_by_genre(A_id).map(self.fma.get_audio_path).tolist()
         B_paths = self.fma.get_track_ids_by_genre(B_id).map(self.fma.get_audio_path).tolist()
 
@@ -130,8 +136,11 @@ class FMADataset(BaseDataset):
         # if sr != self.sample_rate:
         #     y = librosa.resample(y, sr, self.sample_rate)
         # return y
-        y, sr = librosa.load(path, sr=self.sample_rate)
-        y = librosa.util.fix_length(y, self.audio_length)
+        y, sr = librosa.load(path, sr=self.sample_rate, duration=self.duration)
+        if len(y) < self.audio_length:
+            y = librosa.util.fix_length(y, self.audio_length)
+        else:
+            y = y[:self.audio_length]
         return y
 
     def transform(self, y):

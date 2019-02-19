@@ -36,7 +36,7 @@ class AudioPool():
             return clips
         return_clips = list()
         for clip in clips:
-            clips = torch.unsqueeze(clip.data, 0)
+            clip = torch.unsqueeze(clip.data, 0)
             if self.num_clips < self.pool_size:   # if the buffer is not full; keep inserting current clips to the buffer
                 self.num_clips = self.num_clips + 1
                 self.clips.append(clip)
@@ -51,4 +51,4 @@ class AudioPool():
                 else:       # by another 50% chance, the buffer will return the current image
                     return_clips.append(clip)
         return_clips = torch.cat(return_clips, 0)   # collect all the images and return
-        return return_images
+        return return_clips
