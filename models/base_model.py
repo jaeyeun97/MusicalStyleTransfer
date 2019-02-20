@@ -40,7 +40,7 @@ class BaseModel(ABC):
         self.model_names = []
         self.visual_names = []
         self.optimizers = []
-        self.image_paths = []
+        self.clip_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
 
     @staticmethod
@@ -109,9 +109,9 @@ class BaseModel(ABC):
         """Calculate additional output images for visdom and HTML visualization"""
         pass
 
-    def get_image_paths(self):
+    def get_clip_paths(self):
         """ Return image paths that are used to load current data"""
-        return self.image_paths
+        return self.clip_paths
 
     def update_learning_rate(self):
         """Update learning rates for all the networks; called at the end of every epoch"""
