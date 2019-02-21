@@ -41,7 +41,7 @@ class FMADataset(BaseDataset):
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
         parser.add_argument('--B_genre', type=str, default='Jazz', help='Genre title of domain B')
-        parser.set_defaults(max_dataset_size=1, new_dataset_option=2.0)  # specify dataset-specific default values
+        parser.set_defaults(max_dataset_size=4000, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
     def __init__(self, opt):
@@ -97,12 +97,8 @@ class FMADataset(BaseDataset):
 
         print('Returning data index {}'.format(index))
 
-        print('A length: {}, B length: {}'.format(len(A_audio), len(B_audio)))
-
-        A = self.transform(A_audio)
-        B = self.transform(B_audio)
-
-        print("Sizes -- A:{}, B: {}".format(A.size(), B.size()))
+        am_max, am_min, aa_max, aa_min, A = self.transform(A_audio)
+        bm_max, bm_min, ba_max, ba_min, B = self.transform(B_audio)
 
         return {'A': A, 'B': B, 'A_path': A_path, 'B_path': B_path}
 
@@ -117,8 +113,6 @@ class FMADataset(BaseDataset):
 
         A_id = self.fma.get_genre_id(self.A_genre)
         B_id = self.fma.get_genre_id(self.B_genre)
-
-        print("A ID: {}, B ID: {}".format(A_id, B_id))
 
         A_paths = self.fma.get_track_ids_by_genre(A_id).map(self.fma.get_audio_path).tolist()
         B_paths = self.fma.get_track_ids_by_genre(B_id).map(self.fma.get_audio_path).tolist()
@@ -149,20 +143,32 @@ class FMADataset(BaseDataset):
         # STFT
         D = librosa.stft(y, n_fft=self.nfft)
         lmag, agl = self.librosa_calc(D)
-        # TODO: add normalization
-        return self.combine_mag_angle(lmag, agl)
+
+        mag_max, mag_min, lmag = self.normalize(lmag)
+        agl_max, agl_min, agl = self.normalize(agl)   
+
+        return mag_max, mag_min, agl_max, agl_min, self.combine_mag_angle(lmag, agl)
+
+    @staticmethod
+    def normalize(tensor):
+        tensor_max = torch.max(tensor)
+        tensor_min = torch.min(tensor)
+        
+        normalized = 2 * (tensor - tensor_min) / (tensor_max - tensor_min) - 1
+        
+        return tensor_max, tensor_min, normalized 
 
     @staticmethod
     def librosa_calc(D):
         log_mag = np.log(np.abs(D))
-        agl = np.angle(D)
+        agl = np.angle(D) # / np.pi  
         return torch.from_numpy(log_mag), torch.from_numpy(agl)
 
     @staticmethod
     def torch_calc(D):
         x = torch.from_numpy(D)
-        real = x[:, : , :, 0]
-        comp = x[:, : , :, 1]
+        real = x[:, 0 , :, :]
+        comp = x[:, 1 , :, :]
         log_mag = torch.sqrt(2 * torch.log(real) + 2 * torch.log(comp))
         agl = torch.atan(torch.div(comp, real))
         return log_mag, agl
