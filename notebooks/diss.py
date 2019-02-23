@@ -170,16 +170,27 @@ tracks[jazz_mask].index.map(get_audio).tolist()
 
 
 # %%
+import torch
 import librosa
+import numpy as np
 
 tsr = 13000
 y, sr = librosa.load(librosa.util.example_audio_file(), sr=tsr)
 D = librosa.stft(y, n_fft=1024)
-y_hat = librosa.istft(D)
+lmag = np.log(np.abs(D) + 1)
+agl = np.angle(D) # / np.pi
+lmag, agl = torch.from_numpy(lmag), torch.from_numpy(agl)
+tensor = torch.stack((lmag, agl), 0)
+tensor = tensor.squeeze()
+mag = tensor[0, :, :].numpy()
+agl = tensor[1, :, :].numpy()
+mag = np.exp(mag) - 1
+stft = mag * np.cos(agl) + (mag * np.sin(agl) * np.complex(0, 1))
+y_hat = librosa.istft(stft)
 # y = librosa.resample(y, sr, tsr)
 # y_hat = librosa.resample(y, sr, tsr)
-librosa.output.write_wav('data/librosa_orig.wav', y, sr)
-librosa.output.write_wav('data/librosa_stft.wav', y_hat, sr)
+librosa.output.write_wav('diss/data/librosa_orig.wav', y, sr)
+librosa.output.write_wav('diss/data/librosa_stft.wav', y_hat, sr)
 
 # %%
 import torch
@@ -224,3 +235,8 @@ t = t.to('cuda:0')
 out = net(t)
 print(out)
 out.size()
+
+# %%
+import librosa
+
+y, sr = librosa.load('/home/jaeyeun/133641.mp3')

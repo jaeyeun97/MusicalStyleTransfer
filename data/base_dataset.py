@@ -9,6 +9,10 @@ import librosa
 
 import torch.utils.data as data
 from abc import ABC, abstractmethod
+from util import (calc, stft, hz_to_mel,
+                  normalize_magnitude,
+                  normalize_phase,
+                  combine_mag_phase)
 
 
 class BaseDataset(data.Dataset, ABC):
@@ -29,6 +33,16 @@ class BaseDataset(data.Dataset, ABC):
         """
         self.opt = opt
         self.root = opt.dataroot
+        self.nfft = opt.nfft
+        self.sr_dur_ratio = opt.sr_to_dur_ratio
+        self.preprocess = opt.preprocess.split(',')
+
+        self.tensor_size = self.nfft // 2 + 1
+        self.hop_length = self.nfft // 4
+        self.audio_length = (self.tensor_size - 1) * self.hop_length
+        self.duration = DATA_LEN * (1 + ((self.nfft - 2048) / self.sr_dur_ratio)) self.sample_rate = int(self.audio_length / self.duration) + 1
+
+        print("sample rate: {}".format(self.sample_rate))
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -60,10 +74,26 @@ class BaseDataset(data.Dataset, ABC):
         """
         pass
 
-    @staticmethod
-    def hz_to_mel(y, *args):
-        return librosa.hz_to_mel(y, *args)
+    def trim_dataset(self, paths):
+        return paths[:min(self.opt.max_dataset_size, len(paths))]
 
-    @staticmethod
-    def frame(y, sr, length=30, stride=15):
-        return librosa.frame(y, frame_length=length*sr, hop_length=stride*sr)
+    def get_data(self, path):
+        y, sr = librosa.load(path, sr=self.sample_rate, duration=self.duration)
+        if len(y) < self.audio_length:
+            y = librosa.util.fix_length(y, self.audio_length)
+        else:
+            y = y[:self.audio_length]
+        # Preprocess
+        if 'mel' in self.preprocess:
+            y = hz_to_mel(y)
+        # STFT
+        D = stft(y, n_fft=self.nfft)
+        # Compute Magnitude and phase
+        lmag, agl = calc(D, self.opt.smoothing_factor)
+        # Normalize
+        mmax = mmin = 0
+        if 'normalize' in self.preprocess:
+            lmag, mmax, mmin = normalize_magnitude(lmag)
+            agl = normalize_phase(agl)
+
+        return combine_mag_phase(lmag, agl), mmax, mmin

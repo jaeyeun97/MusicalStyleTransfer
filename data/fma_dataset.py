@@ -34,9 +34,7 @@ class FMADataset(BaseDataset):
         Returns:
         the modified parser.
         """
-        parser.add_argument('--sr_to_dur_ratio', type=int, default=1536, help='Sample Rate to resample')
-        parser.add_argument('--nfft', type=int, default=2048, help='Number of Frequency bins for STFT')
-        parser.add_argument('--mel', type=bool, default=False, help='Use the mel scale')
+        parser = BaseDataset.modify_commandline_options(parser, is_train)
         parser.add_argument('--metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
@@ -52,29 +50,14 @@ class FMADataset(BaseDataset):
         """
         # save the option and dataset root
         BaseDataset.__init__(self, opt)
-        self.opt = opt
-        # self.sample_rate = opt.sample_rate
-        self.nfft = opt.nfft
-        self.mel = opt.mel
         self.A_genre = opt.A_genre
         self.B_genre = opt.B_genre
-        # self.audio_length = self.sample_rate * DATA_LEN  # Input vector size = (1025 x 1292)
-        self.tensor_size = self.nfft // 2 + 1
-        self.hop_length = self.nfft // 4
-        self.audio_length = (self.tensor_size - 1) * self.hop_length 
-        self.duration = DATA_LEN * (1 + ((self.nfft - 2048) / 1536))
-        self.sample_rate = int(self.audio_length / self.duration) + 1
-        
-        print("sample rate: {}".format(self.sample_rate))
 
         metapath = os.path.join(self.root, opt.metadata_subdir)
         audiopath = os.path.join(self.root, opt.audio_subdir)
 
         self.fma = FMA(metapath, audiopath)
         self.A_paths, self.B_paths = self.get_fma_tracks()
-
-        print("First in A: {}".format(self.A_paths[0]))
-        print("First in B: {}".format(self.B_paths[0]))
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
@@ -92,19 +75,23 @@ class FMADataset(BaseDataset):
             index_B = random.randint(0, self.B_size - 1)
         B_path = self.B_paths[index_B]
 
-        A_audio = self.retrieve_audio(A_path)
-        B_audio = self.retrieve_audio(B_path)
+        a_max, a_min, A = self.get_data(A_path)
+        b_max, b_min, B = self.get_data(B_path)
 
-        print('Returning data index {}'.format(index))
-
-        am_max, am_min, aa_max, aa_min, A = self.transform(A_audio)
-        bm_max, bm_min, ba_max, ba_min, B = self.transform(B_audio)
-
-        return {'A': A, 'B': B, 'A_path': A_path, 'B_path': B_path}
+        return {
+            'A': A,
+            'B': B,
+            'A_path': A_path,
+            'B_path': B_path,
+            'A_max': a_max,
+            'A_min': a_min,
+            'B_max': b_max,
+            'B_min': b_min
+        }
 
     def __len__(self):
         """Return the total number of images."""
-        return max(len(self.A_paths), len(self.B_paths)) 
+        return max(len(self.A_paths), len(self.B_paths))
 
     def get_fma_tracks(self):
         all_genres = self.fma.get_all_genres()
@@ -121,58 +108,3 @@ class FMADataset(BaseDataset):
         B_paths = self.trim_dataset(B_paths)
 
         return A_paths, B_paths
-
-    def trim_dataset(self, paths):
-        return paths[:min(self.opt.max_dataset_size, len(paths))]
-
-    def retrieve_audio(self, path):
-        # y, sr = sf.read(path, dtype='float32')
-        # if sr != self.sample_rate:
-        #     y = librosa.resample(y, sr, self.sample_rate)
-        # return y
-        y, sr = librosa.load(path, sr=self.sample_rate, duration=self.duration)
-        if len(y) < self.audio_length:
-            y = librosa.util.fix_length(y, self.audio_length)
-        else:
-            y = y[:self.audio_length]
-        return y
-
-    def transform(self, y):
-        if self.mel:
-            y = self.hz_to_mel(y)
-        # STFT
-        D = librosa.stft(y, n_fft=self.nfft)
-        lmag, agl = self.librosa_calc(D)
-
-        mag_max, mag_min, lmag = self.normalize(lmag)
-        agl_max, agl_min, agl = self.normalize(agl)   
-
-        return mag_max, mag_min, agl_max, agl_min, self.combine_mag_angle(lmag, agl)
-
-    @staticmethod
-    def normalize(tensor):
-        tensor_max = torch.max(tensor)
-        tensor_min = torch.min(tensor)
-        
-        normalized = 2 * (tensor - tensor_min) / (tensor_max - tensor_min) - 1
-        
-        return tensor_max, tensor_min, normalized 
-
-    @staticmethod
-    def librosa_calc(D):
-        log_mag = np.log(np.abs(D))
-        agl = np.angle(D) # / np.pi  
-        return torch.from_numpy(log_mag), torch.from_numpy(agl)
-
-    @staticmethod
-    def torch_calc(D):
-        x = torch.from_numpy(D)
-        real = x[:, 0 , :, :]
-        comp = x[:, 1 , :, :]
-        log_mag = torch.sqrt(2 * torch.log(real) + 2 * torch.log(comp))
-        agl = torch.atan(torch.div(comp, real))
-        return log_mag, agl
-
-    @staticmethod
-    def combine_mag_angle(mag, agl):
-        return torch.stack((mag, agl), 0)

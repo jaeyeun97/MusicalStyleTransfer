@@ -3,6 +3,9 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from . import networks
+from ..util import (istft, decalc, mel_to_hz,
+                    denormalize_phase,
+                    denormalize_magnitude)
 
 
 class BaseModel(ABC):
@@ -26,7 +29,7 @@ class BaseModel(ABC):
         Then, you need to define four lists:
             -- self.loss_names (str list):          specify the training losses that you want to plot and save.
             -- self.model_names (str list):         specify the images that you want to display and save.
-            -- self.visual_names (str list):        define networks used in our training.
+            -- self.output_names (str list):        define networks used in our training.
             -- self.optimizers (optimizer list):    define and initialize optimizers. You can define one optimizer for each network. If two networks are updated at the same time, you can use itertools.chain to group them. See cycle_gan_model.py for an example.
         """
         self.opt = opt
@@ -34,14 +37,14 @@ class BaseModel(ABC):
         self.isTrain = opt.isTrain
         self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)  # save all the checkpoints to save_dir
-        if opt.preprocess != 'scale_width':  # with [scale_width], input images might have different sizes, which hurts the performance of cudnn.benchmark.
-            torch.backends.cudnn.benchmark = True
+        self.preprocess = opt.preprocess.split(',')
         self.loss_names = []
         self.model_names = []
-        self.visual_names = []
+        self.output_names = []
         self.optimizers = []
         self.clip_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
+        self.mmax = self.mmin = 0
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -99,15 +102,9 @@ class BaseModel(ABC):
         """Forward function used in test time.
 
         This function wraps <forward> function in no_grad() so we don't save intermediate steps for backprop
-        It also calls <compute_visuals> to produce additional visualization results
         """
         with torch.no_grad():
             self.forward()
-            self.compute_visuals()
-
-    def compute_visuals(self):
-        """Calculate additional output images for visdom and HTML visualization"""
-        pass
 
     def get_clip_paths(self):
         """ Return image paths that are used to load current data"""
@@ -120,13 +117,30 @@ class BaseModel(ABC):
         lr = self.optimizers[0].param_groups[0]['lr']
         print('learning rate = %.7f' % lr)
 
-    def get_current_visuals(self):
+    def get_current_audio(self):
         """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
         visual_ret = OrderedDict()
-        for name in self.visual_names:
+        for name in self.output_names:
             if isinstance(name, str):
-                visual_ret[name] = getattr(self, name)
+                output = getattr(self, name)
+                output = postprocess(output)
+                visual_ret[name] = output
         return visual_ret
+
+    def postprocess(self, t):
+        t = t.cpu().squeeze()
+        mag = tensor[0, :, :].numpy()
+        agl = tensor[1, :, :].numpy()
+        if 'normalize' in self.preprocess:
+            if self.mmax == 0 and self.mmin == 0:
+                raise Exception('Max = Min = 0')
+            mag = denormalize_magnitude(self.mmax, self.mmin, mag)
+            agl = denormalize_phase(agl)
+        D = decalc(mag, agl, self.opt.smoothing_factor)
+        y = istft(D)
+        if 'mel' in self.preprocess:
+            y = mel_to_hz(y)
+        return y
 
     def get_current_losses(self):
         """Return traning losses / errors. train.py will print out these errors on console, and save them to a file"""

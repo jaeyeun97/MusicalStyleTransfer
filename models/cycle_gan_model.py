@@ -54,13 +54,13 @@ class CycleGANModel(BaseModel):
         # specify the training losses you want to print out. The training/test scripts will call <BaseModel.get_current_losses>
         self.loss_names = ['D_A', 'G_A', 'cycle_A', 'idt_A', 'D_B', 'G_B', 'cycle_B', 'idt_B']
         # specify the images you want to save/display. The training/test scripts will call <BaseModel.get_current_visuals>
-        visual_names_A = ['real_A', 'fake_B', 'rec_A']
-        visual_names_B = ['real_B', 'fake_A', 'rec_B']
+        output_names_A = ['real_A', 'fake_B', 'rec_A']
+        output_names_B = ['real_B', 'fake_A', 'rec_B']
         if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
-            visual_names_A.append('idt_B')
-            visual_names_B.append('idt_A')
+            output_names_A.append('idt_B')
+            output_names_B.append('idt_A')
 
-        self.visual_names = visual_names_A + visual_names_B  # combine visualizations for A and B
+        self.output_names = output_names_A + output_names_B  # combine visualizations for A and B
         # specify the models you want to save to the disk. The training/test scripts will call <BaseModel.save_networks> and <BaseModel.load_networks>.
         if self.isTrain:
             self.model_names = ['G_A', 'G_B', 'D_A', 'D_B']
@@ -106,6 +106,8 @@ class CycleGANModel(BaseModel):
         AtoB = self.opt.direction == 'AtoB'
         self.real_A = input['A' if AtoB else 'B'].to(self.device)
         self.real_B = input['B' if AtoB else 'A'].to(self.device)
+        self.mmax = input['A_max'] if AtoB else input['B_max']
+        self.mmin = input['A_min'] if AtoB else input['B_min']
         self.clip_paths = input['A_path' if AtoB else 'B_path']
 
     def forward(self):

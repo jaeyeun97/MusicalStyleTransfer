@@ -47,6 +47,7 @@ if __name__ == '__main__':
     opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
     opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
+    sample_rate = dataset.sample_rate
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
     mkdir(opt.results_dir)
@@ -60,40 +61,12 @@ if __name__ == '__main__':
         model.eval()
     for i, data in enumerate(dataset):
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
-            print('breaking')
             break
         model.set_input(data)  # unpack data from data loader
         model.test()           # run inference
-        visuals = model.get_current_visuals()  # get image results
+        clips = model.get_current_clips()  # get image results
         img_path = model.get_clip_paths()     # get image paths
-        # if i % 5 == 0:  # save images to an HTML file
-        #     print('processing (%04d)-th image... %s' % (i, img_path))
-        # save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
-        for name, param in model.netG_A.named_parameters():
-            print('---------------------')
-            print('name: {}'.format(name))
-            print(param)
-        iter_dir = os.path.join(opt.results_dir, str(i))
+        iter_dir = os.path.join(opt.results_dir, "{:03d}".format(i))
         mkdir(iter_dir)
-        for name, tensor in visuals.items():
-            print('------------ {} ---------'.format(name))
-            tensor = tensor.cpu().squeeze()
-            print(tensor)
-            mag = tensor[0, :, :].numpy() 
-            agl = tensor[1, :, :].numpy()
-            mag = np.exp(mag)
-            print('-----mag-----')
-            print(mag)
-            print('-----agl-----')
-            print(agl)
-            stft = mag * np.cos(agl) + (mag * np.sin(agl) * np.complex(0, 1))
-            print('------stft------')
-            print(stft)
-            y = librosa.istft(stft)
-            print('------y------')
-            print(y)
-            print(y.shape)
-            print(y.dtype)
-            print(np.isfinite(y))
-            librosa.output.write_wav(os.path.join(iter_dir, '{}.wav'.format(name)), y, 13108)
-    # webpage.save()  # save the HTML
+        for name, y in visuals.items():
+            librosa.output.write_wav(os.path.join(iter_dir, '{}.wav'.format(name)), y, sample_rate)

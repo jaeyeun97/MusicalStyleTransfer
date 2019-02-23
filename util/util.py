@@ -7,18 +7,6 @@ import librosa
 import soundfile as sf
 
 
-def split_audio(y_path, y, sr, subdir='splits'):
-    splits = librosa.effects.split(y)
-    print(splits.shape)
-    filename = os.path.basename(y_path).split('.')[0]
-    dir = '{}/{}'.format(os.path.dirname(y_path), subdir)
-    mkdir(dir)
-    for i in range(len(splits)):
-        if splits[i][1] - splits[i][0] > sr:
-            sf.write(os.path.join(dir, '{}.{}.wav'.format(filename, i)), y[splits[i][0]:splits[i][1]], sr)
-    print('Audio split completed for {}'.format(y_path))
-
-
 def diagnose_network(net, name='network'):
     """Calculate and print the mean of average absolute(gradients)
 
