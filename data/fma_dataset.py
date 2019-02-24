@@ -6,16 +6,10 @@ For training a CycleGAN Network.
 Using FMA_large dataset, which is already trimmed to 30 seconds.
 """
 from data.base_dataset import BaseDataset
-from data.audio_folder import make_dataset
-from util import mkdir
 from util.fma import FMA
 
-import csv
 import os
-import librosa
-import torch
 import random
-import numpy as np
 
 
 DATA_LEN = 30
@@ -48,9 +42,8 @@ class FMADataset(BaseDataset):
         opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         # save the option and dataset root
-        BaseDataset.__init__(self, opt, DATA_LEN)
-        self.A_genre = opt.A_genre
-        self.B_genre = opt.B_genre
+        self.A_genre = opt.A_genre.split(',')
+        self.B_genre = opt.B_genre.split(',')
 
         metapath = os.path.join(self.root, opt.metadata_subdir)
         audiopath = os.path.join(self.root, opt.audio_subdir)
@@ -94,14 +87,21 @@ class FMADataset(BaseDataset):
 
     def get_fma_tracks(self):
         all_genres = self.fma.get_all_genres()
-        if self.A_genre not in all_genres or self.B_genre not in all_genres:
+
+        if 'all' in self.A_genre:
+            self.A_genre = all_genres
+        if 'all' in self.B_genre:
+            self.B_genre = all_genres
+
+        if all(g not in all_genres for g in self.A_genre) \
+                or all(g not in all_genres for g in self.B_genre):
             raise Exception('Genre not available! Available genres can be found in the documentation')
 
-        A_id = self.fma.get_genre_id(self.A_genre)
-        B_id = self.fma.get_genre_id(self.B_genre)
+        A_ids = self.fma.get_genre_ids(self.A_genre)
+        B_ids = self.fma.get_genre_ids(self.B_genre)
 
-        A_paths = self.fma.get_track_ids_by_genre(A_id).map(self.fma.get_audio_path).tolist()
-        B_paths = self.fma.get_track_ids_by_genre(B_id).map(self.fma.get_audio_path).tolist()
+        A_paths = self.fma.get_track_ids_by_genres(A_ids).map(self.fma.get_audio_path).tolist()
+        B_paths = self.fma.get_track_ids_by_genres(B_ids).map(self.fma.get_audio_path).tolist()
 
         A_paths = self.trim_dataset(A_paths)
         B_paths = self.trim_dataset(B_paths)

@@ -176,7 +176,9 @@ import numpy as np
 
 tsr = 13000
 y, sr = librosa.load(librosa.util.example_audio_file(), sr=tsr)
+y = librosa.hz_to_mel(y)
 D = librosa.stft(y, n_fft=1024)
+print(D.shape)
 lmag = np.log(np.abs(D) + 1)
 agl = np.angle(D) # / np.pi
 lmag, agl = torch.from_numpy(lmag), torch.from_numpy(agl)
@@ -189,8 +191,8 @@ stft = mag * np.cos(agl) + (mag * np.sin(agl) * np.complex(0, 1))
 y_hat = librosa.istft(stft)
 # y = librosa.resample(y, sr, tsr)
 # y_hat = librosa.resample(y, sr, tsr)
-librosa.output.write_wav('diss/data/librosa_orig.wav', y, sr)
-librosa.output.write_wav('diss/data/librosa_stft.wav', y_hat, sr)
+# librosa.output.write_wav('diss/data/librosa_orig.wav', y, sr)
+# librosa.output.write_wav('diss/data/librosa_stft.wav', y_hat, sr)
 
 # %%
 import torch
