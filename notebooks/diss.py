@@ -189,10 +189,12 @@ agl = tensor[1, :, :].numpy()
 mag = np.exp(mag) - 1
 stft = mag * np.cos(agl) + (mag * np.sin(agl) * np.complex(0, 1))
 y_hat = librosa.istft(stft)
+y = librosa.mel_to_hz(y)
+y_hat = librosa.mel_to_hz(y_hat)
 # y = librosa.resample(y, sr, tsr)
 # y_hat = librosa.resample(y, sr, tsr)
-# librosa.output.write_wav('diss/data/librosa_orig.wav', y, sr)
-# librosa.output.write_wav('diss/data/librosa_stft.wav', y_hat, sr)
+librosa.output.write_wav('datasets/librosa_orig.wav', y, sr)
+librosa.output.write_wav('datasets/librosa_stft.wav', y_hat, sr)
 
 # %%
 import torch

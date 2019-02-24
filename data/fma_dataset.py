@@ -42,6 +42,7 @@ class FMADataset(BaseDataset):
         opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         # save the option and dataset root
+        BaseDataset.__init__(self, opt, DATA_LEN)
         self.A_genre = opt.A_genre.split(',')
         self.B_genre = opt.B_genre.split(',')
 
