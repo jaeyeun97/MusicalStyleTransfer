@@ -41,6 +41,10 @@ def denormalize_phase(agl):
     return agl * np.pi
 
 def combine_mag_phase(mag, agl):
+    if isinstance(mag, np.ndarray):
+        mag = torch.from_numpy(mag)
+    if isinstance(agl, np.ndarray):
+        agl = torch.from_numpy(agl)
     return torch.stack((mag, agl), 0)
 
 def stft(y, **kwargs):

@@ -34,7 +34,6 @@ class FMADataset(BaseDataset):
         Returns:
         the modified parser.
         """
-        parser = BaseDataset.modify_commandline_options(parser, is_train)
         parser.add_argument('--metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
@@ -49,7 +48,7 @@ class FMADataset(BaseDataset):
         opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         # save the option and dataset root
-        BaseDataset.__init__(self, opt)
+        BaseDataset.__init__(self, opt, DATA_LEN)
         self.A_genre = opt.A_genre
         self.B_genre = opt.B_genre
 
