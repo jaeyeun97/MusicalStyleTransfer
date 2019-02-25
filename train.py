@@ -41,13 +41,7 @@ if __name__ == '__main__':
         iter_data_time = time.time()    # timer for data loading per iteration
         epoch_iter = 0                  # the number of training iterations in current epoch, reset to 0 every epoch
 
-        data_iter = iter(dataset)
-        for i in range(dataset_size):  # inner loop within one epoch
-            try:
-                data = next(data_iter)
-            except NoBackendError:
-                print('Error Loading Data')
-                continue
+        for i, data in enumerate(dataset):  # inner loop within one epoch
             iter_start_time = time.time()  # timer for computation per iteration
             if total_iters % opt.print_freq == 0:
                 t_data = iter_start_time - iter_data_time

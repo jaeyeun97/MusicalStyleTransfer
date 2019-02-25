@@ -11,6 +11,7 @@ Now you can use the dataset class by specifying flag '--dataset_mode dummy'.
 See our template dataset class 'template_dataset.py' for more details.
 """
 import importlib
+import audioread
 import torch.utils.data
 from data.base_dataset import BaseDataset
 
@@ -87,7 +88,11 @@ class CustomDatasetDataLoader():
 
     def __iter__(self):
         """Return a batch of data"""
-        for i, data in enumerate(self.dataloader):
-            if i * self.opt.batch_size >= self.opt.max_dataset_size:
-                break
-            yield data
+        i = 0
+        while i * self.opt.batch_size < self.opt.max_dataset_size:
+            try:
+                yield next(self.dataloader)
+                i += 1
+            except audioread.NoBackendError:
+                print('Error Loading Data')
+                continue 
