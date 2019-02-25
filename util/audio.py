@@ -24,14 +24,16 @@ def normalize_magnitude(lmag):
         mmax = np.max(lmag)
         mmin = np.min(lmag)
     elif isinstance(lmag, torch.Tensor):
-        mmax = torch.max(lmag)
-        mmin = torch.min(lmag)
+        mmax = torch.max(lmag).numpy()[0]
+        mmin = torch.min(lmag).numpy()[0]
     else:
         raise NotImplementedError('Cannot normalize.')
     lmag = 2 * (lmag - mmin) / (mmax - mmin) - 1
     return lmag, mmax, mmin
 
 def denormalize_magnitude(mmax, mmin, lmag):
+    mmax = mmax.numpy()[0]
+    mmin = mmin.numpy()[0]
     return ((mmax - mmin) * (lmag + 1) / 2) + mmin
 
 def normalize_phase(agl):
