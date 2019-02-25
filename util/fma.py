@@ -29,13 +29,13 @@ class FMA(object):
             self.tracks = self.tracks[self.tracks['set', 'subset'] <= self.audio_type]
 
     def get_all_genres(self):
-        return self.genres['title'].tolist()
+        return set(self.genres['title'].tolist())
 
     def get_genre_id(self, genre_name):
         return self.genres.index[self.genres['title'] == genre_name].item()
 
     def get_genre_ids(self, genres):
-        return [self.get_genre_id(g) for g in genres]
+        return set(self.get_genre_id(g) for g in genres)
 
     def get_track_ids_by_genres(self, genre_ids):
         """

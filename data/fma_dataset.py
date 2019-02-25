@@ -94,6 +94,12 @@ class FMADataset(BaseDataset):
         if 'all' in self.B_genre:
             self.B_genre = all_genres
 
+        if 'rest' in self.A_genre:
+            self.A_genre = all_genres - self.B_genre
+        if 'rest' in self.B_genre:
+            self.B_genre = all_genres - self.A_genre
+
+
         if all(g not in all_genres for g in self.A_genre) \
                 or all(g not in all_genres for g in self.B_genre):
             raise Exception('Genre not available! Available genres can be found in the documentation')
