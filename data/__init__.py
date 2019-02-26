@@ -89,10 +89,16 @@ class CustomDatasetDataLoader():
     def __iter__(self):
         """Return a batch of data"""
         i = 0
+        it = iter(self.dataloader)
         while i * self.opt.batch_size < self.opt.max_dataset_size:
             try:
-                yield next(self.dataloader)
+                yield next(it)
                 i += 1
+            except ValueError as e:
+                print(e)
+                continue
             except audioread.NoBackendError:
                 print('Error Loading Data')
                 continue 
+            except StopIteration:
+                break

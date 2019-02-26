@@ -23,17 +23,22 @@ def normalize_magnitude(lmag):
     if isinstance(lmag, np.ndarray):
         mmax = np.max(lmag)
         mmin = np.min(lmag)
-    elif isinstance(lmag, torch.Tensor):
-        mmax = torch.max(lmag).numpy()[0]
-        mmin = torch.min(lmag).numpy()[0]
+    elif isinstance(lmag, torch.Tensor): 
+        mmax = float(torch.max(lmag))
+        mmin = float(torch.min(lmag))
     else:
         raise NotImplementedError('Cannot normalize.')
-    lmag = 2 * (lmag - mmin) / (mmax - mmin) - 1
+    if mmax - mmin > 0:
+        lmag = 2 * (lmag - mmin) / (mmax - mmin) - 1
+    else:
+        raise ValueError('Cannot be normalized!')
+        # print('Normalization Returning Zeros...')
+        # lmag = np.zeros(tuple(lmag.shape))
     return lmag, mmax, mmin
 
 def denormalize_magnitude(mmax, mmin, lmag):
-    mmax = mmax.numpy()[0]
-    mmin = mmin.numpy()[0]
+    mmax = float(mmax)
+    mmin = float(mmin)
     return ((mmax - mmin) * (lmag + 1) / 2) + mmin
 
 def normalize_phase(agl):
