@@ -32,7 +32,7 @@ class FMADataset(BaseDataset):
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
         parser.add_argument('--B_genre', type=str, default='Jazz', help='Genre title of domain B')
-        parser.set_defaults(max_dataset_size=4000, new_dataset_option=2.0)  # specify dataset-specific default values
+        parser.set_defaults(max_dataset_size=1000, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
     def __init__(self, opt):
@@ -43,8 +43,8 @@ class FMADataset(BaseDataset):
         """
         # save the option and dataset root
         BaseDataset.__init__(self, opt, DATA_LEN)
-        self.A_genre = opt.A_genre.split(',')
-        self.B_genre = opt.B_genre.split(',')
+        self.A_genre = set(opt.A_genre.split(','))
+        self.B_genre = set(opt.B_genre.split(','))
 
         metapath = os.path.join(self.root, opt.metadata_subdir)
         audiopath = os.path.join(self.root, opt.audio_subdir)
