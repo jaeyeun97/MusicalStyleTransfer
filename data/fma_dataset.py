@@ -109,6 +109,8 @@ class FMADataset(BaseDataset):
 
         A_paths = self.fma.get_track_ids_by_genres(A_ids).map(self.fma.get_audio_path).tolist()
         B_paths = self.fma.get_track_ids_by_genres(B_ids).map(self.fma.get_audio_path).tolist()
+        random.shuffle(A_paths)
+        random.shuffle(B_paths)
 
         A_paths = self.trim_dataset(A_paths)
         B_paths = self.trim_dataset(B_paths)
