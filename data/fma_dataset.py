@@ -49,7 +49,7 @@ class FMADataset(BaseDataset):
         metapath = os.path.join(self.root, opt.metadata_subdir)
         audiopath = os.path.join(self.root, opt.audio_subdir)
 
-        self.num_splits = DATA_LEN // self.duration
+        self.num_splits = int(DATA_LEN // self.duration)
 
         self.fma = FMA(metapath, audiopath)
         self.A_paths, self.B_paths = self.get_fma_tracks()
