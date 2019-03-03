@@ -3,7 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from . import networks
-from ..util import (istft, decalc, mel_to_hz,
+from util import (istft, decalc, mel_to_hz,
                     denormalize_phase,
                     denormalize_magnitude)
 
@@ -119,18 +119,18 @@ class BaseModel(ABC):
 
     def get_current_audio(self):
         """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
-        visual_ret = OrderedDict()
+        audio_ret = OrderedDict()
         for name in self.output_names:
             if isinstance(name, str):
                 output = getattr(self, name)
-                output = postprocess(output)
-                visual_ret[name] = output
-        return visual_ret
+                output = self.postprocess(output)
+                audio_ret[name] = output
+        return audio_ret
 
     def postprocess(self, t):
         t = t.cpu().squeeze()
-        mag = tensor[0, :, :].numpy()
-        agl = tensor[1, :, :].numpy()
+        mag = t[0, :, :].numpy()
+        agl = t[1, :, :].numpy()
         if 'normalize' in self.preprocess:
             if self.mmax == 0 and self.mmin == 0:
                 raise Exception('Max = Min = 0')

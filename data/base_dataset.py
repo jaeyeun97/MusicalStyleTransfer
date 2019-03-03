@@ -25,7 +25,7 @@ class BaseDataset(data.Dataset, ABC):
     -- <modify_commandline_options>:    (optionally) add dataset-specific options and set default options.
     """
 
-    def __init__(self, opt):
+    def __init__(self, opt, audio_length):
         """Initialize the class; save the options in the class
 
         Parameters:
@@ -40,6 +40,7 @@ class BaseDataset(data.Dataset, ABC):
         self.tensor_size = self.nfft // 2 + 1
         self.hop_length = self.nfft // 4
         self.audio_length = (self.tensor_size - 1) * self.hop_length
+
         self.duration = self.audio_length / self.sample_rate
 
         print("Split size: {} seconds".format(self.duration))
@@ -102,4 +103,4 @@ class BaseDataset(data.Dataset, ABC):
             lmag, mmax, mmin = normalize_magnitude(lmag)
             agl = normalize_phase(agl)
 
-        return combine_mag_phase(lmag, agl), mmax, mmin
+        return mmax, mmin, combine_mag_phase(lmag, agl)

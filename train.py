@@ -22,12 +22,12 @@ import time
 from options.train_options import TrainOptions
 from data import create_dataset
 from models import create_model
+from audioread import NoBackendError
 # from util.visualizer import Visualizer
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
-    sample_rate = dataset.sample_rate
     dataset_size = len(dataset)    # get the number of images in the dataset.
     print('The number of training clips = %d' % dataset_size)
 

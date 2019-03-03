@@ -47,7 +47,7 @@ if __name__ == '__main__':
     opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
     opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
-    sample_rate = dataset.sample_rate
+    sample_rate = dataset.dataset.sample_rate
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
     mkdir(opt.results_dir)
@@ -64,9 +64,9 @@ if __name__ == '__main__':
             break
         model.set_input(data)  # unpack data from data loader
         model.test()           # run inference
-        clips = model.get_current_clips()  # get image results
+        clips = model.get_current_audio()  # get image results
         img_path = model.get_clip_paths()     # get image paths
         iter_dir = os.path.join(opt.results_dir, "{:03d}".format(i))
         mkdir(iter_dir)
-        for name, y in visuals.items():
+        for name, y in clips.items():
             librosa.output.write_wav(os.path.join(iter_dir, '{}.wav'.format(name)), y, sample_rate)

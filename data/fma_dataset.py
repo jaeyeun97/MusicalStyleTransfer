@@ -6,16 +6,10 @@ For training a CycleGAN Network.
 Using FMA_large dataset, which is already trimmed to 30 seconds.
 """
 from data.base_dataset import BaseDataset
-from data.audio_folder import make_dataset
-from util import mkdir
 from util.fma import FMA
 
-import csv
 import os
-import librosa
-import torch
 import random
-import numpy as np
 
 
 DATA_LEN = 30
@@ -34,12 +28,11 @@ class FMADataset(BaseDataset):
         Returns:
         the modified parser.
         """
-        parser = BaseDataset.modify_commandline_options(parser, is_train)
         parser.add_argument('--metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
         parser.add_argument('--audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         parser.add_argument('--A_genre', type=str, default='Classical', help='Genre title of domain A')
         parser.add_argument('--B_genre', type=str, default='Jazz', help='Genre title of domain B')
-        parser.set_defaults(max_dataset_size=4000, new_dataset_option=2.0)  # specify dataset-specific default values
+        parser.set_defaults(max_dataset_size=1000, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
     def __init__(self, opt):
@@ -49,9 +42,9 @@ class FMADataset(BaseDataset):
         opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         # save the option and dataset root
-        BaseDataset.__init__(self, opt)
-        self.A_genre = opt.A_genre
-        self.B_genre = opt.B_genre
+        BaseDataset.__init__(self, opt, DATA_LEN)
+        self.A_genre = set(opt.A_genre.split(','))
+        self.B_genre = set(opt.B_genre.split(','))
 
         metapath = os.path.join(self.root, opt.metadata_subdir)
         audiopath = os.path.join(self.root, opt.audio_subdir)
@@ -105,14 +98,29 @@ class FMADataset(BaseDataset):
 
     def get_fma_tracks(self):
         all_genres = self.fma.get_all_genres()
-        if self.A_genre not in all_genres or self.B_genre not in all_genres:
+
+        if 'all' in self.A_genre:
+            self.A_genre = all_genres
+        if 'all' in self.B_genre:
+            self.B_genre = all_genres
+
+        if 'rest' in self.A_genre:
+            self.A_genre = all_genres - self.B_genre
+        if 'rest' in self.B_genre:
+            self.B_genre = all_genres - self.A_genre
+
+
+        if all(g not in all_genres for g in self.A_genre) \
+                or all(g not in all_genres for g in self.B_genre):
             raise Exception('Genre not available! Available genres can be found in the documentation')
 
-        A_id = self.fma.get_genre_id(self.A_genre)
-        B_id = self.fma.get_genre_id(self.B_genre)
+        A_ids = self.fma.get_genre_ids(self.A_genre)
+        B_ids = self.fma.get_genre_ids(self.B_genre)
 
-        A_paths = self.fma.get_track_ids_by_genre(A_id).map(self.fma.get_audio_path).tolist()
-        B_paths = self.fma.get_track_ids_by_genre(B_id).map(self.fma.get_audio_path).tolist()
+        A_paths = self.fma.get_track_ids_by_genres(A_ids).map(self.fma.get_audio_path).tolist()
+        B_paths = self.fma.get_track_ids_by_genres(B_ids).map(self.fma.get_audio_path).tolist()
+        random.shuffle(A_paths)
+        random.shuffle(B_paths)
 
         A_paths = self.trim_dataset(A_paths)
         B_paths = self.trim_dataset(B_paths)

@@ -23,15 +23,22 @@ def normalize_magnitude(lmag):
     if isinstance(lmag, np.ndarray):
         mmax = np.max(lmag)
         mmin = np.min(lmag)
-    elif isinstance(lmag, torch.Tensor):
-        mmax = torch.max(lmag)
-        mmin = torch.min(lmag)
+    elif isinstance(lmag, torch.Tensor): 
+        mmax = float(torch.max(lmag))
+        mmin = float(torch.min(lmag))
     else:
         raise NotImplementedError('Cannot normalize.')
-    lmag = 2 * (lmag - mmin) / (mmax - mmin) - 1
+    if mmax - mmin > 0:
+        lmag = 2 * (lmag - mmin) / (mmax - mmin) - 1
+    else:
+        raise ValueError('Cannot be normalized!')
+        # print('Normalization Returning Zeros...')
+        # lmag = np.zeros(tuple(lmag.shape))
     return lmag, mmax, mmin
 
 def denormalize_magnitude(mmax, mmin, lmag):
+    mmax = float(mmax)
+    mmin = float(mmin)
     return ((mmax - mmin) * (lmag + 1) / 2) + mmin
 
 def normalize_phase(agl):
@@ -41,6 +48,10 @@ def denormalize_phase(agl):
     return agl * np.pi
 
 def combine_mag_phase(mag, agl):
+    if isinstance(mag, np.ndarray):
+        mag = torch.from_numpy(mag)
+    if isinstance(agl, np.ndarray):
+        agl = torch.from_numpy(agl)
     return torch.stack((mag, agl), 0)
 
 def stft(y, **kwargs):
