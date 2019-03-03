@@ -93,7 +93,7 @@ class FMADataset(BaseDataset):
         }
 
     def __len__(self):
-        """Return the total number of images."""
+        """Return the total number of audio files."""
         return max(len(self.A_paths), len(self.B_paths)) * self.num_splits
 
     def get_fma_tracks(self):
