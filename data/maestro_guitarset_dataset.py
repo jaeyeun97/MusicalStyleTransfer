@@ -53,9 +53,10 @@ class MaestroGuitarsetDataset(BaseDataset):
         splits = (maestro_meta.duration // self.duration).rename('splits')
         maestro_meta = maestro_meta.join(splits)[['audio_filename', 'splits']]
         self.A_paths = list()
-        for row in maestro_meta.iterrows():
-            for split in range(row.spilts):
-                self.A_paths.append('{}:{}'.format(row.audio_filename, str(split)))
+        for index, row in maestro_meta.iterrows():
+            for split in range(int(row.splits)):
+                f = os.path.join(maestro_path, row.audio_filename)
+                self.A_paths.append('{}:{}'.format(f, str(split)))
         self.A_size = len(self.A_paths)
 
         guitarset_path = os.path.abspath(os.path.join(self.root, opt.guitarset_dir))
@@ -83,6 +84,9 @@ class MaestroGuitarsetDataset(BaseDataset):
 
         A_audio, A_split = tuple(A_path.split(':'))
         B_audio, B_split = tuple(B_path.split(':'))
+
+        A_split = int(A_split)
+        B_split = int(B_split)
 
         A = self.retrieve_audio(A_audio, A_split)
         B = self.retrieve_audio(B_audio, B_split)

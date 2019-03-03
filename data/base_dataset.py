@@ -25,7 +25,7 @@ class BaseDataset(data.Dataset, ABC):
     -- <modify_commandline_options>:    (optionally) add dataset-specific options and set default options.
     """
 
-    def __init__(self, opt, audio_length):
+    def __init__(self, opt):
         """Initialize the class; save the options in the class
 
         Parameters:
