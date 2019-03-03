@@ -47,7 +47,7 @@ class BaseOptions():
         parser.add_argument('--crop_size', type=int, default=256, help='then crop to this size')
         parser.add_argument('--max_dataset_size', type=int, default=float("inf"), help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         parser.add_argument('--preprocess', type=str, default='normalize,mel', help='scaling and cropping of images at load time [mel|normalize]')
-        parser.add_argument('--sr_to_dur_ratio', type=int, default=1536, help='Sample Rate to resample')
+        parser.add_argument('--sample_rate', type=int, default=16384, help='Sample Rate to resample')
         parser.add_argument('--nfft', type=int, default=2048, help='Number of Frequency bins for STFT')
         parser.add_argument('--smoothing_factor', type=float, default=1, help='Smoothing for Log-Magnitude')
         parser.add_argument('--no_flip', action='store_true', help='if specified, do not flip the images for data augmentation')

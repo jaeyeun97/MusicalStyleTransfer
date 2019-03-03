@@ -10,9 +10,7 @@ from util import mkdir
 
 import csv
 import os
-import librosa
-import soundfile as sf
-import torch
+import random
 
 
 class UnalignedDataset(BaseDataset):
@@ -86,37 +84,3 @@ class UnalignedDataset(BaseDataset):
     def __len__(self):
         """Return the total number of images."""
         return len(self.frame_paths)
-
-    def retrieve_audio(self, path):
-        y, sr = sf.read(path, dtype='float32')
-        if sr != self.sample_rate:
-            y = librosa.resample(y, sr, self.sample_rate)
-        return y
-
-    def transform(self, frame):
-        if self.mel:
-            frame = self.hz_to_mel(frame)
-        # STFT
-        D = librosa.stft(frame, nfft=self.nfft)
-        lmag, agl = self.librosa_calc(D)
-        # TODO: add normalization
-        return combine_mag_angle(lmag, agl)
-
-    @staticmethod
-    def librosa_calc(D):
-        log_mag = np.log(np.abs(D))
-        agl = np.angle(D)
-        return torch.from_numpy(log_mag), torch.from_numpy(agl)
-
-    @staticmethod
-    def torch_calc(D):
-        x = torch.from_numpy(D)
-        real = x[:, : , :, 0]
-        comp = x[:, : , :, 1]
-        log_mag = torch.sqrt(2 * torch.log(real) + 2 * torch.log(comp))
-        agl = torch.atan(torch.div(comp, real))
-        return log_mag, agl
-
-    @staticmethod
-    def combine_mag_angle(mag, agl):
-        return torch.stack((mag, agl), 2)

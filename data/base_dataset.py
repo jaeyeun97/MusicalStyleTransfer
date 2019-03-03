@@ -34,15 +34,15 @@ class BaseDataset(data.Dataset, ABC):
         self.opt = opt
         self.root = opt.dataroot
         self.nfft = opt.nfft
-        self.sr_dur_ratio = opt.sr_to_dur_ratio
         self.preprocess = opt.preprocess.split(',')
+        self.sample_rate = opt.sample_rate
 
         self.tensor_size = self.nfft // 2 + 1
         self.hop_length = self.nfft // 4
         self.audio_length = (self.tensor_size - 1) * self.hop_length
-        self.duration = DATA_LEN * (1 + ((self.nfft - 2048) / self.sr_dur_ratio)) self.sample_rate = int(self.audio_length / self.duration) + 1
+        self.duration = self.audio_length / self.sample_rate
 
-        print("sample rate: {}".format(self.sample_rate))
+        print("Split size: {} seconds".format(self.duration))
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -77,12 +77,18 @@ class BaseDataset(data.Dataset, ABC):
     def trim_dataset(self, paths):
         return paths[:min(self.opt.max_dataset_size, len(paths))]
 
-    def get_data(self, path):
-        y, sr = librosa.load(path, sr=self.sample_rate, duration=self.duration)
+    def retrieve_audio(self, path, split_num):
+        y, sr = librosa.load(path,
+                             sr=self.sample_rate,
+                             offset=split_num*self.duration,
+                             duration=self.duration)
         if len(y) < self.audio_length:
             y = librosa.util.fix_length(y, self.audio_length)
         else:
             y = y[:self.audio_length]
+        return y
+
+    def transform(self, y):
         # Preprocess
         if 'mel' in self.preprocess:
             y = hz_to_mel(y)
