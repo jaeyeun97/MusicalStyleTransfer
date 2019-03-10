@@ -110,12 +110,10 @@ def init_net(net, init_type='normal', init_gain=0.02, gpu_ids=[]):
     return net
 
 
-def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, init_type='normal', init_gain=0.02, gpu_ids=[]):
+def define_G(ngf, netG, norm='batch', use_dropout=False, init_type='normal', init_gain=0.02, gpu_ids=[]):
     """Create a generator
 
     Parameters:
-        input_nc (int) -- the number of channels in input images
-        output_nc (int) -- the number of channels in output images
         ngf (int) -- the number of filters in the last conv layer
         netG (str) -- the architecture's name: resnet_9blocks | resnet_6blocks | unet_256 | unet_128
         norm (str) -- the name of normalization layers used in the network: batch | instance | none
@@ -140,28 +138,25 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
     net = None
     norm_layer = get_norm_layer(norm_type=norm)
 
-    if netG == 'resnet_12blocks':
-        net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=12)
-    elif netG == 'resnet_9blocks':
-        net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9)
+    if netG == 'resnet_9blocks':
+        net = ResnetGenerator(ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9)
     elif netG == 'resnet_6blocks':
-        net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6)
+        net = ResnetGenerator(ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6)
     elif netG == 'unet_128':
-        net = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
+        net = UnetGenerator(7, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     elif netG == 'unet_256':
-        net = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
+        net = UnetGenerator(8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     elif netG == 'unet_512':
-        net = UnetGenerator(input_nc, output_nc, 9, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
+        net = UnetGenerator(9, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % netG)
     return init_net(net, init_type, init_gain, gpu_ids)
 
 
-def define_D(input_nc, ndf, netD, n_layers_D=3, norm='batch', init_type='normal', init_gain=0.02, gpu_ids=[]):
+def define_D(ndf, netD, n_layers_D=3, norm='batch', init_type='normal', init_gain=0.02, gpu_ids=[]):
     """Create a discriminator
 
     Parameters:
-        input_nc (int)     -- the number of channels in input images
         ndf (int)          -- the number of filters in the first conv layer
         netD (str)         -- the architecture's name: basic | n_layers | pixel
         n_layers_D (int)   -- the number of conv layers in the discriminator; effective when netD=='n_layers'
@@ -191,11 +186,11 @@ def define_D(input_nc, ndf, netD, n_layers_D=3, norm='batch', init_type='normal'
     norm_layer = get_norm_layer(norm_type=norm)
 
     if netD == 'basic':  # default PatchGAN classifier
-        net = NLayerDiscriminator(input_nc, ndf, n_layers=3, norm_layer=norm_layer)
+        net = NLayerDiscriminator(ndf, n_layers=3, norm_layer=norm_layer)
     elif netD == 'n_layers':  # more options
-        net = NLayerDiscriminator(input_nc, ndf, n_layers_D, norm_layer=norm_layer)
+        net = NLayerDiscriminator(ndf, n_layers_D, norm_layer=norm_layer)
     elif netD == 'pixel':     # classify if each pixel is real or fake
-        net = PixelDiscriminator(input_nc, ndf, norm_layer=norm_layer)
+        net = PixelDiscriminator(ndf, norm_layer=norm_layer)
     else:
         raise NotImplementedError('Discriminator model name [%s] is not recognized' % net)
     return init_net(net, init_type, init_gain, gpu_ids)
@@ -317,12 +312,10 @@ class ResnetGenerator(nn.Module):
     We adapt Torch code and idea from Justin Johnson's neural style transfer project(https://github.com/jcjohnson/fast-neural-style)
     """
 
-    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
+    def __init__(self, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
         """Construct a Resnet-based generator
 
         Parameters:
-            input_nc (int)      -- the number of channels in input images
-            output_nc (int)     -- the number of channels in output images
             ngf (int)           -- the number of filters in the last conv layer
             norm_layer          -- normalization layer
             use_dropout (bool)  -- if use dropout layers
@@ -340,7 +333,7 @@ class ResnetGenerator(nn.Module):
         model = [
                  nn.ReflectionPad2d(3),
                  # DebugPrintLayer('Generator before first convolution'),
-                 nn.Conv2d(input_nc, ngf, 8, padding=0, bias=use_bias),
+                 nn.Conv2d(2, ngf, 8, padding=0, bias=use_bias),
                  # DebugPrintLayer('Generator after first convolution'),
                  norm_layer(ngf),
                  nn.ReLU(True)]
@@ -367,7 +360,7 @@ class ResnetGenerator(nn.Module):
                       nn.ReLU(True)]
         model += [nn.ReflectionPad2d(4)]
         # model += [DebugPrintLayer('Generator before last convolution')]
-        model += [nn.Conv2d(ngf, output_nc, 8, padding=0)]
+        model += [nn.Conv2d(ngf, 2, 8, padding=0)]
         # model += [DebugPrintLayer('Generator after last convolution')]
         model += [nn.Tanh()]
 
@@ -441,11 +434,9 @@ class ResnetBlock(nn.Module):
 class UnetGenerator(nn.Module):
     """Create a Unet-based generator"""
 
-    def __init__(self, input_nc, output_nc, num_downs, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False):
+    def __init__(self, num_downs, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False):
         """Construct a Unet generator
         Parameters:
-            input_nc (int)  -- the number of channels in input images
-            output_nc (int) -- the number of channels in output images
             num_downs (int) -- the number of downsamplings in UNet. For example, # if |num_downs| == 7,
                                 image of size 128x128 will become of size 1x1 # at the bottleneck
             ngf (int)       -- the number of filters in the last conv layer
@@ -463,7 +454,7 @@ class UnetGenerator(nn.Module):
         unet_block = UnetSkipConnectionBlock(ngf * 4, ngf * 8, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
         unet_block = UnetSkipConnectionBlock(ngf * 2, ngf * 4, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
         unet_block = UnetSkipConnectionBlock(ngf, ngf * 2, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
-        self.model = UnetSkipConnectionBlock(output_nc, ngf, input_nc=input_nc, submodule=unet_block, outermost=True, norm_layer=norm_layer)  # add the outermost layer
+        self.model = UnetSkipConnectionBlock(2, ngf, input_nc=2, submodule=unet_block, outermost=True, norm_layer=norm_layer)  # add the outermost layer
 
     def forward(self, input):
         """Standard forward"""
@@ -543,11 +534,10 @@ class UnetSkipConnectionBlock(nn.Module):
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator"""
 
-    def __init__(self, input_nc, ndf=64, n_layers=2, norm_layer=nn.BatchNorm2d):
+    def __init__(self, ndf=64, n_layers=2, norm_layer=nn.BatchNorm2d):
         """Construct a PatchGAN discriminator
 
         Parameters:
-            input_nc (int)  -- the number of channels in input images
             ndf (int)       -- the number of filters in the last conv layer
             n_layers (int)  -- the number of conv layers in the discriminator
             norm_layer      -- normalization layer
@@ -561,7 +551,7 @@ class NLayerDiscriminator(nn.Module):
         kw = 4
         padw = 1
         sequence = [nn.ReflectionPad2d(padw),
-                    nn.Conv2d(input_nc, ndf, kernel_size=kw+1, stride=2, padding=0),
+                    nn.Conv2d(2, ndf, kernel_size=kw+1, stride=2, padding=0),
                     # DebugPrintLayer('discriminator, first layer'),
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
@@ -600,11 +590,10 @@ class NLayerDiscriminator(nn.Module):
 class PixelDiscriminator(nn.Module):
     """Defines a 1x1 PatchGAN discriminator (pixelGAN)"""
 
-    def __init__(self, input_nc, ndf=64, norm_layer=nn.BatchNorm2d):
+    def __init__(self, ndf=64, norm_layer=nn.BatchNorm2d):
         """Construct a 1x1 PatchGAN discriminator
 
         Parameters:
-            input_nc (int)  -- the number of channels in input images
             ndf (int)       -- the number of filters in the last conv layer
             norm_layer      -- normalization layer
         """
@@ -615,7 +604,7 @@ class PixelDiscriminator(nn.Module):
             use_bias = norm_layer != nn.InstanceNorm2d
 
         self.net = [
-            nn.Conv2d(input_nc, ndf, kernel_size=1, stride=1, padding=0),
+            nn.Conv2d(2, ndf, kernel_size=1, stride=1, padding=0),
             nn.LeakyReLU(0.2, True),
             nn.Conv2d(ndf, ndf * 2, kernel_size=1, stride=1, padding=0, bias=use_bias),
             norm_layer(ndf * 2),

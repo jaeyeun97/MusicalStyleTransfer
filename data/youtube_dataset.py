@@ -28,7 +28,7 @@ class YoutubeDataset(BaseDataset):
         - define the image transformation.
         """
         # save the option and dataset root
-        super(SingleDataset, self).__init__(opt, prefix) 
+        SingleDataset.__init__(self, opt, prefix) 
         # get the audio path
         audio_path = os.path.abspath(self.root)
         audio_paths = glob.glob(os.path.join(audio_path, '*.wav')) 

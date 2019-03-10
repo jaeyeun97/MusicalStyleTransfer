@@ -2,7 +2,7 @@
 """
 FMA Dataset class
 """
-from data.base_dataset import SingleDataset
+from data.single_dataset import SingleDataset
 from util.fma import FMA
 
 import os
@@ -33,7 +33,7 @@ class FMADataset(SingleDataset):
         opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         # save the option and dataset root
-        super(SingleDataset, self).__init__(opt, prefix)
+        SingleDataset.__init__(self, opt, prefix)
         self.genre = set(self.get_opt('genre').split(','))
 
         metapath = os.path.join(self.root, self.get_opt('metadata_subdir'))
@@ -81,7 +81,6 @@ class FMADataset(SingleDataset):
 
         ids = self.fma.get_genre_ids(self.genre)
         paths = self.fma.get_track_ids_by_genres(ids).map(self.fma.get_audio_path).tolist()
-        paths = self.trim_dataset(paths)
         random.shuffle(paths)
 
         return paths

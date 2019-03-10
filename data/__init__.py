@@ -13,7 +13,9 @@ See our template dataset class 'template_dataset.py' for more details.
 import importlib
 import audioread
 import torch.utils.data
-from data.base_dataset import BaseDataset, SingleDataset, PairDataset
+from data.base_dataset import BaseDataset
+from data.single_dataset import SingleDataset
+from data.pair_dataset import PairDataset
 
 
 def find_dataset_using_name(dataset_name):
@@ -108,7 +110,7 @@ class DatasetLoader():
         """Return a batch of data"""
         i = 0
         it = iter(self.dataloader)
-        while i * self.opt.batch_size < self.opt.max_dataset_size:
+        while i * self.opt.batch_size < self.max_size:
             try:
                 yield next(it)
                 i += 1

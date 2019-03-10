@@ -62,9 +62,6 @@ class BaseDataset(data.Dataset, ABC):
         """
         pass
 
-    def trim_dataset(self, paths):
-        return paths[:min(self.opt.max_dataset_size, len(paths))]
-
     def retrieve_audio(self, path, split_num):
         y, sr = librosa.load(path,
                              sr=self.sample_rate,

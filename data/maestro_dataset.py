@@ -3,18 +3,10 @@ Maestro + GuitarSet Dataset class
 
 For training a CycleGAN Network.
 """
-from data.base_dataset import SingleDataset
-from data.audio_folder import make_dataset
-from util import mkdir
+from data.single_dataset import SingleDataset
 
-import csv
 import os
-import librosa
-import torch
-import random
 import pandas
-import numpy as np
-import glob
 
 
 class MaestroDataset(SingleDataset):
@@ -27,7 +19,7 @@ class MaestroDataset(SingleDataset):
         return parser
 
     def __init__(self, opt, prefix):
-        super(SingleDataset, self).__init__(opt, prefix)
+        SingleDataset.__init__(self, opt, prefix)
 
         maestro_path = self.root 
         maestro_name = os.path.basename(maestro_path)
