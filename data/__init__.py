@@ -13,7 +13,7 @@ See our template dataset class 'template_dataset.py' for more details.
 import importlib
 import audioread
 import torch.utils.data
-from data.base_dataset import BaseDataset
+from data.base_dataset import BaseDataset, SingleDataset, PairDataset
 
 
 def find_dataset_using_name(dataset_name):
@@ -39,10 +39,21 @@ def find_dataset_using_name(dataset_name):
     return dataset
 
 
-def get_option_setter(dataset_name):
+def get_single_option_setter(dataset_name):
     """Return the static method <modify_commandline_options> of the dataset class."""
     dataset_class = find_dataset_using_name(dataset_name)
-    return dataset_class.modify_commandline_options
+    if issubclass(dataset_class, SingleDataset):
+        return dataset_class.modify_commandline_options
+    else:
+        raise TypeError('Dataset not a Single Class')
+
+def get_pair_option_setter(dataset_name):
+    """Return the static method <modify_commandline_options> of the dataset class."""
+    dataset_class = find_dataset_using_name(dataset_name)
+    if issubclass(dataset_class, PairDataset):
+        return dataset_class.modify_commandline_options
+    else:
+        raise TypeError('Dataset not a Pair Class')
 
 
 def create_dataset(opt):
@@ -55,36 +66,43 @@ def create_dataset(opt):
         >>> from data import create_dataset
         >>> dataset = create_dataset(opt)
     """
-    data_loader = CustomDatasetDataLoader(opt)
-    dataset = data_loader.load_data()
-    return dataset
+    if opt.single:
+        A_data_loader = DatasetLoader(opt, 'A')
+        B_data_loader = DatasetLoader(opt, 'B')
+        return A_data_loader, B_data_loader
+    else:
+        data_loader = DatasetLoader(opt, 'pair')
+        return data_loader
 
 
-class CustomDatasetDataLoader():
+class DatasetLoader():
     """Wrapper class of Dataset class that performs multi-threaded data loading"""
 
-    def __init__(self, opt):
+    def __init__(self, opt, prefix):
         """Initialize this class
 
         Step 1: create a dataset instance given the name [dataset_mode]
         Step 2: create a multi-threaded data loader.
         """
         self.opt = opt
-        dataset_class = find_dataset_using_name(opt.dataset_mode)
-        self.dataset = dataset_class(opt)
+        dataset_class = find_dataset_using_name(getattr(opt, '{}_dataset'.format(prefix)))
+        if prefix == 'pair':
+            self.dataset = dataset_class(opt)
+            self.max_size = self.opt.max_dataset_size
+        else:
+            self.dataset = dataset_class(opt, prefix) 
+            self.max_size = getattr(opt, '{}_max_dataset_size'.format(prefix))
         print("dataset [%s] was created" % type(self.dataset).__name__)
+            
         self.dataloader = torch.utils.data.DataLoader(
             self.dataset,
             batch_size=opt.batch_size,
             shuffle=not opt.serial_batches,
             num_workers=int(opt.num_threads))
 
-    def load_data(self):
-        return self
-
     def __len__(self):
         """Return the number of data in the dataset"""
-        return min(len(self.dataset), self.opt.max_dataset_size)
+        return min(len(self.dataset), self.max_size)
 
     def __iter__(self):
         """Return a batch of data"""

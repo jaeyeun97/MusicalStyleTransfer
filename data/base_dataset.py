@@ -32,7 +32,6 @@ class BaseDataset(data.Dataset, ABC):
             opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         self.opt = opt
-        self.root = opt.dataroot
         self.nfft = opt.nfft
         self.preprocess = opt.preprocess.split(',')
         self.sample_rate = opt.sample_rate
@@ -44,19 +43,7 @@ class BaseDataset(data.Dataset, ABC):
         self.duration = self.audio_length / self.sample_rate
 
         print("Split size: {} seconds".format(self.duration))
-
-    @staticmethod
-    def modify_commandline_options(parser, is_train):
-        """Add new dataset-specific options, and rewrite default values for existing options.
-
-        Parameters:
-            parser          -- original option parser
-            is_train (bool) -- whether training phase or test phase. You can use this flag to add training-specific or test-specific options.
-
-        Returns:
-            the modified parser.
-        """
-        return parser
+ 
 
     @abstractmethod
     def __len__(self):
