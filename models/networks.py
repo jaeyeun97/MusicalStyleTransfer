@@ -557,6 +557,7 @@ class NLayerDiscriminator(nn.Module):
         kw = 3
         padw = 1
         sequence = [nn.Conv2d(2, ndf, kernel_size=kw, stride=1, padding=padw),
+                    nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
@@ -565,6 +566,7 @@ class NLayerDiscriminator(nn.Module):
             nf_mult = nf_mult * 2
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
                 nn.MaxPool2d(kw, stride=2, padding=padw),
                 norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
@@ -575,12 +577,13 @@ class NLayerDiscriminator(nn.Module):
         nf_mult = nf_mult * 2 
         sequence += [
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, bias=use_bias),
+            nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, bias=use_bias),
             norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
 
-        sequence += [Flatten()]
-        sequence += [nn.Linear(ndf * nf_mult, ndf * nf_mult, bias=use_bias)]
+        # sequence += [Flatten()]
+        # sequence += [nn.Linear(ndf * nf_mult, ndf * nf_mult, bias=use_bias)]
         self.model = nn.Sequential(*sequence)
 
     def forward(self, input):
