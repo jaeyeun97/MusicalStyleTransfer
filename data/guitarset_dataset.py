@@ -28,7 +28,7 @@ class GuitarsetDataset(SingleDataset):
         # save the option and dataset root
         SingleDataset.__init__(self, opt, prefix) 
         guitarset_path = os.path.abspath(self.root)
-        guitarset_paths = glob.glob(os.path.join(guitarset_path, 'audio/audio_mic/*.wav')) 
+        guitarset_paths = glob.glob(os.path.join(guitarset_path, 'audio/audio_hex-pickup_debleeded/*solo*.wav')) 
         self.paths = list()
         for f in guitarset_paths:
             num_split = int(librosa.get_duration(filename=f) // self.duration)
@@ -44,9 +44,12 @@ class GuitarsetDataset(SingleDataset):
         """
 
         path = self.paths[index] 
-        audio, split = tuple(path.split(':'))
+        solo, split = tuple(path.split(':'))
+        comp = audio.replace('solo', 'comp')
         split = int(split)
-        data = self.retrieve_audio(audio, split)
+        solo = self.retrieve_audio(solo, split)
+        comp = self.retrieve_audio(comp, split)
+        data = np.mean(solo, comp)
         mmax, mmin, data = self.transform(data)
 
         return {
