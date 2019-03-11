@@ -557,7 +557,7 @@ class NLayerDiscriminator(nn.Module):
         kw = 3
         padw = 1
         sequence = [nn.Conv2d(2, ndf, kernel_size=kw, stride=1, padding=padw),
-                    nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
+                    # nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
@@ -566,21 +566,25 @@ class NLayerDiscriminator(nn.Module):
             nf_mult = min(nf_mult * 2, 16)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), bias=use_bias),
-                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), bias=use_bias),
+                # nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), bias=use_bias),
                 nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
                 norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
 
-        # output size = (1024, 3, 3)
+        # output size = (*, 513, 3)
         nf_mult_prev = nf_mult
         nf_mult = min(nf_mult * 2, 16)
         sequence += [
-            DebugPrintLayer('final_disc'),
-            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, bias=use_bias),
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=(1, kw), bias=use_bias),
             norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
+        #output size = (*, 513, 1)
+        sequence += [
+            nn.Conv2d(ndf * nf_mult, 1, kernel_size=1)
+        ]
+        #output size = (1, 513, 1)
 
         # sequence += [Flatten()]
         # sequence += [nn.Linear(ndf * nf_mult, ndf * nf_mult, bias=use_bias)]
