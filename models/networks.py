@@ -334,7 +334,7 @@ class ResnetGenerator(nn.Module):
                  ('norm_init', norm_layer(ngf)),
                  ('relu_init', nn.ReLU(True))]
 
-        self.n_downsampling = 3
+        self.n_downsampling = 4
         for i in range(self.n_downsampling):  # add downsampling layers
             mult = 2 ** i
             model += [('conv_down_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
@@ -533,11 +533,14 @@ class UnetSkipConnectionBlock(nn.Module):
         else:   # add skip connections
             return torch.cat([x, self.model(x)], 1)
 
+class Flatten(nn.Module):
+    def forward(self, input):
+        return input.view(-1)
 
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator"""
 
-    def __init__(self, ndf=16, n_layers=8, norm_layer=nn.BatchNorm2d):
+    def __init__(self, ndf=2, n_layers=9, norm_layer=nn.BatchNorm2d):
         """Construct a PatchGAN discriminator
 
         Parameters:
@@ -557,35 +560,27 @@ class NLayerDiscriminator(nn.Module):
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
-        for n in range(1, n_layers):  # gradually increase the number of filters
+        for n in range(1, n_layers - 1):  # gradually increase the number of filters
             nf_mult_prev = nf_mult
-            nf_mult = min(2 ** n, 8)
+            nf_mult = nf_mult * 2
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
                 nn.MaxPool2d(kw, stride=2, padding=padw),
                 norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
 
+        # output size = (1024, 3, 3)
         nf_mult_prev = nf_mult
-        # nf_mult = min(2 ** n_layers, 8)
+        nf_mult = nf_mult * 2 
         sequence += [
-            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-            nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-            nn.MaxPool2d(kw, stride=2, padding=padw),
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, bias=use_bias),
             norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
 
-        # output size = (1024, 3, 3)
-        sequence += [nn.Conv2d(ndf * nf_mult, ndf * nf_mult * 2, kernel_size=kw), 
-                     nn.Conv2d(ndf * nf_mult * 2, ndf * nf_mult * 2, kernel_size=kw), 
-                     norm_layer(ndf * nf_mult),
-                     nn.LeakyReLU(0.2, True)] 
-        # output size = (2048, 1, 1)
-        sequence += [nn.Linear(ndf * nf_mult * 2, ndf * nf_mult * 2, bias=use_bias)]
-        sequence += [nn.Sigmoid()]
+        sequence += [Flatten()]
+        sequence += [nn.Linear(ndf * nf_mult, ndf * nf_mult, bias=use_bias)]
         self.model = nn.Sequential(*sequence)
 
     def forward(self, input):
