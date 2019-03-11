@@ -47,7 +47,15 @@ if __name__ == '__main__':
     opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
     opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
-    sample_rate = dataset.dataset.sample_rate
+
+    if opt.single:
+        A_dataset, B_dataset = dataset
+        assert A_dataset.dataset.sample_rate == B_dataset.dataset.sample_rate
+        sample_rate = A_dataset.dataset.sample_rate
+        dataset_size = min(len(A_dataset), len(B_dataset))
+        dataset = zip(A_dataset, B_dataset)
+    else:
+        sample_rate = dataset.dataset.sample_rate
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
     mkdir(opt.results_dir)

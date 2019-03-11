@@ -32,7 +32,6 @@ if __name__ == '__main__':
     if opt.single:
         A_dataset, B_dataset = dataset
         dataset_size = min(len(A_dataset), len(B_dataset))
-        dataset = zip(A_dataset, B_dataset)
 
     print('The number of training clips = %d' % dataset_size)
 
@@ -44,6 +43,8 @@ if __name__ == '__main__':
         epoch_start_time = time.time()  # timer for entire epoch
         iter_data_time = time.time()    # timer for data loading per iteration
         epoch_iter = 0                  # the number of training iterations in current epoch, reset to 0 every epoch
+        if opt.single:
+            dataset = zip(A_dataset, B_dataset)
 
         for i, data in enumerate(dataset):  # inner loop within one epoch
             iter_start_time = time.time()  # timer for computation per iteration
