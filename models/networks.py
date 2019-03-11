@@ -186,7 +186,7 @@ def define_D(ndf, netD, n_layers_D=3, norm='batch', init_type='normal', init_gai
     norm_layer = get_norm_layer(norm_type=norm)
 
     if netD == 'basic':  # default PatchGAN classifier
-        net = NLayerDiscriminator(ndf, n_layers=10, norm_layer=norm_layer)
+        net = NLayerDiscriminator(ndf, n_layers=9, norm_layer=norm_layer)
     elif netD == 'n_layers':  # more options
         net = NLayerDiscriminator(ndf, n_layers_D, norm_layer=norm_layer)
     elif netD == 'pixel':     # classify if each pixel is real or fake
@@ -540,7 +540,7 @@ class Flatten(nn.Module):
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator"""
 
-    def __init__(self, ndf=2, n_layers=9, norm_layer=nn.BatchNorm2d):
+    def __init__(self, ndf=16, n_layers=5, norm_layer=nn.BatchNorm2d):
         """Construct a PatchGAN discriminator
 
         Parameters:
@@ -561,23 +561,23 @@ class NLayerDiscriminator(nn.Module):
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
-        for n in range(1, n_layers - 1):  # gradually increase the number of filters
+        for n in range(1, n_layers):  # gradually increase the number of filters
             nf_mult_prev = nf_mult
-            nf_mult = nf_mult * 2
+            nf_mult = min(nf_mult * 2, 16)
             sequence += [
-                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.MaxPool2d(kw, stride=2, padding=padw),
+                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), bias=use_bias),
+                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), bias=use_bias),
+                nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
                 norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
 
         # output size = (1024, 3, 3)
         nf_mult_prev = nf_mult
-        nf_mult = nf_mult * 2 
+        nf_mult = min(nf_mult * 2, 16)
         sequence += [
+            DebugPrintLayer('final_disc'),
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, bias=use_bias),
-            nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, bias=use_bias),
             norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
