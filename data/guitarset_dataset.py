@@ -3,7 +3,7 @@ Maestro + GuitarSet Dataset class
 
 For training a CycleGAN Network.
 """
-from data.base_dataset import SingleDataset
+from data.single_dataset import SingleDataset
 
 import os
 import librosa
@@ -14,7 +14,7 @@ class GuitarsetDataset(SingleDataset):
     """A template dataset class for you to implement custom datasets."""
     @staticmethod
     def modify_commandline_options(parser, prefix, is_train): 
-        parser = SingleDataset.modify_commandline_options(parser, prefix is_train)
+        parser = SingleDataset.modify_commandline_options(parser, prefix, is_train)
         set_defaults = SingleDataset.get_default_setter(parser, prefix)
         set_defaults(dataroot='./datasets/GuitarSet', max_dataset_size=4000) 
         return parser
@@ -57,6 +57,6 @@ class GuitarsetDataset(SingleDataset):
                 'min': mmin
                 }
 
-        def __len__(self):
-            """Return the total number of audio files."""
+    def __len__(self):
+        """Return the total number of audio files."""
         return len(self.paths)

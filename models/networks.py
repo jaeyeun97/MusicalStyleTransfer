@@ -186,7 +186,7 @@ def define_D(ndf, netD, n_layers_D=3, norm='batch', init_type='normal', init_gai
     norm_layer = get_norm_layer(norm_type=norm)
 
     if netD == 'basic':  # default PatchGAN classifier
-        net = NLayerDiscriminator(ndf, n_layers=3, norm_layer=norm_layer)
+        net = NLayerDiscriminator(ndf, n_layers=10, norm_layer=norm_layer)
     elif netD == 'n_layers':  # more options
         net = NLayerDiscriminator(ndf, n_layers_D, norm_layer=norm_layer)
     elif netD == 'pixel':     # classify if each pixel is real or fake
@@ -251,7 +251,7 @@ class GANLoss(nn.Module):
         """Calculate loss given Discriminator's output and grount truth labels.
 
         Parameters:
-            prediction (tensor) - - tpyically the prediction output from a discriminator
+            prediction (tensor) - - typically the prediction output from a discriminator
             target_is_real (bool) - - if the ground truth label is for real images or fake images
 
         Returns:
@@ -312,7 +312,7 @@ class ResnetGenerator(nn.Module):
     We adapt Torch code and idea from Justin Johnson's neural style transfer project(https://github.com/jcjohnson/fast-neural-style)
     """
 
-    def __init__(self, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
+    def __init__(self, ngf=16, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
         """Construct a Resnet-based generator
 
         Parameters:
@@ -329,46 +329,48 @@ class ResnetGenerator(nn.Module):
         else:
             use_bias = norm_layer == nn.InstanceNorm2d
 
-        # change this so that it generates the right dimensions
-        model = [
-                 nn.ReflectionPad2d(3),
-                 # DebugPrintLayer('Generator before first convolution'),
-                 nn.Conv2d(2, ngf, 8, padding=0, bias=use_bias),
-                 # DebugPrintLayer('Generator after first convolution'),
-                 norm_layer(ngf),
-                 nn.ReLU(True)]
+        model = [('pad_init', nn.ReflectionPad2d(3)),
+                 ('conv_init', nn.Conv2d(2, ngf, 7, padding=0, bias=use_bias)),
+                 ('norm_init', norm_layer(ngf)),
+                 ('relu_init', nn.ReLU(True))]
 
-        n_downsampling = 2
-        for i in range(n_downsampling):  # add downsampling layers
+        self.n_downsampling = 3
+        for i in range(self.n_downsampling):  # add downsampling layers
             mult = 2 ** i
-            model += [nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=2, padding=1, bias=use_bias),
-                      norm_layer(ngf * mult * 2),
-                      nn.ReLU(True)]
+            model += [('conv_down_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
+                      ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
+                      ('norm_down_%s' % i, norm_layer(ngf * mult * 2)),
+                      ('relu_down_%s' % i, nn.ReLU(True))]
 
-        mult = 2 ** n_downsampling
+        mult = 2 ** self.n_downsampling
         for i in range(n_blocks):       # add ResNet blocks
+            model += [('resnet_%s' % i, ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias))]
 
-            model += [ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias)]
+        for i in range(self.n_downsampling):  # add upsampling layers
+            mult = 2 ** (self.n_downsampling - i)
+            model += [('unpool_%s' % i, nn.MaxUnpool2d((3, 1), stride=(2, 1), padding=(1, 0))),
+                      ('conv_up_%s' % i, nn.Conv2d(ngf * mult, int(ngf * mult / 2),
+                                                    kernel_size=3, stride=1, padding=1, bias=use_bias)), 
+                      ('norm_up_%s' % i, norm_layer(int(ngf * mult / 2))),
+                      ('relu_up_%s' % i, nn.ReLU(True))]
+        model += [('pad_final_%s' % i, nn.ReflectionPad2d(3)),
+                  ('conv_final_%s' % i, nn.Conv2d(ngf, 2, 7, padding=0)),
+                  ('tanh_%s' % i, nn.Tanh())]
 
-        for i in range(n_downsampling):  # add upsampling layers
-            mult = 2 ** (n_downsampling - i)
-            model += [nn.ConvTranspose2d(ngf * mult, int(ngf * mult / 2),
-                                         kernel_size=3, stride=2,
-                                         padding=1, output_padding=1,
-                                         bias=use_bias),
-                      norm_layer(int(ngf * mult / 2)),
-                      nn.ReLU(True)]
-        model += [nn.ReflectionPad2d(4)]
-        # model += [DebugPrintLayer('Generator before last convolution')]
-        model += [nn.Conv2d(ngf, 2, 8, padding=0)]
-        # model += [DebugPrintLayer('Generator after last convolution')]
-        model += [nn.Tanh()]
-
-        self.model = nn.Sequential(*model)
+        for name, module in model:
+            self.add_module(name, module)
 
     def forward(self, input):
-        """Standard forward"""
-        return self.model(input)
+        index_list = list()
+        for name, module in self._modules.items():
+            if 'unpool' in name:
+                input = module(input, index_list.pop())
+            elif 'pool' in name:
+                input, indices = module(input) 
+                index_list.append(indices)
+            else:
+                input = module(input)
+        return input
 
 
 class ResnetBlock(nn.Module):
@@ -465,6 +467,7 @@ class UnetSkipConnectionBlock(nn.Module):
     """Defines the Unet submodule with skip connection.
         X -------------------identity----------------------
         |-- downsampling -- |submodule| -- upsampling --|
+                print(input.size())
     """
 
     def __init__(self, outer_nc, inner_nc, input_nc=None,
@@ -534,7 +537,7 @@ class UnetSkipConnectionBlock(nn.Module):
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator"""
 
-    def __init__(self, ndf=64, n_layers=2, norm_layer=nn.BatchNorm2d):
+    def __init__(self, ndf=16, n_layers=8, norm_layer=nn.BatchNorm2d):
         """Construct a PatchGAN discriminator
 
         Parameters:
@@ -548,11 +551,9 @@ class NLayerDiscriminator(nn.Module):
         else:
             use_bias = norm_layer != nn.BatchNorm2d
 
-        kw = 4
+        kw = 3
         padw = 1
-        sequence = [nn.ReflectionPad2d(padw),
-                    nn.Conv2d(2, ndf, kernel_size=kw+1, stride=2, padding=0),
-                    # DebugPrintLayer('discriminator, first layer'),
+        sequence = [nn.Conv2d(2, ndf, kernel_size=kw, stride=1, padding=padw),
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
@@ -560,26 +561,31 @@ class NLayerDiscriminator(nn.Module):
             nf_mult_prev = nf_mult
             nf_mult = min(2 ** n, 8)
             sequence += [
-                nn.ReflectionPad2d(padw),
-                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=2, padding=0, bias=use_bias),
-                # DebugPrintLayer('discriminator, {} layer'.format(n)),
+                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+                nn.MaxPool2d(kw, stride=2, padding=padw),
                 norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
 
         nf_mult_prev = nf_mult
-        nf_mult = min(2 ** n_layers, 8)
+        # nf_mult = min(2 ** n_layers, 8)
         sequence += [
-            nn.ReflectionPad2d(padw),
-            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=1, bias=use_bias),
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+            nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+            nn.MaxPool2d(kw, stride=2, padding=padw),
             norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
 
-        # sequence += [DebugPrintLayer('discriminator, before final layer')]
-        sequence += [nn.ReflectionPad2d(padw)]
-        sequence += [nn.Conv2d(ndf * nf_mult, 1, kernel_size=kw, stride=1)]  # output 1 channel prediction map
-        # sequence += [DebugPrintLayer('discriminator, after final layer')]
+        # output size = (1024, 3, 3)
+        sequence += [nn.Conv2d(ndf * nf_mult, ndf * nf_mult * 2, kernel_size=kw), 
+                     nn.Conv2d(ndf * nf_mult * 2, ndf * nf_mult * 2, kernel_size=kw), 
+                     norm_layer(ndf * nf_mult),
+                     nn.LeakyReLU(0.2, True)] 
+        # output size = (2048, 1, 1)
+        sequence += [nn.Linear(ndf * nf_mult * 2, ndf * nf_mult * 2, bias=use_bias)]
+        sequence += [nn.Sigmoid()]
         self.model = nn.Sequential(*sequence)
 
     def forward(self, input):
