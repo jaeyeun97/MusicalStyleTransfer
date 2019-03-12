@@ -58,4 +58,4 @@ class MaestroDataset(SingleDataset):
 
     def __len__(self):
         """Return the total number of audio files."""
-        return len(self.paths)
+        return min(len(self.paths), self.get_opt('max_dataset_size'))

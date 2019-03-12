@@ -67,14 +67,9 @@ def create_dataset(opt):
     Example:
         >>> from data import create_dataset
         >>> dataset = create_dataset(opt)
-    """
-    if opt.single:
-        A_data_loader = DatasetLoader(opt, 'A')
-        B_data_loader = DatasetLoader(opt, 'B')
-        return A_data_loader, B_data_loader
-    else:
-        data_loader = DatasetLoader(opt, 'pair')
-        return data_loader
+    """ 
+    data_loader = DatasetLoader(opt)
+    return data_loader
 
 
 class DatasetLoader():
