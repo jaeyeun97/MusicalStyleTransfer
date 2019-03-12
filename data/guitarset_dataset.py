@@ -8,6 +8,7 @@ from data.single_dataset import SingleDataset
 import os
 import librosa
 import glob
+import numpy as np
 
 
 class GuitarsetDataset(SingleDataset):
@@ -45,16 +46,16 @@ class GuitarsetDataset(SingleDataset):
 
         path = self.paths[index] 
         solo, split = tuple(path.split(':'))
-        comp = audio.replace('solo', 'comp')
+        comp = solo.replace('solo', 'comp')
         split = int(split)
         solo = self.retrieve_audio(solo, split)
         comp = self.retrieve_audio(comp, split)
-        data = np.mean(solo, comp)
+        data = np.mean([solo, comp], axis=0)
         mmax, mmin, data = self.transform(data)
 
         return {
                 'input': data,
-                'path': audio,
+                'path': path,
                 'split': split,
                 'max': mmax,
                 'min': mmin
