@@ -338,7 +338,7 @@ class ResnetGenerator(nn.Module):
         for i in range(self.n_downsampling):  # add downsampling layers
             mult = 2 ** i
             model += [('conv_down_first_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
-            model += [('conv_down_second_%s' % i, nn.Conv2d(ngf * mult * 2, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
+                      ('conv_down_second_%s' % i, nn.Conv2d(ngf * mult * 2, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
                       ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
                       ('norm_down_%s' % i, norm_layer(ngf * mult * 2)),
                       ('relu_down_%s' % i, nn.ReLU(True))]
