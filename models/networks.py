@@ -186,7 +186,7 @@ def define_D(ndf, netD, n_layers_D=3, norm='batch', init_type='normal', init_gai
     norm_layer = get_norm_layer(norm_type=norm)
 
     if netD == 'basic':  # default PatchGAN classifier
-        net = NLayerDiscriminator(ndf, n_layers=9, norm_layer=norm_layer)
+        net = NLayerDiscriminator(ndf, n_layers=4, norm_layer=norm_layer)
     elif netD == 'n_layers':  # more options
         net = NLayerDiscriminator(ndf, n_layers_D, norm_layer=norm_layer)
     elif netD == 'pixel':     # classify if each pixel is real or fake
@@ -337,7 +337,8 @@ class ResnetGenerator(nn.Module):
         self.n_downsampling = 4
         for i in range(self.n_downsampling):  # add downsampling layers
             mult = 2 ** i
-            model += [('conv_down_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
+            model += [('conv_down_first_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
+            model += [('conv_down_second_%s' % i, nn.Conv2d(ngf * mult * 2, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
                       ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
                       ('norm_down_%s' % i, norm_layer(ngf * mult * 2)),
                       ('relu_down_%s' % i, nn.ReLU(True))]
@@ -349,7 +350,9 @@ class ResnetGenerator(nn.Module):
         for i in range(self.n_downsampling):  # add upsampling layers
             mult = 2 ** (self.n_downsampling - i)
             model += [('unpool_%s' % i, nn.MaxUnpool2d((3, 1), stride=(2, 1), padding=(1, 0))),
-                      ('conv_up_%s' % i, nn.Conv2d(ngf * mult, int(ngf * mult / 2),
+                      ('conv_up_first_%s' % i, nn.Conv2d(ngf * mult, ngf * mult,
+                                                    kernel_size=3, stride=1, padding=1, bias=use_bias)), 
+                      ('conv_up_second_%s' % i, nn.Conv2d(ngf * mult, int(ngf * mult / 2),
                                                     kernel_size=3, stride=1, padding=1, bias=use_bias)), 
                       ('norm_up_%s' % i, norm_layer(int(ngf * mult / 2))),
                       ('relu_up_%s' % i, nn.ReLU(True))]
@@ -535,12 +538,12 @@ class UnetSkipConnectionBlock(nn.Module):
 
 class Flatten(nn.Module):
     def forward(self, input):
-        return input.view(-1)
+        return input.view(2, -1)
 
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator"""
 
-    def __init__(self, ndf=16, n_layers=5, norm_layer=nn.BatchNorm2d):
+    def __init__(self, ndf=16, n_layers=3, norm_layer=nn.BatchNorm2d):
         """Construct a PatchGAN discriminator
 
         Parameters:
@@ -554,54 +557,43 @@ class NLayerDiscriminator(nn.Module):
         else:
             use_bias = norm_layer != nn.BatchNorm2d
 
-        kw = 5
-        padw = 2
+        kw = 3
+        padw = 1
         sequence = [nn.Conv2d(2, ndf, kernel_size=kw, stride=1, padding=padw),
-                    # nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
+                    nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
-        layer_change = n_layers // 2
 
-        for n in range(1, layer_change):  # gradually increase the number of filters
+        for n in range(1, n_layers):  # gradually increase the number of filters
             nf_mult_prev = nf_mult
-            nf_mult = min(nf_mult * 2, 16)
+            nf_mult = min(nf_mult * 2, 32)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                # nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
                 nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
-                # norm_layer(ndf * nf_mult),
+                norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
-
-        kw = 3
-        padw = 1
-        for n in range(layer_change, n_layers):  # gradually increase the number of filters
-            nf_mult_prev = nf_mult
-            nf_mult = min(nf_mult * 2, 16)
-            sequence += [
-                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                # nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
-                # norm_layer(ndf * nf_mult),
-                nn.LeakyReLU(0.2, True)
-            ]
-
-
-        # output size = (*, 513, 3)
+ 
+        # output size = (*, 513, 65)
         nf_mult_prev = nf_mult
-        nf_mult = min(nf_mult * 2, 16)
+        nf_mult = min(nf_mult * 2, 32)
         sequence += [
-            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, bias=use_bias),
-            # norm_layer(ndf * nf_mult),
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
+            nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
+            norm_layer(2),
             nn.LeakyReLU(0.2, True)
         ]
-        #output size = (*, 513, 1)
+        # #output size = (*, 513, 1)
+        # sequence += [
+        #     nn.Conv2d(ndf * nf_mult, 4, kernel_size=1, padding=(padw, 0)),  # output size = (2, 513, 1)
+        #     # Flatten(),
+        #     # nn.Linear(2 * 513, 2 * 513, bias=use_bias),
+        #     # nn.Linear(2 * 513, 2 * 513, bias=use_bias)
+        # ]
         sequence += [
-            nn.Conv2d(ndf * nf_mult, 2, kernel_size=1, padding=(padw, 0)),  # output size = (2, 513, 1)
-            Flatten(),
-            nn.Linear(2 * 513, 2 * 513, bias=use_bias),
-            nn.Linear(2 * 513, 2 * 513, bias=use_bias)
+            nn.Conv2d(ndf * nf_mult, 2, kernel_size=kw, padding=1, bias=use_bias)
         ]
         self.model = nn.Sequential(*sequence)
 
