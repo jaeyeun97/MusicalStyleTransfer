@@ -582,9 +582,9 @@ class NLayerDiscriminator(nn.Module):
         ]
         #output size = (*, 513, 1)
         sequence += [
-            nn.Conv2d(ndf * nf_mult, 1, kernel_size=1)
+            nn.Conv2d(ndf * nf_mult, 2, kernel_size=1)
         ]
-        #output size = (1, 513, 1)
+        #output size = (2, 513, 1)
 
         # sequence += [Flatten()]
         # sequence += [nn.Linear(ndf * nf_mult, ndf * nf_mult, bias=use_bias)]
