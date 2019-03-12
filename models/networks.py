@@ -554,40 +554,55 @@ class NLayerDiscriminator(nn.Module):
         else:
             use_bias = norm_layer != nn.BatchNorm2d
 
-        kw = 3
-        padw = 1
+        kw = 5
+        padw = 2
         sequence = [nn.Conv2d(2, ndf, kernel_size=kw, stride=1, padding=padw),
                     # nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
                     nn.LeakyReLU(0.2, True)]
         nf_mult = 1
         nf_mult_prev = 1
-        for n in range(1, n_layers):  # gradually increase the number of filters
+        layer_change = n_layers // 2
+
+        for n in range(1, layer_change):  # gradually increase the number of filters
             nf_mult_prev = nf_mult
             nf_mult = min(nf_mult * 2, 16)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
                 # nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
                 nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
-                norm_layer(ndf * nf_mult),
+                # norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
+
+        kw = 3
+        padw = 1
+        for n in range(layer_change, n_layers):  # gradually increase the number of filters
+            nf_mult_prev = nf_mult
+            nf_mult = min(nf_mult * 2, 16)
+            sequence += [
+                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+                # nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
+                nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
+                # norm_layer(ndf * nf_mult),
+                nn.LeakyReLU(0.2, True)
+            ]
+
 
         # output size = (*, 513, 3)
         nf_mult_prev = nf_mult
         nf_mult = min(nf_mult * 2, 16)
         sequence += [
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, bias=use_bias),
-            norm_layer(ndf * nf_mult),
+            # norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
         #output size = (*, 513, 1)
         sequence += [
-            nn.Conv2d(ndf * nf_mult, 2, kernel_size=1)
+            nn.Conv2d(ndf * nf_mult, 2, kernel_size=1, padding=(padw, 0)),  # output size = (2, 513, 1)
+            Flatten(),
+            nn.Linear(2 * 513, 2 * 513, bias=use_bias),
+            nn.Linear(2 * 513, 2 * 513, bias=use_bias)
         ]
-        #output size = (2, 513, 1)
-
-        # sequence += [Flatten()]
-        # sequence += [nn.Linear(ndf * nf_mult, ndf * nf_mult, bias=use_bias)]
         self.model = nn.Sequential(*sequence)
 
     def forward(self, input):
