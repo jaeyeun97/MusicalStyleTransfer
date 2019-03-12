@@ -96,6 +96,18 @@ class BaseOptions():
             pair_option_setter = data.get_pair_option_setter(opt.pair_dataset)
             parser = pair_option_setter(parser, self.isTrain)
 
+        # set lengths
+        tensor_size= opt.nfft // 2 + 1
+        hop_length= opt.nfft // 4
+        audio_length = (tensor_size - 1) * hop_length
+        duration = audio_length / opt.sample_rate
+
+        parser.set_defaults(
+            tensor_size=tensor_size,
+            hop_length=hop_length,
+            audio_length=audio_length,
+            duration=duration)
+
         # save and return the parser
         self.parser = parser
         return parser.parse_args()
@@ -135,7 +147,7 @@ class BaseOptions():
             suffix = ('_' + opt.suffix.format(**vars(opt))) if opt.suffix != '' else ''
             opt.name = opt.name + suffix
 
-        self.print_options(opt)
+        self.print_options(opt) 
 
         # set gpu ids
         str_ids = opt.gpu_ids.split(',')

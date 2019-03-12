@@ -36,14 +36,10 @@ class BaseDataset(data.Dataset, ABC):
         self.preprocess = opt.preprocess.split(',')
         self.sample_rate = opt.sample_rate
 
-        self.tensor_size = self.nfft // 2 + 1
-        self.hop_length = self.nfft // 4
-        self.audio_length = (self.tensor_size - 1) * self.hop_length
-
-        self.duration = self.audio_length / self.sample_rate
-
-        print("Split size: {} seconds".format(self.duration))
- 
+        self.tensor_size = opt.tensor_size
+        self.hop_length = opt.hop_length 
+        self.audio_length = opt.audio_length 
+        self.duration = opt.duration
 
     @abstractmethod
     def __len__(self):
