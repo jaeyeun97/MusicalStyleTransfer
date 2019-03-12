@@ -337,7 +337,7 @@ class ResnetGenerator(nn.Module):
         self.n_downsampling = 4
         for i in range(self.n_downsampling):  # add downsampling layers
             mult = 2 ** i
-            model += [('conv_down_first_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
+            model += [('conv_down_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
                       ('conv_down_second_%s' % i, nn.Conv2d(ngf * mult * 2, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
                       ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
                       ('norm_down_%s' % i, norm_layer(ngf * mult * 2)),
@@ -350,9 +350,9 @@ class ResnetGenerator(nn.Module):
         for i in range(self.n_downsampling):  # add upsampling layers
             mult = 2 ** (self.n_downsampling - i)
             model += [('unpool_%s' % i, nn.MaxUnpool2d((3, 1), stride=(2, 1), padding=(1, 0))),
-                      ('conv_up_first_%s' % i, nn.Conv2d(ngf * mult, ngf * mult,
+                      ('conv_up_%s' % i, nn.Conv2d(ngf * mult, int(ngf * mult /2),
                                                     kernel_size=3, stride=1, padding=1, bias=use_bias)), 
-                      ('conv_up_second_%s' % i, nn.Conv2d(ngf * mult, int(ngf * mult / 2),
+                      ('conv_up_second_%s' % i, nn.Conv2d(int(ngf * mult/2), int(ngf * mult / 2),
                                                     kernel_size=3, stride=1, padding=1, bias=use_bias)), 
                       ('norm_up_%s' % i, norm_layer(int(ngf * mult / 2))),
                       ('relu_up_%s' % i, nn.ReLU(True))]
@@ -567,7 +567,7 @@ class NLayerDiscriminator(nn.Module):
 
         for n in range(1, n_layers):  # gradually increase the number of filters
             nf_mult_prev = nf_mult
-            nf_mult = min(nf_mult * 2, 32)
+            nf_mult = min(nf_mult * 2, 16)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
                 nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
@@ -578,7 +578,7 @@ class NLayerDiscriminator(nn.Module):
  
         # output size = (*, 513, 65)
         nf_mult_prev = nf_mult
-        nf_mult = min(nf_mult * 2, 32)
+        nf_mult = min(nf_mult * 2, 16)
         sequence += [
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
             nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
