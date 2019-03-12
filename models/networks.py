@@ -565,7 +565,7 @@ class NLayerDiscriminator(nn.Module):
             nf_mult_prev = nf_mult
             nf_mult = min(nf_mult * 2, 16)
             sequence += [
-                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), bias=use_bias),
+                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
                 # nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), bias=use_bias),
                 nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
                 norm_layer(ndf * nf_mult),
@@ -576,7 +576,7 @@ class NLayerDiscriminator(nn.Module):
         nf_mult_prev = nf_mult
         nf_mult = min(nf_mult * 2, 16)
         sequence += [
-            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=(1, kw), bias=use_bias),
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, bias=use_bias),
             norm_layer(ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
