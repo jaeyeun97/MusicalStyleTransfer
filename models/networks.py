@@ -329,35 +329,53 @@ class ResnetGenerator(nn.Module):
         else:
             use_bias = norm_layer == nn.InstanceNorm2d
 
-        model = [('pad_init', nn.ReflectionPad2d(3)),
-                 ('conv_init', nn.Conv2d(2, ngf, 7, padding=0, bias=use_bias)),
+
+        self.n_downsampling = 4
+
+        padw = 2 ** (self.n_downsampling - 1)
+        kw = 2 * padw + 1
+
+        model = [('pad_init', nn.ReflectionPad2d(padw)),
+                 ('conv_init', nn.Conv2d(2, ngf, kw, bias=use_bias)),
                  ('norm_init', norm_layer(ngf)),
                  ('relu_init', nn.ReLU(True))]
 
-        self.n_downsampling = 3
-        for i in range(self.n_downsampling):  # add downsampling layers
-            mult = 2 ** i
-            model += [('conv_down_%s' % i, nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
-                    ('conv_down_second_%s' % i, nn.Conv2d(ngf * mult * 2, ngf * mult * 2, kernel_size=3, stride=1, padding=1, bias=use_bias)),
-                      ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
-                      ('norm_down_%s' % i, norm_layer(ngf * mult * 2)),
-                      ('relu_down_%s' % i, nn.ReLU(True))]
 
-        mult = 2 ** self.n_downsampling
+        mult = ngf
+        for i in range(self.n_downsampling):  # add downsampling layers 
+            next_mult = mult * 2
+            model += [
+                # ('pad_down_%s' % i, nn.ReflectionPad2d(padw)),
+                ('conv_down_%s' % i, nn.Conv2d(mult, mult, kernel_size=kw, padding=padw, bias=use_bias)),
+                # ('pad_down_second_%s' % i, nn.ReflectionPad2d(padw)),
+                ('conv_down_second_%s' % i, nn.Conv2d(mult, next_mult, kernel_size=kw, padding=padw, bias=use_bias)),
+                ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
+                ('norm_down_%s' % i, norm_layer(next_mult)),
+                ('relu_down_%s' % i, nn.ReLU(True))
+            ]
+            kw = padw + 1
+            padw = padw // 2
+            mult = next_mult
+
         for i in range(n_blocks):       # add ResNet blocks
-            model += [('resnet_%s' % i, ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias))]
+            model += [('resnet_%s' % i, ResnetBlock(mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias))]
 
-        for i in range(self.n_downsampling):  # add upsampling layers
-            mult = 2 ** (self.n_downsampling - i)
-            model += [('unpool_%s' % i, nn.MaxUnpool2d((3, 1), stride=(2, 1), padding=(1, 0))),
-                    ('conv_up_%s' % i, nn.Conv2d(ngf * mult, ngf * mult,
-                                                    kernel_size=3, stride=1, padding=1, bias=use_bias)), 
-                    ('conv_up_second_%s' % i, nn.Conv2d(ngf * mult, int(ngf * mult / 2),
-                                                    kernel_size=3, stride=1, padding=1, bias=use_bias)), 
-                      ('norm_up_%s' % i, norm_layer(int(ngf * mult / 2))),
-                      ('relu_up_%s' % i, nn.ReLU(True))]
-        model += [('pad_final_%s' % i, nn.ReflectionPad2d(3)),
-                  ('conv_final_%s' % i, nn.Conv2d(ngf, 2, 7, padding=0)),
+        for i in range(self.n_downsampling):  # add upsampling layers 
+            padw = 2 ** i
+            kw = 2 * padw + 1
+            next_mult = mult // 2
+            model += [
+                ('unpool_%s' % i, nn.MaxUnpool2d((3, 1), stride=(2, 1), padding=(1, 0))),
+                # ('pad_up_%s' % i, nn.ReflectionPad2d(kw - 1 - padw)),
+                ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult, kernel_size=kw, padding=padw, bias=use_bias)), 
+                ('conv_up_second_%s' % i, nn.ConvTranspose2d(next_mult, next_mult, kernel_size=kw, padding=padw, bias=use_bias)), 
+                ('norm_up_%s' % i, norm_layer(next_mult)),
+                ('relu_up_%s' % i, nn.ReLU(True))
+            ]
+            mult = next_mult
+
+        model += [# ('pad_final_%s' % i, nn.ReflectionPad2d(padw)),
+                  ('conv_final_%s' % i, nn.ConvTranspose2d(ngf, 2, kernel_size=kw, padding=padw)),
                   ('tanh_%s' % i, nn.Tanh())]
 
         for name, module in model:
