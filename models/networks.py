@@ -332,8 +332,10 @@ class ResnetGenerator(nn.Module):
 
         self.n_downsampling = 4
 
-        padw = 2 ** (self.n_downsampling - 1)
-        kw = 2 * padw + 1
+        # padw = 2 ** (self.n_downsampling - 1)
+        # kw = 2 * padw + 1
+        padw = 1
+        kw = 3
 
         model = [('pad_init', nn.ReflectionPad2d(padw)),
                  ('conv_init', nn.Conv2d(2, ngf, kw, bias=use_bias)),
@@ -348,27 +350,27 @@ class ResnetGenerator(nn.Module):
                 # ('pad_down_%s' % i, nn.ReflectionPad2d(padw)),
                 ('conv_down_%s' % i, nn.Conv2d(mult, mult, kernel_size=kw, padding=padw, bias=use_bias)),
                 # ('pad_down_second_%s' % i, nn.ReflectionPad2d(padw)),
-                ('conv_down_second_%s' % i, nn.Conv2d(mult, next_mult, kernel_size=kw, padding=padw, bias=use_bias)),
-                ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
+                ('conv_down_sec_%s' % i, nn.Conv2d(mult, next_mult, kernel_size=(kw, 1), padding=(padw, 0), stride=(2,1), bias=use_bias)),
+                # ('pool_%s' % i, nn.MaxPool2d((3, 1), stride=(2,1), padding=(1, 0), return_indices=True)),
                 ('norm_down_%s' % i, norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.ReLU(True))
             ]
-            kw = padw + 1
-            padw = padw // 2
+            # kw = padw + 1
+            # padw = padw // 2
             mult = next_mult
 
         for i in range(n_blocks):       # add ResNet blocks
             model += [('resnet_%s' % i, ResnetBlock(mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias))]
 
         for i in range(self.n_downsampling):  # add upsampling layers 
-            padw = 2 ** i
-            kw = 2 * padw + 1
+            # padw = 2 ** i
+            # kw = 2 * padw + 1
             next_mult = mult // 2
             model += [
-                ('unpool_%s' % i, nn.MaxUnpool2d((3, 1), stride=(2, 1), padding=(1, 0))),
+                # ('unpool_%s' % i, nn.MaxUnpool2d((3, 1), stride=(2, 1), padding=(1, 0))),
                 # ('pad_up_%s' % i, nn.ReflectionPad2d(kw - 1 - padw)),
-                ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult, kernel_size=kw, padding=padw, bias=use_bias)), 
-                ('conv_up_second_%s' % i, nn.ConvTranspose2d(next_mult, next_mult, kernel_size=kw, padding=padw, bias=use_bias)), 
+                ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult, kernel_size=(kw, 1), padding=(padw, 0), stride=(2,1), bias=use_bias)), 
+                ('conv_up_sec_%s' % i, nn.ConvTranspose2d(next_mult, next_mult, kernel_size=kw, padding=padw, bias=use_bias)), 
                 ('norm_up_%s' % i, norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.ReLU(True))
             ]
@@ -588,8 +590,8 @@ class NLayerDiscriminator(nn.Module):
             nf_mult = min(nf_mult * 2, 16)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
+                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), stride=(1,2), bias=use_bias),
+                # nn.MaxPool2d((1, kw), stride=(1, 2), padding=(0, padw)),
                 norm_layer(ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
