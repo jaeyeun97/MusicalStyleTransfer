@@ -59,8 +59,14 @@ class CycleGANModel(BaseModel):
         if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
             output_names_A.append('idt_B')
             output_names_B.append('idt_A')
-
         self.output_names = output_names_A + output_names_B  # combine visualizations for A and B
+
+        self.dual_gpu = False
+        if len(self.gpu_ids) > 2:
+            print('This model uses up to 2 GPUs')
+            self.second_device = torch.device('cuda:{}'.format(self.gpu_ids[1]))
+            self.dual_gpu = True
+
         # specify the models you want to save to the disk. The training/test scripts will call <BaseModel.save_networks> and <BaseModel.load_networks>.
         if self.isTrain:
             self.model_names = ['G_A', 'G_B', 'D_A', 'D_B']
@@ -105,14 +111,18 @@ class CycleGANModel(BaseModel):
         AtoB = self.opt.direction == 'AtoB'
         first = input[0 if AtoB else 1]
         second = input[1 if AtoB else 0]
-        self.real_A = first['input'].to(self.device)
-        self.real_B = second['input'].to(self.device)
+        self.real_A = first['input'].to(self.device)  
+        if self.dual_gpu:
+            self.real_B = second['input'].to(self.second_device)
+        else:
+            self.real_B = second['input'].to(self.device)
         self.mmax = first['max'] 
         self.mmin = first['min'] 
         self.clip_paths = first['path']
 
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
+
         self.fake_B = self.netG_A(self.real_A)  # G_A(A)
         self.rec_A = self.netG_B(self.fake_B)   # G_B(G_A(A))
         self.fake_A = self.netG_B(self.real_B)  # G_B(B)
