@@ -85,4 +85,4 @@ class ConvAutoencoder(nn.Module):
                 input = module(input, indices)
             else:
                 input = module(input)
-        return self.model(input)
+        return input
