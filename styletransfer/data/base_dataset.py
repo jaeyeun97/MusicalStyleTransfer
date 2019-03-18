@@ -9,10 +9,10 @@ import librosa
 
 import torch.utils.data as data
 from abc import ABC, abstractmethod
-from util import (calc, stft, hz_to_mel,
-                  normalize_magnitude,
-                  normalize_phase,
-                  combine_mag_phase)
+from ..util.audio import (calc, stft, hz_to_mel,
+                          normalize_magnitude,
+                          normalize_phase,
+                          combine_mag_phase)
 
 
 class BaseDataset(data.Dataset, ABC):

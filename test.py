@@ -31,12 +31,10 @@ from options.test_options import TestOptions
 from data import create_dataset
 from models import create_model
 from util import mkdir
-import numpy as np
-import torch
 import librosa
 
 
-def main():
+if __name__ == "__main__":
     opt = TestOptions().parse()  # get test options
     # hard-code some parameters for test
     opt.num_threads = 0   # test code only supports num_threads = 1

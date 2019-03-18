@@ -3,7 +3,7 @@ Maestro + GuitarSet Dataset class
 
 For training a CycleGAN Network.
 """
-from data.single_dataset import SingleDataset
+from .single_dataset import SingleDataset
 
 import os
 import librosa

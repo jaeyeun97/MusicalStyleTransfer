@@ -1,4 +1,4 @@
-from data.base_dataset import BaseDataset
+from .base_dataset import BaseDataset
 from abc import ABC
 
 

@@ -2,7 +2,7 @@ import torch.nn as nn
 import functools
 
 
-class FrequencyClassifier(nn.Module):
+class ConvClassifier(nn.Module):
     """Defines a CNN timbre classifier"""
 
     def __init__(self, ndf=16, n_layers=4, norm_layer=nn.BatchNorm2d):
@@ -22,7 +22,7 @@ class FrequencyClassifier(nn.Module):
         padw = 1
         sequence = [nn.Conv2d(2, ndf, kernel_size=kw, stride=1, padding=padw),
                     nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
-                    nn.LeakyReLU(0.2, True)]
+                    nn.ReLU(True)]
         nf_mult = 1
         nf_mult_prev = 1
 
@@ -31,9 +31,9 @@ class FrequencyClassifier(nn.Module):
             nf_mult = min(nf_mult * 2, 16)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), stride=(1,2), bias=use_bias),
+                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=(1, kw), padding=(0, padw), stride=(1, 2), bias=use_bias),
                 norm_layer(ndf * nf_mult),
-                nn.LeakyReLU(0.2, True)
+                nn.ReLU(True)
             ]
  
         # output size = (*, 513, 65)
@@ -43,12 +43,12 @@ class FrequencyClassifier(nn.Module):
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
             nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
             norm_layer(ndf * nf_mult),
-            nn.LeakyReLU(0.2, True)
+            nn.ReLU(True)
         ]  
         sequence += [
             nn.Conv2d(ndf * nf_mult, 2, kernel_size=kw, padding=1, bias=use_bias),
             norm_layer(ndf * nf_mult),
-            nn.LeakyReLU(0.2, True) 
+            nn.ReLU(True) 
         ]
         self.model = nn.Sequential(*sequence)
 

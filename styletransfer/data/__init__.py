@@ -13,9 +13,9 @@ See our template dataset class 'template_dataset.py' for more details.
 import importlib
 import audioread
 import torch.utils.data
-from data.base_dataset import BaseDataset
-from data.single_dataset import SingleDataset
-from data.pair_dataset import PairDataset
+from .base_dataset import BaseDataset
+from .single_dataset import SingleDataset
+from .pair_dataset import PairDataset
 
 
 def find_dataset_using_name(dataset_name):
@@ -25,7 +25,7 @@ def find_dataset_using_name(dataset_name):
     be instantiated. It has to be a subclass of BaseDataset,
     and it is case-insensitive.
     """
-    dataset_filename = "data." + dataset_name + "_dataset"
+    dataset_filename = "styletransfer.data." + dataset_name + "_dataset"
     datasetlib = importlib.import_module(dataset_filename)
 
     dataset = None

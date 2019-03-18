@@ -7,8 +7,8 @@ def calc(D, eps):
         lmag = np.log(np.abs(D) + eps)
         agl = np.angle(D)
     elif isinstance(D, torch.Tensor):
-        real = x[:, 0 , :, :]
-        comp = x[:, 1 , :, :]
+        real = D[:, 0 , :, :]
+        comp = D[:, 1 , :, :]
         lmag = torch.log(torch.sqrt(torch.pow(real,2) + torch.pow(comp, 2)) + eps)
         agl = torch.atan(torch.div(comp, real))
     else:
