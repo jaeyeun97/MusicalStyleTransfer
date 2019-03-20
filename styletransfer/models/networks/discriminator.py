@@ -9,6 +9,7 @@ def getDiscriminator(opt, device):
 
 class Discriminator(nn.Module):
     def __init__(self, opt):
+        super(Discriminator, self).__init__()
         norm_layer = get_norm_layer(opt.norm_layer)
         model = opt.discriminator
         self.device = None
