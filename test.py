@@ -27,10 +27,10 @@ See training and test tips at: https://github.com/junyanz/pytorch-CycleGAN-and-p
 See frequently asked questions at: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/docs/qa.md
 """
 import os
-from options.test_options import TestOptions
-from data import create_dataset
-from models import create_model
-from util import mkdir
+from styletransfer.options.test_options import TestOptions
+from styletransfer.data import create_dataset
+from styletransfer.models import create_model
+from styletransfer.util import mkdir
 import librosa
 
 
