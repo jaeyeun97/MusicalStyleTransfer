@@ -3,9 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from .util.scheduler import get_scheduler
-from ..util import (istft, decalc, mel_to_hz,
-                    denormalize_phase,
-                    denormalize_magnitude)
+from ..util import * 
 
 
 class BaseModel(ABC):
@@ -35,9 +33,12 @@ class BaseModel(ABC):
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain
-        self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
+        self.devices = [torch.device('cuda:{}'.format(gpu_id)) for gpu_id in self.gpu_ids] 
+                       if self.gpu_ids else [torch.device('cpu')]
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)  # save all the checkpoints to save_dir
-        self.preprocess = opt.preprocess.split(',')
+
+        self.preprocesses = opt.preprocess.split(',')
+
         self.loss_names = []
         self.model_names = []
         self.output_names = []
@@ -66,18 +67,8 @@ class BaseModel(ABC):
         Parameters:
             input (dict): includes the data itself and its metadata information.
         """
-        pass
-
-    @abstractmethod
-    def forward(self):
-        """Run forward pass; called by both functions <optimize_parameters> and <test>."""
-        pass
-
-    @abstractmethod
-    def optimize_parameters(self):
-        """Calculate losses, gradients, and update network weights; called in every training iteration"""
-        pass
-
+        pass 
+ 
     def setup(self, opt):
         """Load and print networks; create schedulers
 
@@ -98,14 +89,19 @@ class BaseModel(ABC):
                 net = getattr(self, 'net' + name)
                 net.eval()
 
+
+    @abstractmethod
+    def train(self):
+        """train"""
+        pass
+
+    @abstractmethod
     def test(self):
-        """Forward function used in test time.
-
-        This function wraps <forward> function in no_grad() so we don't save intermediate steps for backprop
+        """Forward function used in test time. 
+        use with torch.no_grad() to stop gradients
         """
-        with torch.no_grad():
-            self.forward()
-
+        pass
+        
     def get_clip_paths(self):
         """ Return image paths that are used to load current data"""
         return self.clip_paths
@@ -127,18 +123,35 @@ class BaseModel(ABC):
                 audio_ret[name] = output
         return audio_ret
 
+
+    def preprocess(self, y):
+        # Preprocess
+        if 'mel' in self.preprocesses:
+            y = hz_to_mel(y)
+        # STFT
+        D = stft(y, n_fft=self.opt.nfft)
+        # Compute Magnitude and phase
+        lmag, agl = calc(D, self.opt.smoothing_factor)
+        # Normalize
+        mmax = mmin = 0
+        if 'normalize' in self.preprocesses:
+            lmag, mmax, mmin = normalize_magnitude(lmag)
+            agl = normalize_phase(agl)
+
+        return mmax, mmin, combine_mag_phase(lmag, agl)
+
     def postprocess(self, t):
         t = t.cpu().squeeze()
         mag = t[0, :, :].numpy()
         agl = t[1, :, :].numpy()
-        if 'normalize' in self.preprocess:
+        if 'normalize' in self.preprocesses:
             if self.mmax == 0 and self.mmin == 0:
                 raise Exception('Max = Min = 0')
             mag = denormalize_magnitude(self.mmax, self.mmin, mag)
             agl = denormalize_phase(agl)
         D = decalc(mag, agl, self.opt.smoothing_factor)
         y = istft(D)
-        if 'mel' in self.preprocess:
+        if 'mel' in self.preprocesses:
             y = mel_to_hz(y)
         return y
 
@@ -163,7 +176,6 @@ class BaseModel(ABC):
                 net = getattr(self, 'net' + name)
 
                 if len(self.gpu_ids) > 0 and torch.cuda.is_available():
-                    # TODO: make it copy and store 
                     device = net.device
                     torch.save(net.cpu().state_dict(), save_path)
                     net.to(device)
@@ -198,7 +210,7 @@ class BaseModel(ABC):
                 print('loading the model from %s' % load_path)
                 # if you are using PyTorch newer than 0.4 (e.g., built from
                 # GitHub source), you can remove str() on self.device
-                state_dict = torch.load(load_path, map_location=str(self.device))
+                state_dict = torch.load(load_path, map_location=str(net.device))
                 if hasattr(state_dict, '_metadata'):
                     del state_dict._metadata
 

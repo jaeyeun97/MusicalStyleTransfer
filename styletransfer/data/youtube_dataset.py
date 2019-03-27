@@ -49,14 +49,11 @@ class YoutubeDataset(BaseDataset):
         audio, split = tuple(path.split(':'))
         split = int(split)
         data = self.retrieve_audio(audio, split)
-        mmax, mmin, data = self.transform(data)
 
         return {
                 'input': data,
                 'path': audio,
                 'split': split,
-                'max': mmax,
-                'min': mmin
                 }
 
     def __len__(self):

@@ -51,14 +51,11 @@ class GuitarsetDataset(SingleDataset):
         solo = self.retrieve_audio(solo, split)
         comp = self.retrieve_audio(comp, split)
         data = np.mean([solo, comp], axis=0)
-        mmax, mmin, data = self.transform(data)
 
         return {
                 'input': data,
                 'path': path,
                 'split': split,
-                'max': mmax,
-                'min': mmin
                 }
 
     def __len__(self):

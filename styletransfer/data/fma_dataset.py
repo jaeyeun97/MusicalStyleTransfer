@@ -56,14 +56,11 @@ class FMADataset(SingleDataset):
         split_index = index % self.num_splits
         path = self.paths[path_index]
         data = self.retrieve_audio(path, split_index)
-        mmax, mmin, data = self.transform(data)
 
         return {
             'input': data,
             'path': path,
             'split_index': split_index,
-            'max': mmax,
-            'min': mmin
         }
 
     def __len__(self):

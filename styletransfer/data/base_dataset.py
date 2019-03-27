@@ -36,8 +36,6 @@ class BaseDataset(data.Dataset, ABC):
         self.preprocess = opt.preprocess.split(',')
         self.sample_rate = opt.sample_rate
 
-        self.tensor_size = opt.tensor_size
-        self.hop_length = opt.hop_length 
         self.audio_length = opt.audio_length 
         self.duration = opt.duration
 
@@ -67,20 +65,4 @@ class BaseDataset(data.Dataset, ABC):
             y = librosa.util.fix_length(y, self.audio_length)
         else:
             y = y[:self.audio_length]
-        return y
-
-    def transform(self, y):
-        # Preprocess
-        if 'mel' in self.preprocess:
-            y = hz_to_mel(y)
-        # STFT
-        D = stft(y, n_fft=self.nfft)
-        # Compute Magnitude and phase
-        lmag, agl = calc(D, self.opt.smoothing_factor)
-        # Normalize
-        mmax = mmin = 0
-        if 'normalize' in self.preprocess:
-            lmag, mmax, mmin = normalize_magnitude(lmag)
-            agl = normalize_phase(agl)
-
-        return mmax, mmin, combine_mag_phase(lmag, agl)
+        return y 
