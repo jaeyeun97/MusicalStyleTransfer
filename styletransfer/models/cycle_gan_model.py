@@ -63,13 +63,13 @@ class CycleGANModel(BaseModel):
 
         if self.isTrain:  # define discriminators
             self.netD_A = getDiscriminator(opt, self.devices[-1])
-            self.criterionD_A = GANLoss(opt.gan_mode).to(self.device[-1]) 
+            self.criterionD_A = GANLoss(opt.gan_mode).to(self.devices[-1]) 
             self.netD_B = getDiscriminator(opt, self.devices[0])
-            self.criterionD_B = GANLoss(opt.gan_mode).to(self.device[0])
+            self.criterionD_B = GANLoss(opt.gan_mode).to(self.devices[0])
 
-            if self.opt.use_audio_pool:
-                self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
-                self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            # if self.opt.use_audio_pool:
+            #     self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            #     self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
             # define loss functions
             self.criterionCycle = torch.nn.L1Loss()
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
@@ -93,9 +93,8 @@ class CycleGANModel(BaseModel):
         self.mmax, self.mmin, A = self.preprocess(first)
         _, _, B = self.preprocess(second)
 
-        self.real_A = tuple(A.to(device=dev, copy=True) for dev in self.devices)
-        self.real_B = tuple(B.to(device=dev, copy=True) for dev in self.devices) 
-        self.clip_paths = first['path']
+        self.real_A = tuple(A.to(device=dev) for dev in self.devices)
+        self.real_B = tuple(B.to(device=dev) for dev in self.devices) 
 
 
     def test(self):
@@ -115,16 +114,17 @@ class CycleGANModel(BaseModel):
         self.fake_B = self.netG_A(self.real_A[0])  # G_A(A)
         self.fake_A = self.netG_B(self.real_B[-1])  # G_B(B)
 
-        # Train Disc. with real data
+         
+        # Train Disc.
         self.set_requires_grad([self.netD_A, self.netD_B], True) 
         self.optimizer_D.zero_grad()   # set D_A and D_B's gradients to zero
         pred_B_A_real = self.netD_B(self.real_A[0])
         pred_B_B_real = self.netD_B(self.real_B[0])
-        pred_B_B_fake = self.netD_B(self.fake_B)
+        pred_B_B_fake = self.netD_B(self.fake_B.detach())
 
         pred_A_B_real = self.netD_A(self.real_B[-1])
         pred_A_A_real = self.netD_A(self.real_A[-1])
-        pred_A_A_fake = self.netD_A(self.fake_A)
+        pred_A_A_fake = self.netD_A(self.fake_A.detach())
 
         self.loss_D_B = (self.criterionD_B(pred_B_A_real, False)
                        + self.criterionD_B(pred_B_B_real, True)
@@ -136,14 +136,13 @@ class CycleGANModel(BaseModel):
                         + self.criterionD_A(pred_A_A_fake, False)) # / 3
         self.loss_D_A.backward()
         self.optimizer_D.step() 
-        self.set_requires_grad([self.netD_A, self.netD_B], False) 
-        # D training done
+        # D training done 
 
         # Train G  
-        self.optimizer_G.zero_grad()  # set G_A and G_B's gradients to zero
-        self.loss_G_B = self.criterionD_B(pred_B_B_fake, True)
-        self.loss_G_A = self.criterionD_A(pred_A_A_fake, True)
-
+        self.set_requires_grad([self.netD_A, self.netD_B], False) 
+        self.optimizer_G.zero_grad()  # set G_A and G_B's gradients to zero 
+        self.loss_G_B = self.criterionD_B(self.netD_B(self.fake_B), True)
+        self.loss_G_A = self.criterionD_A(self.netD_A(self.fake_A), True)
         if self.devices[0] != self.devices[-1]:
             self.fake_B = self.fake_B.to(self.devices[-1])
             self.fake_A = self.fake_A.to(self.devices[0])
@@ -151,7 +150,10 @@ class CycleGANModel(BaseModel):
         self.rec_B = self.netG_A(self.fake_A)   # G_A(G_B(B)), device[0] 
         self.loss_cycle_A = self.criterionCycle(self.rec_A, self.real_A[-1]) * self.opt.lambda_A
         self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B[0]) * self.opt.lambda_B
+        self.loss_G_A = self.loss_G_A.to(self.devices[0])
+        self.loss_cycle_A = self.loss_cycle_A.to(self.devices[0])
         self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B
         self.loss_G.backward()
         self.optimizer_G.step()
         # G Train done
+

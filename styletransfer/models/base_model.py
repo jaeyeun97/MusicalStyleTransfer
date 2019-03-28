@@ -33,8 +33,7 @@ class BaseModel(ABC):
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain
-        self.devices = [torch.device('cuda:{}'.format(gpu_id)) for gpu_id in self.gpu_ids] 
-                       if self.gpu_ids else [torch.device('cpu')]
+        self.devices = [torch.device('cuda:{}'.format(gpu_id)) for gpu_id in self.gpu_ids] if self.gpu_ids else [torch.device('cpu')]
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)  # save all the checkpoints to save_dir
 
         self.preprocesses = opt.preprocess.split(',')
@@ -43,7 +42,6 @@ class BaseModel(ABC):
         self.model_names = []
         self.output_names = []
         self.optimizers = []
-        self.clip_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
         self.mmax = self.mmin = 0
 
@@ -102,10 +100,6 @@ class BaseModel(ABC):
         """
         pass
         
-    def get_clip_paths(self):
-        """ Return image paths that are used to load current data"""
-        return self.clip_paths
-
     def update_learning_rate(self):
         """Update learning rates for all the networks; called at the end of every epoch"""
         for scheduler in self.schedulers:
@@ -125,6 +119,7 @@ class BaseModel(ABC):
 
 
     def preprocess(self, y):
+        y = y.squeeze().numpy()
         # Preprocess
         if 'mel' in self.preprocesses:
             y = hz_to_mel(y)
@@ -138,7 +133,7 @@ class BaseModel(ABC):
             lmag, mmax, mmin = normalize_magnitude(lmag)
             agl = normalize_phase(agl)
 
-        return mmax, mmin, combine_mag_phase(lmag, agl)
+        return mmax, mmin, combine_mag_phase(lmag, agl).unsqueeze(0)
 
     def postprocess(self, t):
         t = t.cpu().squeeze()

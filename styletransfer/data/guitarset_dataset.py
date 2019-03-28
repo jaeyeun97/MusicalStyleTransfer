@@ -52,11 +52,7 @@ class GuitarsetDataset(SingleDataset):
         comp = self.retrieve_audio(comp, split)
         data = np.mean([solo, comp], axis=0)
 
-        return {
-                'input': data,
-                'path': path,
-                'split': split,
-                }
+        return data
 
     def __len__(self):
         """Return the total number of audio files."""
