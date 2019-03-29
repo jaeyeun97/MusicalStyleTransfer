@@ -113,6 +113,8 @@ class BaseModel(ABC):
         for name in self.output_names:
             if isinstance(name, str):
                 output = getattr(self, name)
+                if type(output) == tuple:
+                    output = output[0]
                 output = self.postprocess(output)
                 audio_ret[name] = output
         return audio_ret

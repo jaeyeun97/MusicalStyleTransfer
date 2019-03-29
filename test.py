@@ -61,7 +61,6 @@ if __name__ == "__main__":
         model.set_input(data)  # unpack data from data loader
         model.test()           # run inference
         clips = model.get_current_audio()  # get image results
-        img_path = model.get_clip_paths()     # get image paths
         iter_dir = os.path.join(opt.results_dir, "{:03d}".format(i))
         mkdir(iter_dir)
         for name, y in clips.items():
