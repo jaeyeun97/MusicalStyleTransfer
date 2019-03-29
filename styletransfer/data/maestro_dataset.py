@@ -15,7 +15,7 @@ class MaestroDataset(SingleDataset):
     def modify_commandline_options(parser, prefix, is_train): 
         parser = SingleDataset.modify_commandline_options(parser, prefix, is_train)
         set_defaults = SingleDataset.get_default_setter(parser, prefix)
-        set_defaults(dataroot='./datasets/maestro-v1.0.0', max_dataset_size=1200) 
+        set_defaults(dataroot='./datasets/maestro-v1.0.0', max_dataset_size=600) 
         return parser
 
     def __init__(self, opt, prefix):

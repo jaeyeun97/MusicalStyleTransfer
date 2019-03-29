@@ -17,7 +17,7 @@ options = {
     'transformer': None
 }
 
-class Convr2dEncoder(nn.Module):
+class Conv2dEncoder(nn.Module):
     def __init__(self, **kwargs):
         super(Conv2dEncoder, self).__init__()
 

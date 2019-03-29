@@ -1,6 +1,7 @@
+import functools
 import torch.nn as nn
-from .network.encoders import Conv1dEncoder, Conv2dEncoder, CRNNEncoder
-from .network.util import get_norm_layer, init_weights
+from .networks.encoders import Conv1dEncoder, Conv2dEncoder, CRNNEncoder
+from .networks.util import get_norm_layer, init_weights
 
 
 def getGenerator(device, opt):
@@ -11,15 +12,15 @@ class Generator(nn.Module):
     def __init__(self, opt):
         super(Generator, self).__init__()
         args = dict(opt.__dict__)
-        encoding_model = opt.autoencoder
+        encoding_model = opt.encoder
         transformer_model = opt.transformer
         args['norm_layer'] = get_norm_layer(opt.norm_layer)
         self.device = None
 
         if type(args['norm_layer']) == functools.partial:
-            args['use_bias'] = args['norm_layer'].func != nn.BatchNorm2d
+            args['use_bias'] = args['norm_layer'].func != nn.BatchNorm1d
         else:
-            args['use_bias'] = args['norm_layer'] != nn.BatchNorm2d
+            args['use_bias'] = args['norm_layer'] != nn.BatchNorm1d
 
         # if transformer_model == 'resnet':
         #     args['transformer'] = Resnet(**args)

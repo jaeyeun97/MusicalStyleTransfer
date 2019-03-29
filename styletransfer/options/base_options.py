@@ -25,9 +25,9 @@ class BaseOptions():
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         # model parameters
         parser.add_argument('--model', type=str, default='cycle_gan', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
-        parser.add_argument('--discriminator', type=str, default='conv', help='architecture of discriminator')
+        parser.add_argument('--discriminator', type=str, default='conv1d', help='architecture of discriminator')
         parser.add_argument('--transformer', type=str, default='none', help='specify generator transformer architecture')
-        parser.add_argument('--autoencoder', type=str, default='conv', help='specify generator autoencoder architecture')
+        parser.add_argument('--encoder', type=str, default='conv1d', help='specify generator autoencoder architecture')
         parser.add_argument('--ngf', type=int, default=32, help='# of generator filters')
         parser.add_argument('--ndf', type=int, default=32, help='# of discriminator filters')
 

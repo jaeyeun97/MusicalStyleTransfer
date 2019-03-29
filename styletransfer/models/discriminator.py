@@ -1,7 +1,8 @@
+import functools
 import torch.nn as nn
 
-from .classifiers import *
-from .util import get_norm_layer, init_weights
+from .networks.classifiers import *
+from .networks.util import get_norm_layer, init_weights
 
 
 def getDiscriminator(opt, device):    

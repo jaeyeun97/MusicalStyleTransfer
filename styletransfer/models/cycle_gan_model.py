@@ -1,8 +1,9 @@
 import torch
 import itertools
 from ..util.audio_pool import AudioPool
+from .generator import getGenerator
+from .discriminator import getDiscriminator
 from .base_model import BaseModel
-from .networks import getGenerator, getDiscriminator
 from .loss import GANLoss
 
 

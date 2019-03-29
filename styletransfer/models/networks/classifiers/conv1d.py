@@ -40,20 +40,18 @@ class Conv1dClassifier(nn.Module):
                           padding=self.conv_pad,
                           dilation=2,
                           bias=self.use_bias), 
-                nn.MaxPool1d(mult, mult,
-                             kernel_size=self.pool_size,
+                nn.MaxPool1d(self.pool_size,
                              padding=self.pool_pad,
-                             stride=self.pool_stride,
-                             bias=self.use_bias),
+                             stride=self.pool_stride),
                 self.norm_layer(mult),
-                nn.Tanh(True)
+                nn.Tanh()
             ]
         # should be 3 here
         self.model += [
             nn.Conv1d(mult, mult, kernel_size=3, bias=self.use_bias),
             self.norm_layer(mult),
-            nn.Tanh(True),
-            Flatten(-1)
+            nn.Tanh(),
+            # Flatten()
         ]
         # now self.tensor_sizex1, prediction per frequency
  
@@ -61,15 +59,12 @@ class Conv1dClassifier(nn.Module):
 
     def forward(self, input):
         """Standard forward."""
-        phase = input[:, 1, :, :]
         input = input[:, 0, :, :]
-        return torch.stack((self.model(input), phase), 1)
-
+        return self.model(input)
 
 class Flatten(nn.Module):
-    def __init__(self, size):
+    def __init__(self):
         super(Flatten, self).__init__()
-        self.size = size
 
     def forward(self, input):
-        return input.view(size) 
+        return input.view((1, -1)) 
