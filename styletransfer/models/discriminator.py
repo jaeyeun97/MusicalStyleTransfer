@@ -10,12 +10,22 @@ def getDiscriminator(opt, device):
 class Discriminator(nn.Module):
     def __init__(self, opt):
         super(Discriminator, self).__init__()
-        norm_layer = get_norm_layer(opt.norm_layer)
+        args = dict(opt.__dict__)
+        args['norm_layer'] = get_norm_layer(opt.norm_layer)
+
         model = opt.discriminator
         self.device = None
 
-        if model == 'conv':
-            self.net = ConvClassifier(ndf=opt.ndf, n_layers=opt.disc_layers, norm_layer=norm_layer)
+        if type(args['norm_layer']) == functools.partial:
+            args['use_bias'] = args['norm_layer'].func != nn.BatchNorm2d
+        else:
+            args['use_bias'] = args['norm_layer'] != nn.BatchNorm2d
+
+
+        if model == 'conv1d':
+            self.net = Conv1dClassifier(**args)
+        elif model == 'conv2d':
+            self.net = Conv2dClassifier(**args)
         else:
             raise NotImplementedError('Discriminator not implmented')
         init_weights(self.net, opt.init_type, opt.init_gain)

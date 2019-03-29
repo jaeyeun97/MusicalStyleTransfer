@@ -1,48 +1,48 @@
+import torch
 import torch.nn as nn
-from .util import option_setter
-from .reshape import Reshape
+from ..util import option_setter
+from ..reshape import Reshape
 
 
 options = {
     'conv_size': 3,
     'conv_pad': 1,
     'norm_layer': nn.BatchNorm2d,
-    'n_downsample': 4,
+    'n_downsample': 2,
     'use_bias': False,
     'shrinking_filter': False,
-    'reshaped': False,
     'transformer': None,
-    'nfft': 1024
+    'tensor_size': 1025,
+    'k': 2,  # out_channel / in_channel
 }
 
 
-class ReshapedConvAutoencoder(nn.Module):
+class Conv1dEncoder(nn.Module):
     def __init__(self, **kwargs):
-        super(ReshapedConvAutoencoder, self).__init__()
+        super(Conv1dEncoder, self).__init__()
 
         option_setter(self, options, kwargs)
 
         if self.shrinking_filter:
-            self.conv_pad = 2 ** (self.n_downsample - 1)
-            self.conv_size = 2 * self.conv_pad + 1
+            self.conv_pad = 5 * (2 ** (self.n_downsample - 1))
+            self.conv_size = self.conv_pad + 1
 
-        self.indices = list()
+        self.models = list()
 
         # Downsample
-        mult = self.nfft
-        self.model = [('reshape_init', Reshape((0, 2, 1, 3)))]
+        mult = self.tensor_size
 
         for i in range(self.n_downsample):
-            next_mult = mult * 2
+            next_mult = mult * self.k
             self.model += [
-                ('conv_down_%s' % i, nn.Conv2d(mult, next_mult,
-                                               kernel_size=(2, self.conv_size),
-                                               padding=(0, self.conv_pad),
-                                               dilation=(1, 2),
-                                               stride=(1, 2),
+                ('conv_down_%s' % i, nn.Conv1d(mult, next_mult,
+                                               kernel_size=self.conv_size,
+                                               padding=self.conv_pad,
+                                               dilation=2,
+                                               stride=2,
                                                bias=self.use_bias)),
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('relu_down_%s' % i, nn.ReLU(True))
+                ('tanh_down_%s' % i, nn.Tanh())
             ]
             if self.shrinking_filter:
                 self.conv_size = self.conv_pad + 1
@@ -51,26 +51,28 @@ class ReshapedConvAutoencoder(nn.Module):
 
         # Transformer
         if self.transformer is not None:
-            self.model.append(self.transformer)
+            self.model.append(('transformer', self.transformer))
 
         # Upsample
         for i in range(self.n_downsample):
             if self.shrinking_filter:
                 self.conv_pad = 2 ** i
                 self.conv_size = 2 * self.conv_pad + 1
-            next_mult = mult // 2
+            next_mult = int(mult * self.k)
             self.model += [
-                ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult,
+                ('conv_up_%s' % i, nn.ConvTranspose1d(mult, next_mult,
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
+                                                      dilation=2,
+                                                      stride=2,
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
-                ('relu_up_%s' % i, nn.ReLU(True))
+                ('Tanh_up_%s' % i, nn.Tanh())
             ]
             mult = next_mult
 
         self.model += [
-            ('conv_final', nn.Conv2d(mult, 2, kernel_size=self.conv_size, padding=self.conv_pad)),
+            ('conv_final', nn.Conv2d(mult, self.tensor_size, kernel_size=self.conv_size, padding=self.conv_pad)),
             ('tanh', nn.Tanh())
         ]
 
@@ -78,13 +80,13 @@ class ReshapedConvAutoencoder(nn.Module):
             self.add_module(name, module)
 
     def forward(self, input):
+        phase = input[:, 1, :, :]
+        input = input[:, 0, :, :]
         for name, module in self.model:
-            if 'pool_down' in name:
-                input, indices = module(input)
-                self.indices.append(indices)
-            elif 'unpool_up' in name:
-                indices = self.indices.pop()
-                input = module(input, indices)
+            if 'transformer' in name:
+                input = module(torch.stack((input, phase), 1))
+                phase = input[:, 1, :, :]
+                input = input[:, 0, :, :]
             else:
                 input = module(input)
-        return input
+        return torch.stack((input, phase), 1)

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from .util import option_setter
+from ..util import option_setter
 
 
 options = { 
@@ -17,9 +17,9 @@ options = {
     'transformer': None
 }
 
-class ConvAutoencoder(nn.Module):
+class Convr2dEncoder(nn.Module):
     def __init__(self, **kwargs):
-        super(ConvAutoencoder, self).__init__()
+        super(Conv2dEncoder, self).__init__()
 
         option_setter(self, options, kwargs) 
 
