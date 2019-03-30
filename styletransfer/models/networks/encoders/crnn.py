@@ -4,7 +4,7 @@ from ..util import option_setter
 
 
 options = {
-    'ngf': 1025,
+    'ngf': 2,
     'mgf': 2,
     'conv_size': 3,
     'conv_pad': 2,
@@ -31,9 +31,22 @@ class CRNNEncoder(nn.Module):
 
         self.indices = list()
 
-        mult = self.tensor_size
+        mult = (self.tensor_size - 1) * self.ngf + 1
         # Downsample
-        self.model = []
+        self.model = [
+            ('conv_init', nn.Conv1d(self.tensor_size, mult,
+                                    kernel_size=self.conv_size,
+                                    padding=self.conv_pad,
+                                    dilation=2,
+                                    bias=self.use_bias)),
+            ('norm_init', self.norm_layer(mult)),
+            ('lstm_init', nn.LSTM(input_size=mult,
+                                  hidden_size=mult,
+                                  num_layers=self.num_rnn_layers,
+                                  batch_first=True,
+                                  bias=self.use_bias)),
+        ]
+
         for i in range(self.n_downsample):
             next_mult = int((mult - 1) * self.mgf) + 1
             self.model += [
@@ -81,6 +94,19 @@ class CRNNEncoder(nn.Module):
                                            bias=self.use_bias))
             ]
             mult = next_mult 
+        self.model += [
+            ('conv_final', nn.ConvTranspose1d(mult, self.tensor_size,
+                                              kernel_size=self.conv_size,
+                                              padding=self.conv_pad,
+                                              dilation=2,
+                                              bias=self.use_bias)),
+            ('norm_final', self.norm_layer(self.tensor_size)),
+            ('lstm_final', nn.LSTM(input_size=self.tensor_size,
+                                       hidden_size=self.tensor_size,
+                                       num_layers=self.num_rnn_layers,
+                                       batch_first=True,
+                                       bias=self.use_bias))
+        ]
 
         for name, module in self.model:
             self.add_module(name, module)

@@ -5,6 +5,7 @@ from ..util import option_setter
 from ...util.debug import Print
 
 options = { 
+    'ndf': 8, 
     'conv_size': 5,
     'conv_pad': 4, 
     'norm_layer': nn.BatchNorm2d,
@@ -24,18 +25,26 @@ class Conv1dClassifier(nn.Module):
         
         self.n_layers = int(np.log2(self.tensor_size - 1))
 
-        self.model = list()
- 
         if self.shrinking_filter:
             self.conv_pad = (2 ** (self.n_layers - 1))
             self.conv_size = self.conv_pad + 1
+
+        mult = (self.tensor_size - 1) * self.ndf + 1
+        self.model = [ 
+                nn.Conv1d(self.tensor_size, mult,
+                          kernel_size=self.conv_size,
+                          padding=self.conv_pad,
+                          dilation=2,
+                          bias=self.use_bias),  
+                self.norm_layer(mult),
+                nn.ReLU(True)
+            ]
  
-        mult = self.tensor_size
         first = int(np.log2(self.conv_size - 1))
         for n in range(first, self.n_layers):
-            # next_mult = (mult - 1) // 2 + 1
+            next_mult = (mult - 1) // 2 + 1 if n % 2 == 0 else next_mult
             self.model += [
-                nn.Conv1d(mult, mult,
+                nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
@@ -44,17 +53,17 @@ class Conv1dClassifier(nn.Module):
                 self.norm_layer(mult),
                 nn.ReLU(True)
             ]
-            # mult = next_mult
+            mult = next_mult
 
         self.model += [
             nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
             self.norm_layer(mult),
             nn.ReLU(True),
             # test layer
-            # nn.Conv1d(mult, self.tensor_size, kernel_size=1, bias=self.use_bias),
             Flatten(),
-            nn.Linear(mult, mult),
-            nn.Linear(mult, 1),
+            nn.Linear(mult, mult * 2),
+            nn.Sigmoid(),
+            nn.Linear(mult * 2, mult),
             nn.Sigmoid()
         ]
  

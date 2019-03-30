@@ -5,7 +5,7 @@ from ..reshape import Reshape
 
 
 options = {
-    'ngf': 4097,
+    'ngf': 8,
     'conv_size': 5,
     'conv_pad': 4,
     'norm_layer': nn.BatchNorm2d,
@@ -29,7 +29,7 @@ class Conv1dEncoder(nn.Module):
             self.conv_size = self.conv_pad + 1
 
 
-        mult = self.ngf
+        mult = (self.tensor_size - 1) * self.ngf + 1
         self.model = [
             ('conv_init', nn.Conv1d(self.tensor_size, mult,
                                     kernel_size=self.conv_size,
