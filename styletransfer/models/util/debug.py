@@ -6,9 +6,9 @@ Size of Input: {}
 ----------------------"""
 
 
-class DebugPrintLayer(nn.Module):
+class Print(nn.Module):
     def __init__(self, layer_name):
-        super(DebugPrintLayer, self).__init__()
+        super(Print, self).__init__()
         self.layer_name = layer_name
     
     def forward(self, x):

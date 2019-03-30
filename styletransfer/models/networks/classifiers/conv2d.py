@@ -1,58 +1,68 @@
+import torch
+import numpy as np
 import torch.nn as nn
-import functools
+from ..util import option_setter
+from ...util.debug import Print
 
+options = { 
+    'conv_size': 3,
+    'conv_pad': 2,
+    'pool_size': 3,
+    'pool_pad': 1,
+    'pool_stride': 2,
+    'norm_layer': nn.BatchNorm2d,
+    'use_bias': False,
+    'shrinking_filter': False,
+    'tensor_size': 1025
+}
 
 class Conv2dClassifier(nn.Module):
-    """Defines a CNN timbre classifier"""
+    """Defines a CNN classifier without phase input"""
 
-    def __init__(self, ndf=16, n_layers=4, norm_layer=nn.BatchNorm2d):
-        """
-        Parameters:
-            ndf (int)       -- the number of filters in the last conv layer
-            n_layers (int)  -- the number of conv layers in the discriminator
-            norm_layer      -- normalization layer
-        """
-        super(ConvClassifier, self).__init__()
-        if type(norm_layer) == functools.partial: 
-            use_bias = norm_layer.func != nn.BatchNorm2d
-        else:
-            use_bias = norm_layer != nn.BatchNorm2d
+    def __init__(self, **kwargs):
+        
+        super(Conv2dClassifier, self).__init__()
 
-        kw = 3
-        padw = 1
-        sequence = [nn.Conv2d(2, ndf, kernel_size=kw, stride=1, padding=padw),
-                    nn.Conv2d(ndf, ndf, kernel_size=kw, stride=1, padding=padw),
-                    nn.ReLU(True)]
-        nf_mult = 1
-        nf_mult_prev = 1
+        option_setter(self, options, kwargs) 
+        
+        self.n_layers = int(np.log2(self.tensor_size - 1))
 
-        for n in range(1, n_layers):  # gradually increase the number of filters
-            nf_mult_prev = nf_mult
-            nf_mult = min(nf_mult * 2, 16)
-            sequence += [
-                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=padw, bias=use_bias),
-                nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=padw, stride=2, bias=use_bias),
-                norm_layer(ndf * nf_mult),
-                nn.ReLU(True)
-            ]
+        model = list()
  
-        # output size = (*, 513, 65)
-        nf_mult_prev = nf_mult
-        nf_mult = min(nf_mult * 2, 16)
-        sequence += [
-            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
-            nn.Conv2d(ndf * nf_mult, ndf * nf_mult, kernel_size=kw, padding=1, bias=use_bias),
-            norm_layer(ndf * nf_mult),
-            nn.ReLU(True)
-        ]  
-        sequence += [
-            nn.Conv2d(ndf * nf_mult, 2, kernel_size=kw, padding=1, bias=use_bias),
-            norm_layer(ndf * nf_mult),
-            nn.ReLU(True) 
+        if self.shrinking_filter:
+            self.conv_pad = 5 * (2 ** (self.n_layers - 1))
+            self.conv_size = self.conv_pad + 1
+
+        mult = 1 
+        for n in range(1, self.n_layers):
+            next_mult = mult * 2
+            model += [
+                Print('disc %s' % n),
+                nn.Conv2d(mult, next_mult,
+                          kernel_size=self.conv_size,
+                          padding=self.conv_pad,
+                          dilation=2,
+                          bias=self.use_bias), 
+                nn.MaxPool2d(self.pool_size,
+                             padding=self.pool_pad,
+                             stride=self.pool_stride),
+                nn.InstanceNorm2d(next_mult, affine=False, track_running_stats=False),
+                nn.Tanh()
+            ]
+            mult = next_mult
+
+        # should be 3 here
+        model += [
+            nn.Conv2d(mult, 1, kernel_size=3, bias=self.use_bias),
+            nn.InstanceNorm2d(next_mult, affine=False, track_running_stats=False),
+            nn.Tanh()
         ]
-        self.model = nn.Sequential(*sequence)
+        # now self.tensor_sizex1, prediction per frequency
+ 
+        self.model = nn.Sequential(*model)
 
     def forward(self, input):
         """Standard forward."""
-        return self.model(input)
-
+        input = input.view(1, 1, self.tensor_size, self.tensor_size)
+        input = self.model(input)
+        return input

@@ -2,10 +2,11 @@ import torch
 import numpy as np
 import torch.nn as nn
 from ..util import option_setter
+from ...util.debug import Print
 
 options = { 
-    'conv_size': 3,
-    'conv_pad': 2,
+    'conv_size': 5,
+    'conv_pad': 4,
     'pool_size': 3,
     'pool_pad': 1,
     'pool_stride': 2,
@@ -29,13 +30,14 @@ class Conv1dClassifier(nn.Module):
         self.model = list()
  
         if self.shrinking_filter:
-            self.conv_pad = 5 * (2 ** (self.n_layers - 1))
+            self.conv_pad = (2 ** (self.n_layers - 1))
             self.conv_size = self.conv_pad + 1
-
+ 
         mult = self.tensor_size
-        for n in range(1, self.n_layers):
+        for n in range(2, self.n_layers):
+            next_mult = (mult - 1) * 2 + 1 if n % 3 == 0 else mult
             self.model += [
-                nn.Conv1d(mult, mult,
+                nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
@@ -43,15 +45,21 @@ class Conv1dClassifier(nn.Module):
                 nn.MaxPool1d(self.pool_size,
                              padding=self.pool_pad,
                              stride=self.pool_stride),
-                self.norm_layer(mult),
+                self.norm_layer(next_mult),
                 nn.Tanh()
             ]
-        # should be 3 here
+            mult = next_mult
+
+        # should be 5 here
         self.model += [
-            nn.Conv1d(mult, mult, kernel_size=3, bias=self.use_bias),
+            nn.Conv1d(mult, mult, kernel_size=5, bias=self.use_bias),
             self.norm_layer(mult),
             nn.Tanh(),
-            # Flatten()
+            # test layer
+            # nn.Conv1d(mult, self.tensor_size, kernel_size=1, bias=self.use_bias),
+            Flatten(),
+            nn.Linear(mult, self.tensor_size),
+            nn.Sigmoid()
         ]
         # now self.tensor_sizex1, prediction per frequency
  
@@ -59,8 +67,8 @@ class Conv1dClassifier(nn.Module):
 
     def forward(self, input):
         """Standard forward."""
-        input = input[:, 0, :, :]
-        return self.model(input)
+        input = self.model(input)
+        return input
 
 class Flatten(nn.Module):
     def __init__(self):

@@ -28,8 +28,12 @@ class BaseOptions():
         parser.add_argument('--discriminator', type=str, default='conv1d', help='architecture of discriminator')
         parser.add_argument('--transformer', type=str, default='none', help='specify generator transformer architecture')
         parser.add_argument('--encoder', type=str, default='conv1d', help='specify generator autoencoder architecture')
-        parser.add_argument('--ngf', type=int, default=32, help='# of generator filters')
-        parser.add_argument('--ndf', type=int, default=32, help='# of discriminator filters')
+        parser.add_argument('--conv_size', type=int, default=3, help='conv filter size')
+        parser.add_argument('--conv_pad', type=int, default=2, help='conv padding size')
+
+        parser.add_argument('--ngf', type=int, default=4097, help='# of generator filters')
+        parser.add_argument('--mgf', type=int, default=0.5, help='generator filter number multiplier')
+        parser.add_argument('--ndf', type=int, default=16, help='# of discriminator filters')
 
         # Conv
         parser.add_argument('--n_downsample', type=int, default=4, help='Used for ConvAutoencoder: number of downsampling layers')

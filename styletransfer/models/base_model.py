@@ -133,19 +133,19 @@ class BaseModel(ABC):
         mmax = mmin = 0
         if 'normalize' in self.preprocesses:
             lmag, mmax, mmin = normalize_magnitude(lmag)
-            agl = normalize_phase(agl)
 
-        return mmax, mmin, combine_mag_phase(lmag, agl).unsqueeze(0)
+        self.phase = agl
+        return mmax, mmin, torch.from_numpy(lmag).unsqueeze(0)
 
     def postprocess(self, t):
         t = t.cpu().squeeze()
-        mag = t[0, :, :].numpy()
-        agl = t[1, :, :].numpy()
+        mag = t.numpy()
+        agl = self.phase
         if 'normalize' in self.preprocesses:
             if self.mmax == 0 and self.mmin == 0:
                 raise Exception('Max = Min = 0')
             mag = denormalize_magnitude(self.mmax, self.mmin, mag)
-            agl = denormalize_phase(agl)
+            # agl = denormalize_phase(agl)
         D = decalc(mag, agl, self.opt.smoothing_factor)
         y = istft(D)
         if 'mel' in self.preprocesses:
