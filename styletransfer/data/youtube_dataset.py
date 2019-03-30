@@ -1,22 +1,23 @@
 """
 YouTube Dataset class
 """
-from data.base_dataset import SingleDataset
+from .single_dataset import SingleDataset
 
 import os
 import librosa
+import glob
 
 
-class YoutubeDataset(BaseDataset):
+class YoutubeDataset(SingleDataset):
     """A template dataset class for you to implement custom datasets."""
     @staticmethod
     def modify_commandline_options(parser, prefix, is_train): 
-        parser = SingleDataset.modify_commandline_options(parser, prefix is_train)
+        parser = SingleDataset.modify_commandline_options(parser, prefix, is_train)
         set_defaults = SingleDataset.get_default_setter(parser, prefix)
         set_defaults(dataroot='./datasets/youtube', max_dataset_size=1000) 
         return parser
 
-    def __init__(self, opt):
+    def __init__(self, opt, prefix):
         """Initialize this dataset class.
 
         Parameters:

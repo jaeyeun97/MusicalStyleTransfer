@@ -2,8 +2,8 @@
 """
 FMA Dataset class
 """
-from data.single_dataset import SingleDataset
-from util.fma import FMA
+from .single_dataset import SingleDataset
+from ..util.fma import FMA
 
 import os
 import random
@@ -22,7 +22,7 @@ class FMADataset(SingleDataset):
         add_argument('metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
         add_argument('audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         add_argument('genre', type=str, default='Classical', help='Genre title of domain %s' % prefix)
-        set_defaults(dataroot='./datasets/fma', max_dataset_size=4000)
+        set_defaults(dataroot='./datasets/fma', max_dataset_size=1000)
 
         return parser
 
@@ -61,7 +61,7 @@ class FMADataset(SingleDataset):
 
     def __len__(self):
         """Return the total number of audio files."""
-        return len(self.paths) * self.num_splits
+        return min(len(self.paths) * self.num_splits, self.get_opt('max_dataset_size'))
 
     def get_fma_tracks(self):
         all_genres = self.fma.get_all_genres()

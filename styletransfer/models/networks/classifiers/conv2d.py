@@ -5,8 +5,9 @@ from ..util import option_setter
 from ...util.debug import Print
 
 options = { 
-    'conv_size': 3,
-    'conv_pad': 2,
+    'ndf': 8,
+    'conv_size': 5,
+    'conv_pad': 4,
     'pool_size': 3,
     'pool_pad': 1,
     'pool_stride': 2,
@@ -25,7 +26,7 @@ class Conv2dClassifier(nn.Module):
 
         option_setter(self, options, kwargs) 
         
-        self.n_layers = int(np.log2(self.tensor_size - 1))
+        self.n_layers = 5 # int(np.log2(self.tensor_size - 1))
 
         model = list()
  
@@ -33,36 +34,59 @@ class Conv2dClassifier(nn.Module):
             self.conv_pad = 5 * (2 ** (self.n_layers - 1))
             self.conv_size = self.conv_pad + 1
 
-        mult = 1 
-        for n in range(1, self.n_layers):
+        model += [
+            nn.Conv2d(1, self.ndf,
+                      kernel_size=self.conv_size,
+                      padding=self.conv_pad,
+                      dilation=2,
+                      bias=self.use_bias),  
+            nn.InstanceNorm2d(self.ndf, affine=True, track_running_stats=False),
+            nn.ReLU(True)
+        ]
+        mult = self.ndf
+
+        for n in range(self.n_layers):
             next_mult = mult * 2
             model += [
-                Print('disc %s' % n),
                 nn.Conv2d(mult, next_mult,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
+                          stride=2,
                           bias=self.use_bias), 
-                nn.MaxPool2d(self.pool_size,
-                             padding=self.pool_pad,
-                             stride=self.pool_stride),
+                # nn.MaxPool2d(self.pool_size,
+                #              padding=self.pool_pad,
+                #              stride=self.pool_stride),
                 nn.InstanceNorm2d(next_mult, affine=False, track_running_stats=False),
-                nn.Tanh()
+                nn.ReLU(True)
             ]
             mult = next_mult
 
-        # should be 3 here
+        ts = ((self.tensor_size - 1) // (2 ** self.n_layers) + 1) ** 2
         model += [
-            nn.Conv2d(mult, 1, kernel_size=3, bias=self.use_bias),
-            nn.InstanceNorm2d(next_mult, affine=False, track_running_stats=False),
-            nn.Tanh()
+            nn.Conv2d(mult, 1,
+                      kernel_size=self.conv_size,
+                      padding=self.conv_pad,
+                      dilation=2,
+                      bias=self.use_bias), 
+            Flatten(),
+            nn.Linear(ts, ts * 2),
+            nn.Linear(ts * 2, ts),
+            # nn.Sigmoid()
         ]
-        # now self.tensor_sizex1, prediction per frequency
  
         self.model = nn.Sequential(*model)
 
     def forward(self, input):
         """Standard forward."""
-        input = input.view(1, 1, self.tensor_size, self.tensor_size)
+        input = input.unsqueeze(1)
         input = self.model(input)
         return input
+
+
+class Flatten(nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, input):
+        return input.view((1, -1)) 

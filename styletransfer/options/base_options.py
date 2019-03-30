@@ -32,8 +32,8 @@ class BaseOptions():
         parser.add_argument('--conv_pad', type=int, default=2, help='conv padding size')
 
         parser.add_argument('--ngf', type=int, default=4097, help='# of generator filters')
-        parser.add_argument('--mgf', type=int, default=0.5, help='generator filter number multiplier')
-        parser.add_argument('--ndf', type=int, default=16, help='# of discriminator filters')
+        parser.add_argument('--mgf', type=float, default=0.5, help='generator filter number multiplier')
+        parser.add_argument('--ndf', type=int, default=8, help='# of discriminator filters')
 
         # Conv
         parser.add_argument('--n_downsample', type=int, default=4, help='Used for ConvAutoencoder: number of downsampling layers')

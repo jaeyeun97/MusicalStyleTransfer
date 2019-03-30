@@ -6,10 +6,7 @@ from ...util.debug import Print
 
 options = { 
     'conv_size': 5,
-    'conv_pad': 4,
-    'pool_size': 3,
-    'pool_pad': 1,
-    'pool_stride': 2,
+    'conv_pad': 4, 
     'norm_layer': nn.BatchNorm2d,
     'use_bias': False,
     'shrinking_filter': False,
@@ -36,32 +33,30 @@ class Conv1dClassifier(nn.Module):
         mult = self.tensor_size
         first = int(np.log2(self.conv_size - 1))
         for n in range(first, self.n_layers):
-            next_mult = (mult - 1) * 2 + 1 if n % 3 == 0 else mult
+            # next_mult = (mult - 1) // 2 + 1
             self.model += [
-                nn.Conv1d(mult, next_mult,
+                nn.Conv1d(mult, mult,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
-                          bias=self.use_bias), 
-                nn.MaxPool1d(self.pool_size,
-                             padding=self.pool_pad,
-                             stride=self.pool_stride),
-                self.norm_layer(next_mult),
-                nn.Tanh()
+                          stride=2,
+                          bias=self.use_bias),  
+                self.norm_layer(mult),
+                nn.ReLU(True)
             ]
-            mult = next_mult
+            # mult = next_mult
 
         self.model += [
             nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
             self.norm_layer(mult),
-            nn.Tanh(),
+            nn.ReLU(True),
             # test layer
             # nn.Conv1d(mult, self.tensor_size, kernel_size=1, bias=self.use_bias),
             Flatten(),
-            nn.Linear(mult, self.tensor_size),
+            nn.Linear(mult, mult),
+            nn.Linear(mult, 1),
             nn.Sigmoid()
         ]
-        # now self.tensor_sizex1, prediction per frequency
  
         self.model = nn.Sequential(*self.model)
 

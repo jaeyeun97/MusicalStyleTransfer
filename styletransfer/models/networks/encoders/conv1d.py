@@ -37,22 +37,21 @@ class Conv1dEncoder(nn.Module):
                                     dilation=2,
                                     bias=self.use_bias)),
             ('norm_init', self.norm_layer(mult)),
-            ('tanh_init', nn.Tanh())
+            ('relu_init', nn.ReLU(True))
         ]
 
         
         # Downsample
-        for i in range(self.n_downsample):
+        for i in range(1, self.n_downsample):
             next_mult = int((mult - 1) * self.mgf) + 1
             self.model += [
                 ('conv_down_%s' % i, nn.Conv1d(mult, next_mult,
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
                                                dilation=2,
-                                               stride=2,
                                                bias=self.use_bias)),
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('tanh_down_%s' % i, nn.Tanh())
+                ('relu_down_%s' % i, nn.ReLU(True))
             ]
             if self.shrinking_filter:
                 self.conv_size = self.conv_pad + 1
@@ -74,10 +73,9 @@ class Conv1dEncoder(nn.Module):
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
                                                       dilation=2,
-                                                      stride=2,
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
-                ('tanh_up_%s' % i, nn.Tanh())
+                ('relu_up_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult
 
