@@ -87,7 +87,7 @@ class Conv1dEncoder(nn.Module):
                                               padding=self.conv_pad,
                                               dilation=2,
                                               bias=self.use_bias)),
-            ('norm_final', self.norm_layer(next_mult)),
+            ('norm_final', self.norm_layer(self.tensor_size)),
             ('tanh_final', nn.Tanh())
         ]
 

@@ -34,7 +34,8 @@ class Conv1dClassifier(nn.Module):
             self.conv_size = self.conv_pad + 1
  
         mult = self.tensor_size
-        for n in range(2, self.n_layers):
+        first = int(np.log2(self.conv_size - 1))
+        for n in range(first, self.n_layers):
             next_mult = (mult - 1) * 2 + 1 if n % 3 == 0 else mult
             self.model += [
                 nn.Conv1d(mult, next_mult,
@@ -50,9 +51,8 @@ class Conv1dClassifier(nn.Module):
             ]
             mult = next_mult
 
-        # should be 5 here
         self.model += [
-            nn.Conv1d(mult, mult, kernel_size=5, bias=self.use_bias),
+            nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
             self.norm_layer(mult),
             nn.Tanh(),
             # test layer
