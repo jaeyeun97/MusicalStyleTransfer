@@ -60,7 +60,7 @@ class Conv1dEncoder(nn.Module):
 
         # Transformer
         if self.transformer is not None:
-            self.model.append(('transformer', self.transformer))
+            self.model.append(('transformer', self.transformer(**kwargs)))
 
         # Upsample
         for i in range(self.n_downsample):

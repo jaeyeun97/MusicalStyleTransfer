@@ -22,9 +22,9 @@ class Generator(nn.Module):
         else:
             args['use_bias'] = args['norm_layer'] != nn.BatchNorm1d
 
-        # if transformer_model == 'resnet':
-        #     args['transformer'] = Resnet(**args)
-        # else:
+        if transformer_model == 'resnet':
+            args['transformer'] = Resnet
+        else:
         args['transformer'] = None
 
         if encoding_model == 'conv2d':
