@@ -23,7 +23,7 @@ class Conv1dClassifier(nn.Module):
 
         option_setter(self, options, kwargs) 
         
-        self.n_layers = int(np.log2(self.tensor_size - 1))
+        self.n_layers = 4 # int(np.log2(self.tensor_size - 1))
 
         if self.shrinking_filter:
             self.conv_pad = (2 ** (self.n_layers - 1))
@@ -40,9 +40,9 @@ class Conv1dClassifier(nn.Module):
                 nn.ReLU(True)
             ]
  
-        first = int(np.log2(self.conv_size - 1))
-        for n in range(first, self.n_layers):
-            next_mult = (mult - 1) // 2 + 1 if n % 2 == 0 else next_mult
+        # first = int(np.log2(self.conv_size - 1))
+        for n in range(self.n_layers):
+            next_mult = (mult - 1) // 2 + 1 # if n % 2 == 0 else next_mult
             self.model += [
                 nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
@@ -55,15 +55,16 @@ class Conv1dClassifier(nn.Module):
             ]
             mult = next_mult
 
+        ts = (self.tensor_size - 1) // (2 ** self.n_layers) + 1
         self.model += [
-            nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
-            self.norm_layer(mult),
-            nn.ReLU(True),
+            # nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
+            # self.norm_layer(mult),
+            # nn.ReLU(True),
             # test layer
             Flatten(),
-            nn.Linear(mult, mult * 2),
+            nn.Linear(mult * ts, ts * mult * 2),
             nn.Sigmoid(),
-            nn.Linear(mult * 2, mult),
+            nn.Linear(ts * mult * 2, ts * mult),
             nn.Sigmoid()
         ]
  

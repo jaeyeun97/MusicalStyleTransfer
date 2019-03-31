@@ -26,7 +26,7 @@ class Conv2dClassifier(nn.Module):
 
         option_setter(self, options, kwargs) 
         
-        self.n_layers = 5 # int(np.log2(self.tensor_size - 1))
+        self.n_layers = 4 # int(np.log2(self.tensor_size - 1))
 
         model = list()
  
@@ -63,16 +63,17 @@ class Conv2dClassifier(nn.Module):
             mult = next_mult
 
         ts = ((self.tensor_size - 1) // (2 ** self.n_layers) + 1) ** 2
+        print(ts)
         model += [
-            nn.Conv2d(mult, self.ndf,
+            nn.Conv2d(mult, 1,
                       kernel_size=self.conv_size,
                       padding=self.conv_pad,
                       dilation=2,
                       bias=self.use_bias), 
             Flatten(),
-            nn.Linear(self.ndf * ts, self.ndf * ts * 2),
+            nn.Linear(ts, ts * 2),
             nn.Sigmoid(),
-            nn.Linear(self.ndf * ts * 2, self.ndf * ts),
+            nn.Linear(ts * 2, ts),
             nn.Sigmoid(),
         ]
  
