@@ -2,11 +2,13 @@ import functools
 import torch.nn as nn
 from .networks.encoders import Conv1dEncoder, Conv2dEncoder, CRNNEncoder
 from .networks.transformers import Resnet1dTransformer, Resnet2dTransformer, LSTMTransformer
-from .networks.util import get_norm_layer, init_weights
+from .networks.util import get_norm_layer, init_weights, get_use_bias
 
 
 def getGenerator(device, opt):
-    return Generator(opt).to(device)
+    generator = Generator(opt).to(device)
+    # init_weights(generator, opt.init_type, opt.init_gain)
+    return generator
 
 
 class Generator(nn.Module):
@@ -15,14 +17,17 @@ class Generator(nn.Module):
         args = dict(opt.__dict__)
         encoding_model = opt.encoder
         transformer_model = opt.transformer
-        args['norm_layer'] = get_norm_layer(opt.norm_layer)
         self.device = None
 
-        if type(args['norm_layer']) == functools.partial:
-            args['use_bias'] = args['norm_layer'].func != nn.BatchNorm1d
+        if '2d' in transformer_model:
+            args['norm_layer'] = get_norm_layer(2, opt.norm_layer)
+        elif '1d' in transformer_model or 'lstm' in transformer_model:
+            args['norm_layer'] = get_norm_layer(1, opt.norm_layer)
         else:
-            args['use_bias'] = args['norm_layer'] != nn.BatchNorm1d
+            raise NotImplementedError('Neither 1 or 2d')
 
+        args['use_bias'] = get_use_bias(args)
+ 
         if transformer_model == 'resnet1d':
             args['transformer'] = Resnet1dTransformer
         elif transformer_model == 'resnet2d':
@@ -32,6 +37,15 @@ class Generator(nn.Module):
         else:
             args['transformer'] = None
 
+        if '2d' in encoding_model:
+            args['norm_layer'] = get_norm_layer(2, opt.norm_layer)
+        elif '1d' in encoding_model or 'crnn' in encoding_model:
+            args['norm_layer'] = get_norm_layer(1, opt.norm_layer)
+        else:
+            raise NotImplementedError('Neither 1 or 2d')
+
+        args['use_bias'] = get_use_bias(args)
+
         if encoding_model == 'conv2d':
             self.net = Conv2dEncoder(**args)
         elif encoding_model == 'conv1d':
@@ -40,7 +54,6 @@ class Generator(nn.Module):
             self.net = CRNNEncoder(**args)
         else:
             raise NotImplementedError('Encoding Model not implemented') 
-        init_weights(self.net, opt.init_type, opt.init_gain)
 
     def forward(self, i):
         return self.net(i)

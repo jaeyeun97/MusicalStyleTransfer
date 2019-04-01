@@ -35,6 +35,8 @@ class BaseOptions():
         parser.add_argument('--mgf', type=float, default=0.5, help='generator filter number multiplier')
         parser.add_argument('--ndf', type=int, default=8, help='# of discriminator filters')
 
+        parser.add_argument('--num_trans_layers', type=int, default=9, help='# of trans layer')
+
         # Conv
         parser.add_argument('--n_downsample', type=int, default=4, help='Used for ConvAutoencoder: number of downsampling layers')
         parser.add_argument('--shrinking_filter', action='store_true', help='Used for ConvAutoencoder: halving/doubling filter size')

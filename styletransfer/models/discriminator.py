@@ -2,34 +2,36 @@ import functools
 import torch.nn as nn
 
 from .networks.classifiers import *
-from .networks.util import get_norm_layer, init_weights
+from .networks.util import get_norm_layer, init_weights, get_use_bias
 
 
 def getDiscriminator(opt, device):    
-    return Discriminator(opt).to(device)
+    disc = Discriminator(opt).to(device)
+    # init_weights(disc, opt.init_type, opt.init_gain)
+    return disc
 
 class Discriminator(nn.Module):
     def __init__(self, opt):
         super(Discriminator, self).__init__()
         args = dict(opt.__dict__)
-        args['norm_layer'] = get_norm_layer(opt.norm_layer)
-
         model = opt.discriminator
         self.device = None
 
-        if type(args['norm_layer']) == functools.partial:
-            args['use_bias'] = args['norm_layer'].func != nn.BatchNorm2d
+        if '2d' in model:
+            args['norm_layer'] = get_norm_layer(2, opt.norm_layer)
+        elif '1d' in model:
+            args['norm_layer'] = get_norm_layer(1, opt.norm_layer)
         else:
-            args['use_bias'] = args['norm_layer'] != nn.BatchNorm2d
+            raise NotImplementedError('Neither 1 or 2d')
 
-
+        args['use_bias'] = get_use_bias(args)
+ 
         if model == 'conv1d':
             self.net = Conv1dClassifier(**args)
         elif model == 'conv2d':
             self.net = Conv2dClassifier(**args)
         else:
             raise NotImplementedError('Discriminator not implmented')
-        init_weights(self.net, opt.init_type, opt.init_gain)
         
     def forward(self, i):
         return self.net(i)

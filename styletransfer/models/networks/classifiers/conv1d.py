@@ -8,9 +8,11 @@ options = {
     'ndf': 8, 
     'conv_size': 5,
     'conv_pad': 4, 
+    'pool_size': 3,
+    'pool_pad': 1,
+    'pool_stride': 2,
     'norm_layer': nn.BatchNorm2d,
     'use_bias': False,
-    'shrinking_filter': False,
     'tensor_size': 1025
 }
 
@@ -23,49 +25,46 @@ class Conv1dClassifier(nn.Module):
 
         option_setter(self, options, kwargs) 
         
-        self.n_layers = 4 # int(np.log2(self.tensor_size - 1))
-
-        if self.shrinking_filter:
-            self.conv_pad = (2 ** (self.n_layers - 1))
-            self.conv_size = self.conv_pad + 1
-
         mult = (self.tensor_size - 1) * self.ndf + 1
         self.model = [ 
                 nn.Conv1d(self.tensor_size, mult,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
-                          bias=self.use_bias),  
+                          bias=self.use_bias),   
                 self.norm_layer(mult),
-                nn.ReLU(True)
+                nn.Tanh()
             ]
- 
-        # first = int(np.log2(self.conv_size - 1))
-        for n in range(self.n_layers):
-            next_mult = (mult - 1) // 2 + 1 # if n % 2 == 0 else next_mult
+
+        self.n_layers = int(np.log2(mult - 1)) 
+        first = int(np.log2(self.conv_size - 1))
+        for n in range(first, self.n_layers):
+            next_mult = min(2049, (mult - 1) * 2 + 1) if n % 2 == 0 else mult
             self.model += [
                 nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
-                          stride=2,
                           bias=self.use_bias),  
-                self.norm_layer(mult),
-                nn.ReLU(True)
+                nn.AvgPool1d(self.pool_size,
+                             padding=self.pool_pad,
+                             stride=self.pool_stride),
+                self.norm_layer(next_mult),
+                nn.Tanh(),
             ]
             mult = next_mult
 
-        ts = (self.tensor_size - 1) // (2 ** self.n_layers) + 1
+        # ts = (self.tensor_size - 1) // (2 ** self.n_layers) + 1
         self.model += [
-            # nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
-            # self.norm_layer(mult),
-            # nn.ReLU(True),
-            # test layer
-            Flatten(),
-            nn.Linear(mult * ts, ts * mult * 2),
+            nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
             nn.Sigmoid(),
-            nn.Linear(ts * mult * 2, ts * mult),
-            nn.Sigmoid()
+            # test layer
+            # nn.Conv1d(mult, self.tensor_size, kernel_size=1, bias=self.use_bias),
+            # Flatten(),
+            # nn.Linear(mult * ts, ts * mult * 2),
+            # nn.Sigmoid(),
+            # nn.Linear(ts * mult * 2, ts * mult),
+            # nn.Sigmoid()
         ]
  
         self.model = nn.Sequential(*self.model)

@@ -47,7 +47,7 @@ def init_weights(net, init_type='normal', init_gain=0.02):
     net.apply(init_func)  # apply the initialization function <init_func>
 
 
-def get_norm_layer(norm_type='instance'):
+def get_norm_layer(dim, norm_type='instance'):
     """Return a normalization layer
 
     Parameters:
@@ -56,12 +56,25 @@ def get_norm_layer(norm_type='instance'):
     For BatchNorm, we use learnable affine parameters and track running statistics (mean/stddev).
     For InstanceNorm, we do not use learnable affine parameters. We do not track running statistics.
     """
-    if norm_type == 'batch':
+    if norm_type == 'batch' and dim == 1:
         norm_layer = functools.partial(nn.BatchNorm1d, affine=True, track_running_stats=True)
-    elif norm_type == 'instance':
+    elif norm_type == 'batch' and dim == 2:
+        norm_layer = functools.partial(nn.BatchNorm2d, affine=True, track_running_stats=True)
+    elif norm_type == 'instance' and dim == 1:
         norm_layer = functools.partial(nn.InstanceNorm1d, affine=False, track_running_stats=False)
+    elif norm_type == 'instance' and dim == 2:
+        norm_layer = functools.partial(nn.InstanceNorm2d, affine=False, track_running_stats=False)
     elif norm_type == 'none':
         norm_layer = None
     else:
         raise NotImplementedError('normalization layer [%s] is not found' % norm_type)
     return norm_layer
+
+
+def get_use_bias(args):
+    if type(args['norm_layer']) == functools.partial:
+        return args['norm_layer'].func != nn.BatchNorm1d \
+                and args['norm_layer'].func != nn.BatchNorm2d
+    else:
+        return args['norm_layer'] != nn.BatchNorm1d \
+                and args['norm_layer'] != nn.BatchNorm2d

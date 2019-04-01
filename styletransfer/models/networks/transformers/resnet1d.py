@@ -3,7 +3,7 @@ from ..resnet import Resnet1d
 from ..util import option_setter
 
 options = { 
-    'num_trans_layer': 9,
+    'num_trans_layers': 9,
     'input_size': 1025,
 }
 
@@ -15,7 +15,7 @@ class Resnet1dTransformer(nn.Module):
 
         self.model = list()
         kwargs['nc'] = self.input_size
-        for i in range(self.num_trans_layer):
+        for i in range(self.num_trans_layers):
             self.model += [Resnet1d(**kwargs)]
 
         self.model = nn.Sequential(*self.model)

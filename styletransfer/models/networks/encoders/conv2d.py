@@ -5,7 +5,7 @@ from ..util import option_setter
 options = { 
     'ngf': 32,
     'conv_size': 3,
-    'conv_pad': 1,
+    'conv_pad': 2,
     'pool_size': 3,
     'pool_pad': 1,
     'pool_stride': 2,
@@ -24,10 +24,6 @@ class Conv2dEncoder(nn.Module):
 
         option_setter(self, options, kwargs) 
 
-        if self.shrinking_filter:
-            self.conv_pad = 2 ** (self.n_downsample - 1)
-            self.conv_size = 2 * self.conv_pad + 1
-
         self.indices = list()
 
         # Downsample
@@ -36,6 +32,7 @@ class Conv2dEncoder(nn.Module):
             ('conv_init', nn.Conv2d(1, mult,
                                     kernel_size=self.conv_size,
                                     padding=self.conv_pad,
+                                    dilation=2,
                                     bias=self.use_bias))
         ]
 
@@ -45,30 +42,26 @@ class Conv2dEncoder(nn.Module):
                 ('conv_down_%s' % i, nn.Conv2d(mult, next_mult,
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
+                                               dilation=2,
                                                bias=self.use_bias)), 
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('relu_down_%s' % i, nn.ReLU(True)),
+                ('relu_down_%s' % i, nn.Tanh()),
                 ('pool_down_%s' % i, nn.MaxPool2d(self.pool_size,
                                                   stride=self.pool_stride,
                                                   padding=self.pool_pad,
                                                   return_indices=True)),
             ]
-            if self.shrinking_filter:
-                self.conv_size = self.conv_pad + 1
-                self.conv_pad = self.conv_pad // 2
             mult = next_mult
 
         # Transformer
         if self.transformer is not None:
             ts = (self.tensor_size - 1) // (2 ** self.n_downsample) + 1
             kwargs['input_size'] = (ts, ts)
-            self.model.append(self.transformer(**kwargs))
+            kwargs['channel_size'] = mult 
+            self.model.append(('trans', self.transformer(**kwargs)))
 
         # Upsample
-        for i in range(self.n_downsample):
-            if self.shrinking_filter:
-                self.conv_pad = 2 ** i
-                self.conv_size = 2 * self.conv_pad + 1
+        for i in range(self.n_downsample): 
             next_mult = mult // 2
             self.model += [
                 ('unpool_up_%s' % i, nn.MaxUnpool2d(self.pool_size,
@@ -77,9 +70,10 @@ class Conv2dEncoder(nn.Module):
                 ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult,
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
+                                                      dilation=2,
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
-                ('relu_up_%s' % i, nn.ReLU(True))
+                ('relu_up_%s' % i, nn.Tanh())
             ]
             mult = next_mult
 
@@ -87,6 +81,7 @@ class Conv2dEncoder(nn.Module):
             ('conv_final', nn.Conv2d(mult, 1,
                                      kernel_size=self.conv_size,
                                      padding=self.conv_pad,
+                                     dilation=2,
                                      bias=self.use_bias)),
             ('tanh', nn.Tanh())
         ]
