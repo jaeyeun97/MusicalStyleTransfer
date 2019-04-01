@@ -1,6 +1,7 @@
 import functools
 import torch.nn as nn
 from .networks.encoders import Conv1dEncoder, Conv2dEncoder, CRNNEncoder
+from .networks.transformers import Resnet1dTransformer, Resnet2dTransformer, LSTMTransformer
 from .networks.util import get_norm_layer, init_weights
 
 
@@ -22,10 +23,14 @@ class Generator(nn.Module):
         else:
             args['use_bias'] = args['norm_layer'] != nn.BatchNorm1d
 
-        if transformer_model == 'resnet':
-            args['transformer'] = Resnet
+        if transformer_model == 'resnet1d':
+            args['transformer'] = Resnet1dTransformer
+        elif transformer_model == 'resnet2d':
+            args['transformer'] = Resnet2dTransformer
+        elif transformer_model == 'lstm':
+            args['transformer'] = LSTMTransformer 
         else:
-        args['transformer'] = None
+            args['transformer'] = None
 
         if encoding_model == 'conv2d':
             self.net = Conv2dEncoder(**args)

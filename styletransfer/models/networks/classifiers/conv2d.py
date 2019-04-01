@@ -52,11 +52,10 @@ class Conv2dClassifier(nn.Module):
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
-                          stride=2,
                           bias=self.use_bias), 
-                # nn.MaxPool2d(self.pool_size,
-                #              padding=self.pool_pad,
-                #              stride=self.pool_stride),
+                nn.AvgPool2d(self.pool_size,
+                             padding=self.pool_pad,
+                             stride=self.pool_stride),
                 nn.InstanceNorm2d(next_mult, affine=False, track_running_stats=False),
                 nn.ReLU(True)
             ]

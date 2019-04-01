@@ -45,13 +45,13 @@ class Conv2dEncoder(nn.Module):
                 ('conv_down_%s' % i, nn.Conv2d(mult, next_mult,
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
-                                               bias=self.use_bias)),
+                                               bias=self.use_bias)), 
+                ('norm_down_%s' % i, self.norm_layer(next_mult)),
+                ('relu_down_%s' % i, nn.ReLU(True)),
                 ('pool_down_%s' % i, nn.MaxPool2d(self.pool_size,
                                                   stride=self.pool_stride,
                                                   padding=self.pool_pad,
                                                   return_indices=True)),
-                ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('relu_down_%s' % i, nn.ReLU(True))
             ]
             if self.shrinking_filter:
                 self.conv_size = self.conv_pad + 1
@@ -60,6 +60,8 @@ class Conv2dEncoder(nn.Module):
 
         # Transformer
         if self.transformer is not None:
+            ts = (self.tensor_size - 1) // (2 ** self.n_downsample) + 1
+            kwargs['input_size'] = (ts, ts)
             self.model.append(self.transformer(**kwargs))
 
         # Upsample

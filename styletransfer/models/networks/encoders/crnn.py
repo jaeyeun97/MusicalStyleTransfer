@@ -8,6 +8,9 @@ options = {
     'mgf': 2,
     'conv_size': 3,
     'conv_pad': 2,
+    'pool_size': 3,
+    'pool_pad': 1,
+    'pool_stride': 2,
     'norm_layer': nn.BatchNorm2d,
     'n_downsample': 4,
     'use_bias': False,
@@ -54,15 +57,18 @@ class CRNNEncoder(nn.Module):
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
                                                dilation=2,
-                                               stride=2,
-                                               bias=self.use_bias)),
+                                               bias=self.use_bias)), 
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 # (N, Freq, Len) -> (N, Len, Freq)
                 ('lstm_down_%s' % i, nn.LSTM(input_size=next_mult,
                                              hidden_size=next_mult,
                                              num_layers=self.num_rnn_layers,
                                              batch_first=True,
-                                             bias=self.use_bias)),
+                                             bias=self.use_bias)), 
+                ('pool_down_%s' % i, nn.MaxPool1d(self.pool_size,
+                                                  stride=self.pool_stride,
+                                                  padding=self.pool_pad,
+                                                  return_indices=True)),
             ]
             if self.shrinking_filter:
                 self.conv_size = self.conv_pad + 1
@@ -71,7 +77,8 @@ class CRNNEncoder(nn.Module):
 
         # Transformer
         if self.transformer is not None:
-            self.model.append(self.transformer(**kwargs))
+            kwargs['input_size'] = mult 
+            self.model.append(('trans', self.transformer(**kwargs)))
 
         # Upsample
         for i in range(self.n_downsample):
@@ -80,10 +87,12 @@ class CRNNEncoder(nn.Module):
                 self.conv_size = 2 * self.conv_pad + 1
             next_mult = int((mult - 1) // self.mgf) + 1
             self.model += [
+                ('unpool_up_%s' % i, nn.MaxUnpool1d(self.pool_size,
+                                                    stride=self.pool_stride,
+                                                    padding=self.pool_pad)),
                 ('conv_up_%s' % i, nn.ConvTranspose1d(mult, next_mult,
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
-                                                      stride=2,
                                                       dilation=2,
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
@@ -113,7 +122,13 @@ class CRNNEncoder(nn.Module):
 
     def forward(self, input):
         for name, module in self.model:
-            if 'lstm' in name:
+            if 'pool_down' in name:
+                input, indices = module(input)
+                self.indices.append(indices)
+            elif 'unpool_up' in name:
+                indices = self.indices.pop()
+                input = module(input, indices)
+            elif 'lstm' in name:
                 input = input.permute(0, 2, 1)
                 input, _ = module(input)
                 input = input.permute(0, 2, 1)
