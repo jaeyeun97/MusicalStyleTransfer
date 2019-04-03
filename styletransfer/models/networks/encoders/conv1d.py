@@ -28,32 +28,35 @@ class Conv1dEncoder(nn.Module):
  
         self.indices = list()
 
-        mult = (self.tensor_size - 1) * self.ngf + 1
+        mult = (self.tensor_size - 1) * self.ngf
         self.model = [
             ('conv_init', nn.Conv1d(self.tensor_size, mult,
                                     kernel_size=self.conv_size,
                                     padding=self.conv_pad,
                                     dilation=2,
+                                    groups=1,
                                     bias=self.use_bias)),
             ('norm_init', self.norm_layer(mult)),
-            ('relu_init', nn.Tanh())
+            ('relu_init', nn.LeakyReLU(0.2, True))
         ]
  
         # Downsample
         for i in range(self.n_downsample):
-            next_mult = int((mult - 1) * self.mgf) + 1 if i % 2 == 0 else mult
+            next_mult = int(mult * self.mgf) # if i % 2 == 0 else mult
             self.model += [
                 ('conv_down_%s' % i, nn.Conv1d(mult, next_mult,
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
                                                dilation=2,
+                                               # stride=2,
+                                               groups=min(mult, next_mult),
                                                bias=self.use_bias)), 
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('relu_down_%s' % i, nn.Tanh()),
-                ('pool_down_%s' % i, nn.MaxPool1d(self.pool_size,
-                                                  stride=self.pool_stride,
-                                                  padding=self.pool_pad,
-                                                  return_indices=True)),
+                ('relu_down_%s' % i, nn.LeakyReLU(0.2, True)),
+                # ('pool_down_%s' % i, nn.MaxPool1d(self.pool_size,
+                #                                   stride=self.pool_stride,
+                #                                   padding=self.pool_pad,
+                #                                   return_indices=True)),
             ] 
             mult = next_mult
 
@@ -64,18 +67,20 @@ class Conv1dEncoder(nn.Module):
 
         # Upsample
         for i in range(self.n_downsample):
-            next_mult = int((mult - 1) // self.mgf) + 1 if (self.n_downsample - i) % 2 == 1 else mult
+            next_mult = int(mult // self.mgf) # if (self.n_downsample - i) % 2 == 1 else mult
             self.model += [
-                ('unpool_up_%s' % i, nn.MaxUnpool1d(self.pool_size,
-                                                    stride=self.pool_stride,
-                                                    padding=self.pool_pad)),
+                # ('unpool_up_%s' % i, nn.MaxUnpool1d(self.pool_size,
+                #                                     stride=self.pool_stride,
+                #                                     padding=self.pool_pad)),
                 ('conv_up_%s' % i, nn.ConvTranspose1d(mult, next_mult,
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
                                                       dilation=2,
+                                                      # stride=2,
+                                                      groups=min(mult, next_mult),
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
-                ('relu_up_%s' % i, nn.Tanh())
+                ('relu_up_%s' % i, nn.LeakyReLU(0.2, True))
             ]
             mult = next_mult
 
@@ -84,6 +89,7 @@ class Conv1dEncoder(nn.Module):
                                               kernel_size=self.conv_size,
                                               padding=self.conv_pad,
                                               dilation=2,
+                                              groups=1,
                                               bias=self.use_bias)),
             ('norm_final', self.norm_layer(self.tensor_size)),
             ('tanh_final', nn.Tanh())

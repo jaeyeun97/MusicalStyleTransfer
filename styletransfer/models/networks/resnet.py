@@ -25,7 +25,7 @@ class Resnet2d(nn.Module):
                           dilation=2,
                           bias=self.use_bias),
                 self.norm_layer(self.nc),
-                nn.ReLU(True)
+                nn.LeakyReLU(0.2, True)
             ]
 
         if self.use_dropout:
@@ -61,7 +61,7 @@ class Resnet1d(nn.Module):
                           dilation=2,
                           bias=self.use_bias),
                 self.norm_layer(self.nc),
-                nn.ReLU(True)
+                nn.LeakyReLU(0.2, True)
             ]
 
         if self.use_dropout:

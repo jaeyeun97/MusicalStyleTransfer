@@ -84,13 +84,13 @@ class DatasetLoader():
         self.opt = opt
         if opt.single:
             A_class = find_dataset_using_name(getattr(opt, 'A_dataset'))
-            A_dataset = A_class(opt, 'A') 
+            A_dataset = self.get_subset(A_class(opt, 'A'))
             self.A_dataset = self.get_dataloader(A_dataset)
             B_class = find_dataset_using_name(getattr(opt, 'B_dataset'))
-            B_dataset = B_class(opt, 'B')
+            B_dataset = self.get_subset(B_class(opt, 'B'))
             self.B_dataset = self.get_dataloader(B_dataset)
             self.size = max(len(A_dataset), len(B_dataset))
-            print("Single dataset [{}] and [{}] was created".format(
+            print("Single datasets [{}] and [{}] were created".format(
                 type(A_dataset).__name__,
                 type(B_dataset).__name__))
         else:
@@ -99,6 +99,19 @@ class DatasetLoader():
             self.size = len(dataset) 
             self.dataset = self.get_dataloader(dataset)
             print("Pair dataset [%s] was created" % type(dataset).__name__)
+
+    def get_subset(self, dataset):
+        if self.opt.phase == 'gan':
+            return dataset
+        else:
+            l = len(dataset)
+            split = int(0.9 * l)
+            if self.opt.phase == 'train':
+                return torch.utils.data.Subset(dataset, range(split))
+            elif self.opt.phase == 'test':
+                return torch.utils.data.Subset(dataset, range(split, l))
+            else:
+                return NotImplementedError('neither train or test?')
 
     def get_dataloader(self, dataset): 
         return torch.utils.data.DataLoader(
@@ -134,4 +147,6 @@ class DatasetLoader():
         else:
             dataset = self.get_iter(self.dataset)
         return dataset
+
+
 

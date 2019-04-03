@@ -47,21 +47,24 @@ if __name__ == "__main__":
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
     mkdir(opt.results_dir)
-    # create a website
-    # web_dir = os.path.join(opt.results_dir, opt.name, '%s_%s' % (opt.phase, opt.epoch))  # define the website directory
-    # webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.epoch))
-    # test with eval mode. This only affects layers like batchnorm and dropout.
-    # For [pix2pix]: we use batchnorm and dropout in the original pix2pix. You can experiment it with and without eval() mode.
-    # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
     if opt.eval:
         model.eval()
+    s = 0
+    total = 0
     for i, data in enumerate(dataset):
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
             break
         model.set_input(data)  # unpack data from data loader
-        model.test()           # run inference
-        clips = model.get_current_audio()  # get image results
-        iter_dir = os.path.join(opt.results_dir, "{:03d}".format(i))
-        mkdir(iter_dir)
-        for name, y in clips.items():
-            librosa.output.write_wav(os.path.join(iter_dir, '{}.wav'.format(name)), y, sample_rate)
+        res = model.test()           # run inference
+        if opt.phase == 'gan':
+            clips = model.get_current_audio()  # get image results
+            iter_dir = os.path.join(opt.results_dir, "{:03d}".format(i))
+            mkdir(iter_dir)
+            for name, y in clips.items():
+                librosa.output.write_wav(os.path.join(iter_dir, '{}.wav'.format(name)), y, sample_rate)
+        elif opt.phase == 'test':
+            s += 1 if float(res[0]) <= 0.5 else 0
+            s += 1 if float(res[1]) > 0.5 else 0
+        total += 2
+    if opt.phase == 'test':
+        print(s/total)

@@ -26,26 +26,22 @@ class Conv2dClassifier(nn.Module):
 
         option_setter(self, options, kwargs) 
         
-        self.n_layers = 4 # int(np.log2(self.tensor_size - 1))
+        self.n_layers = int(np.log2(self.tensor_size - 1))
+        # self.conv_pad = self.conv_pad - (kernel_size - 1) // 2
 
-        model = list()
- 
-        if self.shrinking_filter:
-            self.conv_pad = 5 * (2 ** (self.n_layers - 1))
-            self.conv_size = self.conv_pad + 1
-
-        model += [
+        model = [
             nn.Conv2d(1, self.ndf,
                       kernel_size=self.conv_size,
                       padding=self.conv_pad,
                       dilation=2,
                       bias=self.use_bias),  
-            nn.InstanceNorm2d(self.ndf, affine=True, track_running_stats=False),
-            nn.ReLU(True)
+            self.norm_layer(self.ndf),
+            nn.LeakyReLU(0.2, True)
         ]
         mult = self.ndf
 
-        for n in range(self.n_layers):
+        first = int(np.log2(self.conv_size - 1))
+        for n in range(first, self.n_layers):
             next_mult = mult * 2
             model += [
                 nn.Conv2d(mult, next_mult,
@@ -56,24 +52,21 @@ class Conv2dClassifier(nn.Module):
                 nn.AvgPool2d(self.pool_size,
                              padding=self.pool_pad,
                              stride=self.pool_stride),
-                nn.InstanceNorm2d(next_mult, affine=False, track_running_stats=False),
-                nn.ReLU(True)
+                self.norm_layer(next_mult),
+                nn.LeakyReLU(0.2, True)
             ]
             mult = next_mult
 
-        ts = ((self.tensor_size - 1) // (2 ** self.n_layers) + 1) ** 2
-        print(ts)
+        # ts = ((self.tensor_size - 1) // (2 ** self.n_layers) + 1) ** 2
         model += [
-            nn.Conv2d(mult, 1,
+            nn.Conv2d(mult, mult * 2,
                       kernel_size=self.conv_size,
-                      padding=self.conv_pad,
-                      dilation=2,
                       bias=self.use_bias), 
+            # self.norm_layer(mult),
+            # nn.LeakyReLU(0.2, True),
             Flatten(),
-            nn.Linear(ts, ts * 2),
-            nn.Sigmoid(),
-            nn.Linear(ts * 2, ts),
-            nn.Sigmoid(),
+            nn.Linear(mult * 2, 1),
+            # nn.Sigmoid(),
         ]
  
         self.model = nn.Sequential(*model)

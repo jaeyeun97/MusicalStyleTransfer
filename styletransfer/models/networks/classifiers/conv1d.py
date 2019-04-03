@@ -33,7 +33,7 @@ class Conv1dClassifier(nn.Module):
                           dilation=2,
                           bias=self.use_bias),   
                 self.norm_layer(mult),
-                nn.Tanh()
+                nn.LeakyReLU(0.2, True)
             ]
 
         self.n_layers = int(np.log2(mult - 1)) 
@@ -45,25 +45,28 @@ class Conv1dClassifier(nn.Module):
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
+                          # stride=2,
                           bias=self.use_bias),  
                 nn.AvgPool1d(self.pool_size,
                              padding=self.pool_pad,
                              stride=self.pool_stride),
                 self.norm_layer(next_mult),
-                nn.Tanh(),
+                nn.LeakyReLU(0.2, True)
             ]
             mult = next_mult
 
         # ts = (self.tensor_size - 1) // (2 ** self.n_layers) + 1
         self.model += [
             nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
-            nn.Sigmoid(),
+            self.norm_layer(mult),
+            # nn.LeakyReLU(0.2, True),
             # test layer
             # nn.Conv1d(mult, self.tensor_size, kernel_size=1, bias=self.use_bias),
-            # Flatten(),
-            # nn.Linear(mult * ts, ts * mult * 2),
-            # nn.Sigmoid(),
-            # nn.Linear(ts * mult * 2, ts * mult),
+            # self.norm_layer(self.tensor_size),
+            Flatten(),
+            nn.Linear(mult, 1),
+            # nn.LeakyReLU(0.2, True),
+            # nn.Linear(mult, 1),
             # nn.Sigmoid()
         ]
  
@@ -79,4 +82,4 @@ class Flatten(nn.Module):
         super(Flatten, self).__init__()
 
     def forward(self, input):
-        return input.view((1, -1)) 
+        return input.squeeze(2) 

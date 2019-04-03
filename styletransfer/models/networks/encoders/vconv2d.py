@@ -1,5 +1,6 @@
 import torch.nn as nn
 from ..util import option_setter
+from .vconv2d import VConv2d
 
 
 options = { 
@@ -18,9 +19,9 @@ options = {
     'tensor_size': 1025,
 }
 
-class Conv2dEncoder(nn.Module):
+class VConv2dEncoder(nn.Module):
     def __init__(self, **kwargs):
-        super(Conv2dEncoder, self).__init__()
+        super(VConv2dEncoder, self).__init__()
 
         option_setter(self, options, kwargs) 
 
@@ -29,11 +30,11 @@ class Conv2dEncoder(nn.Module):
         # Downsample
         mult = self.ngf
         self.model = [
-            ('conv_init', nn.Conv2d(1, mult,
-                                    kernel_size=self.conv_size,
-                                    padding=self.conv_pad,
-                                    dilation=2,
-                                    bias=self.use_bias))
+            ('conv_init', VConv2d(1, mult,
+                                  kernel_size=self.conv_size,
+                                  padding=self.conv_pad,
+                                  dilation=2,
+                                  bias=self.use_bias))
         ]
 
         for i in range(self.n_downsample):
@@ -44,7 +45,7 @@ class Conv2dEncoder(nn.Module):
                                                padding=self.conv_pad,
                                                dilation=2,
                                                bias=self.use_bias)), 
-                ('norm_down_%s' % i, self.norm_layer(next_mult)),
+                # ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.LeakyReLU(0.2, True)),
                 ('pool_down_%s' % i, nn.MaxPool2d(self.pool_size,
                                                   stride=self.pool_stride,
@@ -72,17 +73,17 @@ class Conv2dEncoder(nn.Module):
                                                       padding=self.conv_pad,
                                                       dilation=2,
                                                       bias=self.use_bias)),
-                ('norm_up_%s' % i, self.norm_layer(next_mult)),
+                # ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.LeakyReLU(0.2, True))
             ]
             mult = next_mult
 
         self.model += [
-            ('conv_final', nn.ConvTranspose2d(mult, 1,
-                                              kernel_size=self.conv_size,
-                                              padding=self.conv_pad,
-                                              dilation=2,
-                                              bias=self.use_bias)),
+            ('conv_final', nn.Conv2d(mult, 1,
+                                     kernel_size=self.conv_size,
+                                     padding=self.conv_pad,
+                                     dilation=2,
+                                     bias=self.use_bias)),
             # ('tanh', nn.Tanh())
         ]
 
