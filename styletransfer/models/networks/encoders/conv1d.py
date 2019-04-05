@@ -29,12 +29,13 @@ class Conv1dEncoder(nn.Module):
         self.indices = list()
 
         mult = (self.tensor_size - 1) * self.ngf
+        groups = mult // (self.mgf ** self.n_downsample)
         self.model = [
             ('conv_init', nn.Conv1d(self.tensor_size, mult,
                                     kernel_size=self.conv_size,
                                     padding=self.conv_pad,
                                     dilation=2,
-                                    groups=1,
+                                    groups=groups,
                                     bias=self.use_bias)),
             ('norm_init', self.norm_layer(mult)),
             ('relu_init', nn.LeakyReLU(0.2, True))
@@ -49,7 +50,7 @@ class Conv1dEncoder(nn.Module):
                                                padding=self.conv_pad,
                                                dilation=2,
                                                # stride=2,
-                                               groups=min(mult, next_mult),
+                                               groups=groups,
                                                bias=self.use_bias)), 
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.LeakyReLU(0.2, True)),
@@ -77,7 +78,7 @@ class Conv1dEncoder(nn.Module):
                                                       padding=self.conv_pad,
                                                       dilation=2,
                                                       # stride=2,
-                                                      groups=min(mult, next_mult),
+                                                      groups=groups,
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.LeakyReLU(0.2, True))
@@ -89,7 +90,7 @@ class Conv1dEncoder(nn.Module):
                                               kernel_size=self.conv_size,
                                               padding=self.conv_pad,
                                               dilation=2,
-                                              groups=1,
+                                              groups=groups,
                                               bias=self.use_bias)),
             ('norm_final', self.norm_layer(self.tensor_size)),
             ('tanh_final', nn.Tanh())

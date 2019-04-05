@@ -57,14 +57,14 @@ class Conv1dClassifier(nn.Module):
 
         # ts = (self.tensor_size - 1) // (2 ** self.n_layers) + 1
         self.model += [
-            nn.Conv1d(mult, mult, kernel_size=self.conv_size, bias=self.use_bias),
-            self.norm_layer(mult),
+            nn.Conv1d(mult, self.tensor_size, kernel_size=self.conv_size, bias=self.use_bias),
+            # self.norm_layer(mult),
             # nn.LeakyReLU(0.2, True),
             # test layer
             # nn.Conv1d(mult, self.tensor_size, kernel_size=1, bias=self.use_bias),
             # self.norm_layer(self.tensor_size),
-            Flatten(),
-            nn.Linear(mult, 1),
+            # Flatten(),
+            # nn.Linear(mult, 1),
             # nn.LeakyReLU(0.2, True),
             # nn.Linear(mult, 1),
             # nn.Sigmoid()

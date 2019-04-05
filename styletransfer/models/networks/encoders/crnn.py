@@ -29,7 +29,7 @@ class CRNNEncoder(nn.Module):
 
         self.indices = list()
 
-        mult = (self.tensor_size - 1) * self.ngf
+        mult = self.tensor_size * self.ngf
         # Downsample
         self.model = [
             ('conv_init', nn.Conv1d(self.tensor_size, mult,
@@ -38,10 +38,11 @@ class CRNNEncoder(nn.Module):
                                     dilation=2,
                                     bias=self.use_bias)),
             ('norm_init', self.norm_layer(mult)),
-            ('lstm_init', nn.LSTM(input_size=mult,
+            ('lstm_init', nn.RNN(input_size=mult,
                                   hidden_size=mult,
                                   num_layers=self.num_rnn_layers,
                                   batch_first=True,
+                                  nonlinearity='relu',
                                   bias=self.use_bias)),
         ]
 
@@ -52,15 +53,14 @@ class CRNNEncoder(nn.Module):
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
                                                dilation=2,
-                                               # stride=2,
-                                               groups=min(mult, next_mult),
                                                bias=self.use_bias)), 
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('lstm_down_%s' % i, nn.LSTM(input_size=next_mult,
-                                             hidden_size=next_mult,
-                                             num_layers=self.num_rnn_layers,
-                                             batch_first=True,
-                                             bias=self.use_bias)), 
+                ('lstm_down_%s' % i, nn.RNN(input_size=next_mult,
+                                            hidden_size=next_mult,
+                                            num_layers=self.num_rnn_layers,
+                                            batch_first=True,
+                                            nonlinearity='relu',
+                                            bias=self.use_bias)), 
                 # ('pool_down_%s' % i, nn.MaxPool1d(self.pool_size,
                 #                                   stride=self.pool_stride,
                 #                                   padding=self.pool_pad,
@@ -84,15 +84,14 @@ class CRNNEncoder(nn.Module):
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
                                                       dilation=2,
-                                                      stride=2,
-                                                      groups=min(mult, next_mult),
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
-                ('lstm_up_%s' % i, nn.LSTM(input_size=next_mult,
-                                           hidden_size=next_mult,
-                                           num_layers=self.num_rnn_layers,
-                                           batch_first=True,
-                                           bias=self.use_bias))
+                ('lstm_up_%s' % i, nn.RNN(input_size=next_mult,
+                                          hidden_size=next_mult,
+                                          num_layers=self.num_rnn_layers,
+                                          batch_first=True,
+                                          nonlinearity='relu',
+                                          bias=self.use_bias))
             ]
             mult = next_mult 
         self.model += [
@@ -102,9 +101,10 @@ class CRNNEncoder(nn.Module):
                                               dilation=2,
                                               bias=self.use_bias)),
             # ('norm_final', self.norm_layer(self.tensor_size)),
-            ('lstm_final', nn.LSTM(input_size=self.tensor_size,
+            ('lstm_final', nn.RNN(input_size=self.tensor_size,
                                        hidden_size=self.tensor_size,
                                        num_layers=self.num_rnn_layers,
+                                       nonlinearity='relu',
                                        batch_first=True,
                                        bias=self.use_bias))
         ]

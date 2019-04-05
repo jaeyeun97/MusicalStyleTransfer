@@ -36,6 +36,8 @@ class CycleGANModel(BaseModel):
         if is_train:
             parser.add_argument('--lambda_A', type=float, default=10.0, help='weight for cycle loss (A -> B -> A)')
             parser.add_argument('--lambda_B', type=float, default=10.0, help='weight for cycle loss (B -> A -> B)')
+            parser.add_argument('--lambda_identity', type=float, default=0.5, help='use identity mapping. Setting lambda_identity other than 0 has an effect of scaling the weight of the identity mapping loss. For example, if the weight of the identity loss should be 10 times smaller than the weight of the reconstruction loss, please set lambda_identity = 0.1')
+
         return parser
 
     def __init__(self, opt):
@@ -45,10 +47,15 @@ class CycleGANModel(BaseModel):
             opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         BaseModel.__init__(self, opt)
-        self.loss_names = ['D_A', 'G_A', 'cycle_A', 'D_B', 'G_B', 'cycle_B']
+        self.loss_names = ['D_A', 'G_A', 'idt_A', 'cycle_A', 'D_B', 'G_B', 'cycle_B', 'idt_B']
 
         output_names_A = ['real_A', 'fake_B', 'rec_A']
         output_names_B = ['real_B', 'fake_A', 'rec_B'] 
+
+        if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
+            output_names_A.append('idt_B')
+            output_names_B.append('idt_A')
+
         self.output_names = output_names_A + output_names_B  # combine visualizations for A and B
 
         if self.isTrain:
@@ -73,6 +80,7 @@ class CycleGANModel(BaseModel):
             #     self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
             # define loss functions
             self.criterionCycle = torch.nn.L1Loss()
+            self.criterionIdt = torch.nn.L1Loss()
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(itertools.chain(self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -111,30 +119,33 @@ class CycleGANModel(BaseModel):
    
 
     def train(self):  
+        lambda_idt = self.opt.lambda_identity
+        lambda_A = self.opt.lambda_A
+        lambda_B = self.opt.lambda_B
+
         # Generate Fakes
         self.fake_B = self.netG_A(self.real_A[0])  # G_A(A)
         self.fake_A = self.netG_B(self.real_B[-1])  # G_B(B)
-
-         
+ 
         # Train Disc.
         self.set_requires_grad([self.netD_A, self.netD_B], True) 
         self.optimizer_D.zero_grad()   # set D_A and D_B's gradients to zero
-        # pred_B_A_real = self.netD_B(self.real_A[0])
-        pred_B_B_real = self.netD_B(self.real_B[0])
+        pred_B_A_real = self.netD_B(self.real_A[0]) # D_B(A)
+        pred_B_B_real = self.netD_B(self.real_B[0]) # D_A(A)
         pred_B_B_fake = self.netD_B(self.fake_B.detach())
 
-        # pred_A_B_real = self.netD_A(self.real_B[-1])
+        pred_A_B_real = self.netD_A(self.real_B[-1])
         pred_A_A_real = self.netD_A(self.real_A[-1])
         pred_A_A_fake = self.netD_A(self.fake_A.detach())
 
-        self.loss_D_B = (# self.criterionD_B(pred_B_A_real, False) + 
-                       self.criterionD_B(pred_B_B_real, True) + 
-                       self.criterionD_B(pred_B_B_fake, False)) # / 3
+        self.loss_D_B = (self.criterionD_B(pred_B_A_real, False) + 
+                         self.criterionD_B(pred_B_B_real, True) + 
+                         self.criterionD_B(pred_B_B_fake, False)) / 3
         self.loss_D_B.backward()
 
-        self.loss_D_A = (# self.criterionD_A(pred_A_B_real, False) + 
-                        self.criterionD_A(pred_A_A_real, True) +
-                        self.criterionD_A(pred_A_A_fake, False)) # / 3
+        self.loss_D_A = (self.criterionD_A(pred_A_B_real, False) + 
+                         self.criterionD_A(pred_A_A_real, True) +
+                         self.criterionD_A(pred_A_A_fake, False)) / 3
         self.loss_D_A.backward()
         self.optimizer_D.step() 
         # D training done 
@@ -142,18 +153,30 @@ class CycleGANModel(BaseModel):
         # Train G  
         self.set_requires_grad([self.netD_A, self.netD_B], False) 
         self.optimizer_G.zero_grad()  # set G_A and G_B's gradients to zero 
-        self.loss_G_B = self.criterionD_B(self.netD_B(self.fake_B), True)
-        self.loss_G_A = self.criterionD_A(self.netD_A(self.fake_A), True)
+        if lambda_idt > 0:
+            # G_A should be identity if real_B is fed: ||G_A(B) - B||
+            self.idt_A = self.netG_A(self.real_B[0])
+            self.loss_idt_A = self.criterionIdt(self.idt_A, self.real_B[0]) * lambda_B * lambda_idt
+            # G_B should be identity if real_A is fed: ||G_B(A) - A||
+            self.idt_B = self.netG_B(self.real_A[-1])
+            self.loss_idt_B = self.criterionIdt(self.idt_B, self.real_A[-1]) * lambda_A * lambda_idt
+        else:
+            self.loss_idt_A = 0
+            self.loss_idt_B = 0
+
+        self.loss_G_B = self.criterionD_A(self.netD_A(self.fake_A), True) # D_A(G_B(B))
+        self.loss_G_A = self.criterionD_B(self.netD_B(self.fake_B), True) # D_B(G_A(A))
         if self.devices[0] != self.devices[-1]:
             self.fake_B = self.fake_B.to(self.devices[-1])
             self.fake_A = self.fake_A.to(self.devices[0])
         self.rec_A = self.netG_B(self.fake_B)   # G_B(G_A(A)), device[-1]
         self.rec_B = self.netG_A(self.fake_A)   # G_A(G_B(B)), device[0] 
-        self.loss_cycle_A = self.criterionCycle(self.rec_A, self.real_A[-1]) * self.opt.lambda_A
-        self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B[0]) * self.opt.lambda_B
-        self.loss_G_A = self.loss_G_A.to(self.devices[0])
+        self.loss_cycle_A = self.criterionCycle(self.rec_A, self.real_A[-1]) * lambda_A
+        self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B[0]) * lambda_B
+        self.loss_G_B = self.loss_G_B.to(self.devices[0])
+        self.loss_idt_B = self.loss_idt_B.to(self.devices[0])
         self.loss_cycle_A = self.loss_cycle_A.to(self.devices[0])
-        self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B
+        self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B
         self.loss_G.backward()
         self.optimizer_G.step()
         # G Train done

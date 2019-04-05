@@ -37,7 +37,6 @@ class Resnet2d(nn.Module):
                           padding=self.conv_pad,
                           dilation=2,
                           bias=self.use_bias),
-                self.norm_layer(self.nc)
             ]
 
         self.model = nn.Sequential(*conv_block)
@@ -55,12 +54,13 @@ class Resnet1d(nn.Module):
         option_setter(self, options, kwargs)
 
         conv_block = [
-                nn.Conv1d(self.nc, self.nc,
+                nn.Conv1d(self.nc, self.nc * 2,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
+                          groups=self.nc,
                           bias=self.use_bias),
-                self.norm_layer(self.nc),
+                self.norm_layer(self.nc*2),
                 nn.LeakyReLU(0.2, True)
             ]
 
@@ -68,12 +68,12 @@ class Resnet1d(nn.Module):
             conv_block += [nn.Dropout(0.5)]
  
         conv_block += [
-                nn.Conv1d(self.nc, self.nc,
+                nn.Conv1d(self.nc * 2, self.nc,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
                           dilation=2,
+                          groups=self.nc,
                           bias=self.use_bias),
-                self.norm_layer(self.nc),
             ]
 
         self.model = nn.Sequential(*conv_block)
