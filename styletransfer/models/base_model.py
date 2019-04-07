@@ -3,7 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from .util.scheduler import get_scheduler
-from ..util import * 
+from ..util.audio import * 
 
 
 class BaseModel(ABC):
@@ -41,6 +41,7 @@ class BaseModel(ABC):
         self.loss_names = []
         self.model_names = []
         self.output_names = []
+        self.params_names = []
         self.optimizers = []
         self.metric = 0  # used for learning rate policy 'plateau'
         self.mmax = self.mmin = 0
@@ -110,50 +111,34 @@ class BaseModel(ABC):
     def get_current_audio(self):
         """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
         audio_ret = OrderedDict()
-        for name in self.output_names:
-            if isinstance(name, str):
-                output = getattr(self, name)
+        for i in range(len(self.output_names)):
+            output_name = self.output_names[i]
+            params_name = self.params_names[i]
+            if isinstance(output_name, str):
+                output = getattr(self, output_name)
+                params = getattr(self, params_name)
                 if type(output) == tuple:
                     output = output[0]
-                output = self.postprocess(output)
-                audio_ret[name] = output
+                output = self.postprocess(output, params)
+                audio_ret[output_name] = output
         return audio_ret
-
-
-    def preprocess(self, y):
-        y = y.squeeze().numpy()
-        # Preprocess
-        if 'shift' in self.preprocesses:
-            y, self.shift_steps = pitch_shift(y, self.opt.sample_rate)
-        if 'mel' in self.preprocesses:
-            y = hz_to_mel(y) 
-        # STFT
-        D = stft(y, n_fft=self.opt.nfft)
-        # Compute Magnitude and phase
-        lmag, agl = calc(D, self.opt.smoothing_factor)
-        # Normalize
-        mmax = mmin = 0
-        if 'normalize' in self.preprocesses:
-            lmag, mmax, mmin = normalize_magnitude(lmag)
-
-        self.phase = agl
-        return mmax, mmin, torch.from_numpy(lmag).unsqueeze(0)
-
-    def postprocess(self, t):
-        t = t.cpu().squeeze()
-        mag = t.numpy()
-        agl = self.phase
-        if 'normalize' in self.preprocesses:
-            if self.mmax == 0 and self.mmin == 0:
-                raise Exception('Max = Min = 0')
-            mag = denormalize_magnitude(self.mmax, self.mmin, mag)
-            # agl = denormalize_phase(agl)
-        D = decalc(mag, agl, self.opt.smoothing_factor)
-        y = istft(D)
+ 
+    def postprocess(self, t, params):
+        t = t.cpu().squeeze(0)  
+        if 'stft' in self.preprocesses:
+            mag = t.numpy()
+            if 'normalize' in self.preprocesses:
+                if self.mmax == 0 and self.mmin == 0:
+                    raise Exception('Max = Min = 0')
+                mag = denormalize_magnitude(params['max'], params['min'], mag)
+            D = decalc(mag, params['phase'], self.opt.smoothing_factor)
+            y = istft(D)
+        if 'mulaw' in self.preprocesses:
+            y = inv_mulaw(y, self.opt.mu)
         if 'mel' in self.preprocesses:
             y = mel_to_hz(y)
         if 'shift' in self.preprocesses:
-            y = pitch_deshift(y, self.opt.sample_rate, self.shift_steps)
+            y = pitch_deshift(y, self.opt.sample_rate, params['shift_steps'])
         return y
 
     def get_current_losses(self):

@@ -12,7 +12,9 @@ from abc import ABC, abstractmethod
 from ..util.audio import (calc, stft, hz_to_mel,
                           normalize_magnitude,
                           normalize_phase,
-                          combine_mag_phase)
+                          combine_mag_phase,
+                          pitch_shift,
+                          mulaw)
 
 
 class BaseDataset(data.Dataset, ABC):
@@ -33,7 +35,7 @@ class BaseDataset(data.Dataset, ABC):
         """
         self.opt = opt
         self.nfft = opt.nfft
-        self.preprocess = opt.preprocess.split(',')
+        self.preprocesses = opt.preprocess.split(',')
         self.sample_rate = opt.sample_rate
 
         self.audio_length = opt.audio_length 
@@ -65,4 +67,23 @@ class BaseDataset(data.Dataset, ABC):
             y = librosa.util.fix_length(y, self.audio_length)
         else:
             y = y[:self.audio_length]
-        return y 
+        return self.preprocess(y)
+
+    def preprocess(self, y):
+        # Preprocess
+        params = dict()
+        if 'shift' in self.preprocesses:
+            y, params['shift_steps'] = pitch_shift(y, self.opt.sample_rate)
+        if 'mel' in self.preprocesses:
+            y = hz_to_mel(y) 
+        if 'mulaw' in self.preprocesses:
+            y = mulaw(y, self.opt.mu)
+        # STFT
+        if 'stft' in self.preprocesses:
+            D = stft(y, n_fft=self.opt.nfft)
+            lmag, params['phase'] = calc(D, self.opt.smoothing_factor) 
+            if 'normalize' in self.preprocesses:
+                lmag, params['max'], params['min'] = normalize_magnitude(lmag)
+            return torch.from_numpy(lmag), params
+        else:
+            return torch.from_numpy(y), params

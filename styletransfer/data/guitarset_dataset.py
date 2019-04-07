@@ -8,7 +8,6 @@ from .single_dataset import SingleDataset
 import os
 import librosa
 import glob
-import numpy as np
 
 
 class GuitarsetDataset(SingleDataset):
@@ -29,7 +28,7 @@ class GuitarsetDataset(SingleDataset):
         # save the option and dataset root
         SingleDataset.__init__(self, opt, prefix) 
         guitarset_path = os.path.abspath(self.root)
-        guitarset_paths = glob.glob(os.path.join(guitarset_path, 'audio/audio_hex-pickup_debleeded/*solo*.wav')) 
+        guitarset_paths = glob.glob(os.path.join(guitarset_path, 'audio/audio_hex-pickup_debleeded/*comp*.wav')) 
         self.paths = list()
         for f in guitarset_paths:
             num_split = int(librosa.get_duration(filename=f) // self.duration)
@@ -45,14 +44,14 @@ class GuitarsetDataset(SingleDataset):
         """
 
         path = self.paths[index] 
-        solo, split = tuple(path.split(':'))
-        comp = solo.replace('solo', 'comp')
+        comp, split = tuple(path.split(':'))
+        # comp = solo.replace('solo', 'comp')
         split = int(split)
-        solo = self.retrieve_audio(solo, split)
+        # solo = self.retrieve_audio(solo, split)
         comp = self.retrieve_audio(comp, split)
-        data = np.mean([solo, comp], axis=0)
+        # data = np.mean([solo, comp], axis=0)
 
-        return data
+        return comp
 
     def __len__(self):
         """Return the total number of audio files."""

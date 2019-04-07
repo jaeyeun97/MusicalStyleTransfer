@@ -33,6 +33,9 @@ class CycleGANModel(BaseModel):
         Dropout is not used in the original CycleGAN paper.
         """
         parser.set_defaults(no_dropout=True, phase='gan')  # default CycleGAN did not use dropout
+        opt, _ = parser.parse_known_args()
+        if 'stft' not in opt.preprocess:
+            parser.set_defaults(preprocess=opt.preproccess+',stft')
         if is_train:
             parser.add_argument('--lambda_A', type=float, default=10.0, help='weight for cycle loss (A -> B -> A)')
             parser.add_argument('--lambda_B', type=float, default=10.0, help='weight for cycle loss (B -> A -> B)')
@@ -50,13 +53,18 @@ class CycleGANModel(BaseModel):
         self.loss_names = ['D_A', 'G_A', 'idt_A', 'cycle_A', 'D_B', 'G_B', 'cycle_B', 'idt_B']
 
         output_names_A = ['real_A', 'fake_B', 'rec_A']
+        params_names_A = ['params_A'] * 3
         output_names_B = ['real_B', 'fake_A', 'rec_B'] 
+        params_names_B = ['params_B'] * 3
 
         if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
             output_names_A.append('idt_B')
+            params_names_A += ['params_A']
             output_names_B.append('idt_A')
+            params_names_B += ['params_B']
 
         self.output_names = output_names_A + output_names_B  # combine visualizations for A and B
+        self.params_names = params_names_A + parmas_names_B
 
         if self.isTrain:
             self.model_names = ['G_A', 'G_B', 'D_A', 'D_B']
@@ -98,8 +106,8 @@ class CycleGANModel(BaseModel):
         AtoB = self.opt.direction == 'AtoB'
         first = input[0 if AtoB else 1]
         second = input[1 if AtoB else 0]
-        self.mmax, self.mmin, A = self.preprocess(first)
-        _, _, B = self.preprocess(second)
+        A, self.params_A = self.preprocess(first)
+        B, self.params_B = self.preprocess(second)
 
         self.real_A = tuple(A.to(device=dev) for dev in self.devices)
         self.real_B = tuple(B.to(device=dev) for dev in self.devices) 

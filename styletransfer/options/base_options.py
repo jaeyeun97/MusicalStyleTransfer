@@ -24,6 +24,7 @@ class BaseOptions():
         parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         # model parameters
+        parser.add_argument('--duration', type=float, default=8., help='duration of audio')
         parser.add_argument('--model', type=str, default='cycle_gan', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
         parser.add_argument('--discriminator', type=str, default='conv1d', help='architecture of discriminator')
         parser.add_argument('--transformer', type=str, default='none', help='specify generator transformer architecture')
@@ -43,6 +44,9 @@ class BaseOptions():
 
         # Conv Classifier
         parser.add_argument('--disc_layers', type=int, default=5, help='layers for conv classifier')
+
+        # MU
+        parser.add_argument('--mu', type=int, default=256, help='mu')
 
         # Initialization
         parser.add_argument('--norm_layer', type=str, default='instance', help='instance normalization or batch normalization [instance | batch | none]')
@@ -91,6 +95,7 @@ class BaseOptions():
         model_option_setter = get_option_setter(model_name)
         parser = model_option_setter(parser, self.isTrain)
         opt, _ = parser.parse_known_args()  # parse again with new defaults
+        parser.set_defaults(preprocess=opt.preprocess.lstrip(','))
 
         # modify dataset-related parser options
         if opt.A_dataset is not None:
@@ -115,16 +120,19 @@ class BaseOptions():
             parser = pair_option_setter(parser, self.isTrain)
 
         # set lengths
-        tensor_size= opt.nfft // 2 + 1
-        hop_length= opt.nfft // 4
-        audio_length = (tensor_size - 1) * hop_length
-        duration = audio_length / opt.sample_rate
+        if 'stft' in opt.preprocess:
+            tensor_size= opt.nfft // 2 + 1
+            hop_length= opt.nfft // 4
+            audio_length = (tensor_size - 1) * hop_length
+            duration = audio_length / opt.sample_rate
 
-        parser.set_defaults(
-            tensor_size=tensor_size,
-            hop_length=hop_length,
-            audio_length=audio_length,
-            duration=duration)
+            parser.set_defaults(
+                tensor_size=tensor_size,
+                hop_length=hop_length,
+                audio_length=audio_length,
+                duration=duration)
+        else:
+            parser.set_defaults(audio_length=int(opt.sample_rate * opt.duration))
 
         # save and return the parser
         self.parser = parser
