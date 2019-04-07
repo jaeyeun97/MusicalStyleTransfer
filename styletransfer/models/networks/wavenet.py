@@ -41,7 +41,7 @@ class Conv(torch.nn.Module):
                                     kernel_size=kernel_size, stride=stride,
                                     dilation=dilation, bias=bias)
 
-        torch.nn.init.xavier_uniform(
+        torch.nn.init.xavier_uniform_(
             self.conv.weight, gain=torch.nn.init.calculate_gain(w_init_gain))
 
     def forward(self, signal):
@@ -115,8 +115,8 @@ class WaveNet(torch.nn.Module):
         for i in range(self.n_layers):
             in_act = self.dilate_layers[i](forward_input)
             in_act = in_act + cond_acts[:,i,:,:]
-            t_act = torch.nn.functional.tanh(in_act[:, :self.n_residual_channels, :])
-            s_act = torch.nn.functional.sigmoid(in_act[:, self.n_residual_channels:, :])
+            t_act = torch.tanh(in_act[:, :self.n_residual_channels, :])
+            s_act = torch.sigmoid(in_act[:, self.n_residual_channels:, :])
             acts = t_act * s_act
             if i < len(self.res_layers):
                 res_acts = self.res_layers[i](acts)

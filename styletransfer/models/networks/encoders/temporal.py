@@ -45,6 +45,11 @@ class TemporalEncoder(nn.Module):
 
         for name, module in self.model:
             self.add_module(name, module)
+            if 'nc_dil' in name:
+                nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
+            elif 'init' in name:
+                nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('linear'))
+
 
 
     def forward(self, input):

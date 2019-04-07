@@ -1,9 +1,9 @@
 import torch.nn as nn
 
-def flip_gradient(tensor, l=1.0):  
+def hook_factory(l=1.0):  
     def hook(grad):
         return  -l * grad.clone()
-    return tensor.register_hook(hook)
+    return hook 
 
 
 
@@ -13,12 +13,12 @@ class DomainConfusion(nn.Module):
 
         model = [
             nn.Conv1d(in_channel, out_channel, kernel_size=2),
-            nn.ELU(inplace=True)
+            nn.ELU()
         ]
         for i in range(1, layers):
             model += [
                 nn.Conv1d(out_channel, out_channel, kernel_size=2),
-                nn.ELU(inplace=True)
+                nn.ELU()
             ]
 
         model += [
@@ -31,7 +31,8 @@ class DomainConfusion(nn.Module):
         self.model = nn.Sequential(*model) 
 
     def forward(self, i):
-        flip_gradient(i, 1e-2)
+        i = i.clone()
+        i.register_hook(hook_factory(1e-2))
         i = self.model(i)
         return i
 
