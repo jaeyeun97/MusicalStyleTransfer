@@ -43,13 +43,14 @@ class Conv2dEncoder(nn.Module):
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
                                                dilation=2,
+                                               stride=(2, 1),
                                                bias=self.use_bias)), 
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.LeakyReLU(0.2, True)),
-                ('pool_down_%s' % i, nn.MaxPool2d(self.pool_size,
-                                                  stride=self.pool_stride,
-                                                  padding=self.pool_pad,
-                                                  return_indices=True)),
+                # ('pool_down_%s' % i, nn.MaxPool2d(self.pool_size,
+                #                                   stride=self.pool_stride,
+                #                                   padding=self.pool_pad,
+                #                                   return_indices=True)),
             ]
             mult = next_mult
 
@@ -59,18 +60,22 @@ class Conv2dEncoder(nn.Module):
             kwargs['input_size'] = (ts, ts)
             kwargs['channel_size'] = mult 
             self.model.append(('trans', self.transformer(**kwargs)))
+ 
+            if 'Skip' in self.transformer.__name__:
+                mult = mult * kwargs['num_trans_layers']
 
         # Upsample
         for i in range(self.n_downsample): 
             next_mult = mult // 2
             self.model += [
-                ('unpool_up_%s' % i, nn.MaxUnpool2d(self.pool_size,
-                                                    stride=self.pool_stride,
-                                                    padding=self.pool_pad)),
+                # ('unpool_up_%s' % i, nn.MaxUnpool2d(self.pool_size,
+                #                                     stride=self.pool_stride,
+                #                                     padding=self.pool_pad)),
                 ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult,
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
                                                       dilation=2,
+                                                      stride=(2, 1),
                                                       bias=self.use_bias)),
                 ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.LeakyReLU(0.2, True))

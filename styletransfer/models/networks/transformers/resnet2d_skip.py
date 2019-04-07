@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from ..resnet import Resnet2d
 from ..util import option_setter
@@ -7,9 +8,9 @@ options = {
     'channel_size': 32,
 }
 
-class Resnet2dTransformer(nn.Module):
+class Resnet2dSkipTransformer(nn.Module):
     def __init__(self, **kwargs):
-        super(Resnet2dTransformer, self).__init__()
+        super(Resnet2dSkipTransformer, self).__init__()
 
         option_setter(self, options, kwargs)
 
@@ -19,14 +20,11 @@ class Resnet2dTransformer(nn.Module):
             self.model += [('resnet_%s' % i, Resnet2d(**kwargs))]
 
         for name, module in self.model:
-            self.add_modules(name, module)
+            self.add_module(name, module)
 
     def forward(self, i):
-        output = None
+        outputs = list()
         for name, module in self.model:
             i = module(i)
-            if output is None:
-                output = i
-            else:
-                output += i 
-        return output
+            outputs.append(i)
+        return torch.cat(outputs, 1)

@@ -60,7 +60,7 @@ class BaseOptions():
         parser.add_argument('--batch_size', type=int, default=1, help='input batch size')
 
         # Audio Args
-        parser.add_argument('--preprocess', type=str, default='normalize,mel', help='scaling and cropping of images at load time [mel|normalize]')
+        parser.add_argument('--preprocess', type=str, default='normalize,mel,shift', help='scaling and cropping of images at load time [mel|normalize]')
         parser.add_argument('--sample_rate', type=int, default=16384, help='Sample Rate to resample')
         parser.add_argument('--nfft', type=int, default=2048, help='Number of Frequency bins for STFT')
         parser.add_argument('--smoothing_factor', type=float, default=1, help='Smoothing for Log-Magnitude')

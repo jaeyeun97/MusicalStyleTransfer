@@ -79,10 +79,3 @@ class Conv2dClassifier(nn.Module):
         input = self.model(input)
         return input
 
-
-class Flatten(nn.Module):
-    def __init__(self):
-        super(Flatten, self).__init__()
-
-    def forward(self, input):
-        return input.view((1, -1)) 

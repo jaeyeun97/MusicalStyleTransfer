@@ -123,8 +123,10 @@ class BaseModel(ABC):
     def preprocess(self, y):
         y = y.squeeze().numpy()
         # Preprocess
+        if 'shift' in self.preprocesses:
+            y, self.shift_steps = pitch_shift(y, self.opt.sample_rate)
         if 'mel' in self.preprocesses:
-            y = hz_to_mel(y)
+            y = hz_to_mel(y) 
         # STFT
         D = stft(y, n_fft=self.opt.nfft)
         # Compute Magnitude and phase
@@ -150,6 +152,8 @@ class BaseModel(ABC):
         y = istft(D)
         if 'mel' in self.preprocesses:
             y = mel_to_hz(y)
+        if 'shift' in self.preprocesses:
+            y = pitch_deshift(y, self.opt.sample_rate, self.shift_steps)
         return y
 
     def get_current_losses(self):

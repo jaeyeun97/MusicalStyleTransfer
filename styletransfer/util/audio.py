@@ -68,3 +68,19 @@ def mel_to_hz(y, **kwargs):
 
 def frame(y, sr, length=30, stride=15):
     return librosa.frame(y, frame_length=length*sr, hop_length=stride*sr)
+
+def pitch_shift(y, sr):
+    l = y.shape[-1]
+    s = l // sr
+    rand_steps = np.random.rand(s) - 0.5
+    shifted = [librosa.effects.pitch_shift(y[i*sr:min(sr*(i+1), l)], sr, rand_steps[i])
+               for i in range(0, s)]
+    return np.concatenate(shifted), rand_steps
+
+def pitch_deshift(y, sr, steps):
+    l = y.shape[-1]
+    s = l // sr
+    shifted = [librosa.effects.pitch_shift(y[i*sr:min(sr*(i+1), l)], sr, -1 * steps[i])
+               for i in range(0, s)]
+    return np.concatenate(shifted)
+

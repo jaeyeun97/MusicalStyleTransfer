@@ -75,9 +75,8 @@ class CycleGANModel(BaseModel):
             self.netD_B = getDiscriminator(opt, self.devices[0])
             self.criterionD_B = GANLoss(opt.gan_mode).to(self.devices[0])
 
-            # if self.opt.use_audio_pool:
-            #     self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
-            #     self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
             # define loss functions
             self.criterionCycle = torch.nn.L1Loss()
             self.criterionIdt = torch.nn.L1Loss()
@@ -132,11 +131,11 @@ class CycleGANModel(BaseModel):
         self.optimizer_D.zero_grad()   # set D_A and D_B's gradients to zero
         pred_B_A_real = self.netD_B(self.real_A[0]) # D_B(A)
         pred_B_B_real = self.netD_B(self.real_B[0]) # D_A(A)
-        pred_B_B_fake = self.netD_B(self.fake_B.detach())
+        pred_B_B_fake = self.netD_B(self.fake_B_pool.query(self.fake_B.detach()))
 
         pred_A_B_real = self.netD_A(self.real_B[-1])
         pred_A_A_real = self.netD_A(self.real_A[-1])
-        pred_A_A_fake = self.netD_A(self.fake_A.detach())
+        pred_A_A_fake = self.netD_A(self.fake_A_pool.query(self.fake_A.detach()))
 
         self.loss_D_B = (self.criterionD_B(pred_B_A_real, False) + 
                          self.criterionD_B(pred_B_B_real, True) + 

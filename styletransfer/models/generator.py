@@ -1,7 +1,7 @@
 import functools
 import torch.nn as nn
 from .networks.encoders import Conv1dEncoder, Conv2dEncoder, CRNNEncoder
-from .networks.transformers import Resnet1dTransformer, Resnet2dTransformer, LSTMTransformer
+from .networks.transformers import * 
 from .networks.util import get_norm_layer, init_weights, get_use_bias
 
 
@@ -30,8 +30,12 @@ class Generator(nn.Module):
  
         if transformer_model == 'resnet1d':
             args['transformer'] = Resnet1dTransformer
+        elif transformer_model == 'resnet1d_skip':
+            args['transformer'] = Resnet1dSkipTransformer
         elif transformer_model == 'resnet2d':
             args['transformer'] = Resnet2dTransformer
+        elif transformer_model == 'resnet2d_skip':
+            args['transformer'] = Resnet2dSkipTransformer
         elif transformer_model == 'lstm':
             args['transformer'] = LSTMTransformer 
         else:
