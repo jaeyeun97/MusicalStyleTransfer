@@ -2,7 +2,7 @@ import torch.nn as nn
 
 def hook_factory(l=1.0):  
     def hook(grad):
-        return  -l * grad.clone()
+        return -l * grad.clone()
     return hook 
 
 
