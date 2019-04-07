@@ -19,6 +19,7 @@ if __name__ == "__main__":
     loss_dir = os.path.join('losses', opt.name)
     mkdir(loss_dir)
     loss_file = open(os.path.join(loss_dir, 'losses.csv'), 'w')
+    loss_file.write('epoch,iter,' + ','.join(loss_names) + '\n')
     
     for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
         epoch_start_time = time.time()  # timer for entire epoch
@@ -37,7 +38,7 @@ if __name__ == "__main__":
             model.train()   # calculate loss functions, get gradients, update network weights
             
             losses = model.get_current_losses()
-            loss_file.write(','.join(str(losses[k]) for k in loss_names) + '\n')
+            loss_file.write('{},{},'.format(epoch, i) + ','.join(str(losses[k]) for k in loss_names) + '\n')
             loss_file.flush() 
 
             if total_iters % opt.print_freq == 0:    # print training losses and save logging information to the disk
@@ -65,3 +66,4 @@ if __name__ == "__main__":
 
         print('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time))
         model.update_learning_rate()                     # update learning rates at the end of every epoch.
+    loss_file.close()
