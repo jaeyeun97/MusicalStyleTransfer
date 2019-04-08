@@ -1,6 +1,7 @@
 import librosa
 import numpy as np
 import torch
+# import random
 
 def calc(D, eps):
     if isinstance(D, np.ndarray):
@@ -72,9 +73,10 @@ def frame(y, sr, length=30, stride=15):
 def pitch_shift(y, sr):
     l = y.shape[-1]
     s = l // sr
-    rand_steps = np.random.rand(s) - 0.5
+    rand_steps = np.float32(np.random.rand(s) - 0.5)
+    # rand_steps = [random.uniform(-0.5, 0.5) for i in range(s)]
     shifted = [librosa.effects.pitch_shift(y[i*sr:min(sr*(i+1), l)], sr, rand_steps[i])
-               for i in range(0, s)]
+               for i in range(s)]
     return np.concatenate(shifted), rand_steps
 
 def pitch_deshift(y, sr, steps):
@@ -88,4 +90,4 @@ def mulaw(x, MU):
     return np.sign(x) * np.log(1. + MU * np.abs(x)) / np.log(1. + MU)
 
 def inv_mulaw(x, MU):
-    return np.sign(x) * (1. / MU) * (np.pow(1. + MU, np.abs(x)) - 1.)
+    return np.sign(x) * (1. / MU) * (np.power(1. + MU, np.abs(x)) - 1.)

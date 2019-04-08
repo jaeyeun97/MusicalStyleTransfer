@@ -6,6 +6,7 @@ import random
 import numpy as np
 import torch
 import librosa
+import soundfile as sf
 
 import torch.utils.data as data
 from abc import ABC, abstractmethod
@@ -59,10 +60,19 @@ class BaseDataset(data.Dataset, ABC):
         pass
 
     def retrieve_audio(self, path, split_num):
-        y, sr = librosa.load(path,
-                             sr=self.sample_rate,
-                             offset=split_num*self.duration,
-                             duration=self.duration)
+        if self.opt.reader == 'soundfile':
+            y, sr = sf.read(path,
+                            start=split_num*self.duration,
+                            stop=(split_num+1)*self.duration,
+                            dtype='float32')
+            print(y.T.shape)
+            y = librosa.to_mono(y.T)
+            y = librosa.resample(y, sr, self.sample_rate)
+        else:
+            y, _ = librosa.load(path,
+                                sr=self.sample_rate,
+                                offset=split_num*self.duration,
+                                duration=self.duration)
         if len(y) < self.audio_length:
             y = librosa.util.fix_length(y, self.audio_length)
         else:

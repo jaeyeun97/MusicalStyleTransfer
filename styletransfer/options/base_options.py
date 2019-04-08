@@ -24,7 +24,8 @@ class BaseOptions():
         parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         # model parameters
-        parser.add_argument('--duration', type=float, default=8., help='duration of audio')
+        parser.add_argument('--reader', type=str, default='librosa', help='audio reader')
+        parser.add_argument('--duration', type=int, default=8, help='duration of audio')
         parser.add_argument('--model', type=str, default='cycle_gan', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
         parser.add_argument('--discriminator', type=str, default='conv1d', help='architecture of discriminator')
         parser.add_argument('--transformer', type=str, default='none', help='specify generator transformer architecture')

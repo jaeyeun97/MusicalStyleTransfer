@@ -55,10 +55,12 @@ class TranslatorModel(BaseModel):
             self.optimizers = [self.optimizer_C, self.optimizer_D] 
 
     def set_input(self, input): 
-        A, self.params_A = input[0]  
-        B, self.params_B = input[1] 
+        A, params_A = input[0]  
+        B, params_B = input[1] 
         self.real_A = A.to(self.devices[0])
         self.real_B = B.to(self.devices[0]) 
+        self.params_A = self.decollate_params(params_A)
+        self.params_B = self.decollate_params(params_B)
 
     def get_indices(self, y):
         y = (y + 1.) * .5 * self.opt.mu

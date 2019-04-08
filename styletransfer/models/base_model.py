@@ -3,7 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from .util.scheduler import get_scheduler
-from ..util.audio import * 
+from ..util.audio import (denormalize_magnitude, istft, inv_mulaw, pitch_deshift, decalc, mel_to_hz)
 
 
 class BaseModel(ABC):
@@ -122,17 +122,29 @@ class BaseModel(ABC):
                 output = self.postprocess(output, params)
                 audio_ret[output_name] = output
         return audio_ret
- 
-    def postprocess(self, t, params):
-        t = t.cpu().squeeze(0)  
+
+    @staticmethod
+    def decollator(k, v):
+        if k == 'labels':
+            return v
+        if isinstance(v, torch.Tensor):
+            v.requires_grad = False
+            return v.squeeze(0).numpy()
+        else:
+            return v
+    
+    def decollate_params(self, params):
+        return {k: self.decollator(k, v) for k, v in params.items()}
+             
+    def postprocess(self, y, params):
+        y = y.cpu().squeeze(0).numpy() 
         if 'stft' in self.preprocesses:
-            mag = t.numpy()
             if 'normalize' in self.preprocesses:
-                if self.mmax == 0 and self.mmin == 0:
-                    raise Exception('Max = Min = 0')
-                mag = denormalize_magnitude(params['max'], params['min'], mag)
-            D = decalc(mag, params['phase'], self.opt.smoothing_factor)
-            y = istft(D)
+                if 'max' not in params or 'min' not in params:
+                    raise Exception('No max or min')
+                y = denormalize_magnitude(params['max'], params['min'], y)
+            y = decalc(y, params['phase'].squeeze(0).numpy(), self.opt.smoothing_factor)
+            y = istft(y)
         if 'mulaw' in self.preprocesses:
             y = inv_mulaw(y, self.opt.mu)
         if 'mel' in self.preprocesses:
