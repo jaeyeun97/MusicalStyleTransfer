@@ -150,7 +150,7 @@ class BaseModel(ABC):
         if 'mel' in self.preprocesses:
             y = mel_to_hz(y)
         if 'shift' in self.preprocesses:
-            y = pitch_deshift(y, self.opt.sample_rate, params['shift_steps'])
+            y = pitch_deshift(y, self.opt.sample_rate, params['start'], params['end'], params['shift'])
         return y
 
     def get_current_losses(self):

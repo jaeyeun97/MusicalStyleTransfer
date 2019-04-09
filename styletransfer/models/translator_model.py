@@ -24,7 +24,7 @@ class TranslatorModel(BaseModel):
                                           .replace('normalize', '')
                                           .replace('stft', '') + ',mulaw')
         parser.add_argument('--bottleneck', type=int, default=64, help='bottle neck for temporal encoder')
-        parser.add_argument('--pool_length', type=int, default=512, help='pool length')
+        parser.add_argument('--pool_length', type=int, default=256, help='pool length')
         
         return parser
 
@@ -50,8 +50,8 @@ class TranslatorModel(BaseModel):
 
         self.prev_A = None
         self.prev_B = None
-        self.pred_D_A = None
-        self.pred_D_B = None
+        self.pred_C_A = None
+        self.pred_C_B = None
         
         if self.isTrain:
             self.A_target = torch.LongTensor([0]).to(self.devices[0])
@@ -71,7 +71,7 @@ class TranslatorModel(BaseModel):
 
     def get_indices(self, y):
         y = (y + 1.) * .5 * (self.opt.mu + 1)
-        return y.clamp(0, self.opt.mu + 1).long()
+        return y.clamp(0, self.opt.mu).long()
 
     def inv_indices(self, y):
         return y.float() / (self.opt.mu + 1) * 2. - 1.
@@ -85,12 +85,7 @@ class TranslatorModel(BaseModel):
         if self.prev_A is None:
             self.prev_A = self.real_A
         if self.prev_B is None:
-            self.prev_B = self.real_B
-        # if self.pred_D_A is None:
-        #     self.pred_D_A = self.netD_A.embed.weight
-        # if self.pred_D_B is None:
-        #     self.pred_D_B = self.netD_B.embed.weight
-
+            self.prev_B = self.real_B 
 
         self.optimizer.zero_grad()
         encoded_A = self.netE(self.real_A.unsqueeze(1)) # Input range: (-1, 1) Output: R^64
@@ -115,16 +110,23 @@ class TranslatorModel(BaseModel):
         self.loss = self.loss_C_A + self.loss_D_A + self.loss_C_B + self.loss_D_B
         self.loss.backward()
         self.optimizer.step()
-
-        # print(self.netD_A.embed.weight - self.pred_D_A)
-        # print(self.netD_B.embed.weight - self.pred_D_B)
-
+ 
         self.prev_A = self.real_A
         self.prev_B = self.real_B
-        # self.pred_D_A = self.netD_A.embed.weight
-        # self.pred_D_B = self.netD_B.embed.weight
-
+        
         with torch.no_grad():
+            if self.pred_C_A is None:
+                self.pred_C_A = pred_C_A 
+            if self.pred_C_B is None:
+                self.pred_C_B = pred_C_B 
+
+            if (self.pred_C_A - pred_C_A).max() == 0.:
+                print(pred_C_A)
+            if (self.pred_C_B - pred_C_B).max() == 0.:
+                print(pred_C_B)
+
+            self.pred_C_A = pred_C_A
+            self.pred_C_B = pred_C_B
             self.rec_A = self.inv_indices(self.sample(rec_A))
             self.rec_B = self.inv_indices(self.sample(rec_B))  
   

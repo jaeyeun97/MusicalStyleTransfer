@@ -77,8 +77,8 @@ class WaveNet(torch.nn.Module):
         self.conv_start = Conv(1, n_residual_channels,
                                kernel_size=2, w_init_gain='linear',
                                bias=False, is_causal=True)
-        self.skip_start = Conv(n_residual_channels, n_skip_channels,
-                               w_init_gain='relu')
+        # self.skip_start = Conv(n_residual_channels, n_skip_channels,
+        #                        w_init_gain='relu')
 
         self.conv_out = Conv(n_skip_channels, n_out_channels,
                                  bias=False, w_init_gain='relu')
@@ -119,7 +119,7 @@ class WaveNet(torch.nn.Module):
         # forward_input = forward_input.transpose(1, 2)
 
         forward_input = self.conv_start(forward_input)
-        output = self.skip_start(forward_input)
+        # output = self.skip_start(forward_input)
        
         cond_acts = self.cond_layers(cond_input)
         cond_acts = cond_acts.view(cond_acts.size(0), self.n_layers, -1, cond_acts.size(2))
@@ -132,10 +132,10 @@ class WaveNet(torch.nn.Module):
             if i < self.n_layers - 1:
                 res_acts = self.res_layers[i](acts)
                 forward_input = res_acts + forward_input
-            # if i == 0:
-            #     output = self.skip_layers[i](acts)
-            # else:
-            output = self.skip_layers[i](acts) + output
+            if i == 0:
+                output = self.skip_layers[i](acts)
+            else:
+                output = self.skip_layers[i](acts) + output
 
         output = torch.nn.functional.relu(output, True)
         output = self.conv_out(output)

@@ -83,7 +83,7 @@ class BaseDataset(data.Dataset, ABC):
         # Preprocess
         params = dict()
         if 'shift' in self.preprocesses:
-            y, params['shift_steps'] = pitch_shift(y, self.opt.sample_rate)
+            y, params['start'], params['end'], params['shift'] = pitch_shift(y, self.opt.sample_rate)
         if 'mel' in self.preprocesses:
             y = hz_to_mel(y) 
         if 'mulaw' in self.preprocesses:
