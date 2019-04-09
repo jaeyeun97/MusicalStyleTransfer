@@ -35,8 +35,7 @@ class Conv2dClassifier(nn.Module):
                       padding=self.conv_pad,
                       dilation=2,
                       bias=self.use_bias),  
-            self.norm_layer(self.ndf),
-            nn.LeakyReLU(0.2, True)
+            nn.ReLU()
         ]
         mult = self.ndf
 
@@ -52,23 +51,18 @@ class Conv2dClassifier(nn.Module):
                 nn.AvgPool2d(self.pool_size,
                              padding=self.pool_pad,
                              stride=self.pool_stride),
-                self.norm_layer(next_mult),
-                nn.LeakyReLU(0.2, True)
+                nn.ReLU()
             ]
             mult = next_mult
 
         # ts = ((self.tensor_size - 1) // (2 ** self.n_layers) + 1) ** 2
         model += [
-            nn.Conv2d(mult, 1,
-                      kernel_size=self.conv_size,
-                      padding=(self.conv_pad, 0),
-                      dilation=(2, 1),
-                      bias=self.use_bias), 
-            # self.norm_layer(mult),
+            nn.Conv2d(mult, 1, kernel_size=self.conv_size, padding=((self.conv_size - 1) // 2, 0)),
             # nn.LeakyReLU(0.2, True),
-            # Flatten(),
-            # nn.Linear(self.tensor_size, 1),
-            # nn.Sigmoid(),
+            Flatten(),
+            nn.Linear(self.tensor_size, 2),
+            # nn.Tanh(),
+            # nn.Linear(2, 2),
         ]
  
         self.model = nn.Sequential(*model)
@@ -79,3 +73,10 @@ class Conv2dClassifier(nn.Module):
         input = self.model(input)
         return input
 
+
+class Flatten(nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, input):
+        return input.view(1, -1)

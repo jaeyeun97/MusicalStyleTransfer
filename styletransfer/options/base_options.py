@@ -47,7 +47,7 @@ class BaseOptions():
         parser.add_argument('--disc_layers', type=int, default=5, help='layers for conv classifier')
 
         # MU
-        parser.add_argument('--mu', type=int, default=256, help='mu')
+        parser.add_argument('--mu', type=int, default=255, help='mu')
 
         # Initialization
         parser.add_argument('--norm_layer', type=str, default='instance', help='instance normalization or batch normalization [instance | batch | none]')

@@ -137,13 +137,13 @@ class BaseModel(ABC):
         return {k: self.decollator(k, v) for k, v in params.items()}
              
     def postprocess(self, y, params):
-        y = y.cpu().squeeze(0).numpy() 
+        y = y.detach().cpu().squeeze(0).numpy() 
         if 'stft' in self.preprocesses:
             if 'normalize' in self.preprocesses:
                 if 'max' not in params or 'min' not in params:
                     raise Exception('No max or min')
                 y = denormalize_magnitude(params['max'], params['min'], y)
-            y = decalc(y, params['phase'].squeeze(0).numpy(), self.opt.smoothing_factor)
+            y = decalc(y, params['phase'], self.opt.smoothing_factor)
             y = istft(y)
         if 'mulaw' in self.preprocesses:
             y = inv_mulaw(y, self.opt.mu)

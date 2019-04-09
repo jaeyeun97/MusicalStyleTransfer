@@ -81,6 +81,7 @@ def pitch_shift(y, sr):
 
 def pitch_deshift(y, sr, steps):
     l = y.shape[-1]
+    print(l)
     s = l // sr
     shifted = [librosa.effects.pitch_shift(y[i*sr:min(sr*(i+1), l)], sr, -1 * steps[i])
                for i in range(0, s)]

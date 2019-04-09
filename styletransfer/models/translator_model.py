@@ -42,17 +42,24 @@ class TranslatorModel(BaseModel):
             'bottleneck_width': opt.bottleneck,
             'pool_length': opt.pool_length, 
         }).to(self.devices[0])
-        self.netC = DomainConfusion(3, 2, opt.bottleneck, 128, opt.audio_length // opt.pool_length).to(self.devices[0])
-        self.netD_A = WaveNet(opt.mu, 30, 10, 64, 256, 256, opt.bottleneck, 1, 1).to(self.devices[-1])
-        self.netD_B = WaveNet(opt.mu, 30, 10, 64, 256, 256, opt.bottleneck, 1, 1).to(self.devices[-1])
+        self.vector_length = opt.audio_length // opt.pool_length
+        self.netC = DomainConfusion(3, 2, opt.bottleneck, 128, self.vector_length).to(self.devices[0])
+        self.netD_A = WaveNet(opt.mu + 1, 30, 10, 64, 256, 256, opt.bottleneck, 1, 1).to(self.devices[-1])
+        self.netD_B = WaveNet(opt.mu + 1, 30, 10, 64, 256, 256, opt.bottleneck, 1, 1).to(self.devices[-1])
+        self.softmax = nn.LogSoftmax(dim=1) # (1, 256, audio_len) -> pick 256
 
+        self.prev_A = None
+        self.prev_B = None
+        self.pred_D_A = None
+        self.pred_D_B = None
+        
         if self.isTrain:
             self.A_target = torch.LongTensor([0]).to(self.devices[0])
             self.B_target = torch.LongTensor([1]).to(self.devices[0])
-            self.criterion = nn.CrossEntropyLoss(reduction='mean')
-            self.optimizer_C = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizer_D = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizers = [self.optimizer_C, self.optimizer_D] 
+            self.criterionDC = nn.CrossEntropyLoss(reduction='mean')
+            self.criterionDecode = nn.NLLLoss(reduction='mean')
+            self.optimizer = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizers = [self.optimizer] 
 
     def set_input(self, input): 
         A, params_A = input[0]  
@@ -63,54 +70,77 @@ class TranslatorModel(BaseModel):
         self.params_B = self.decollate_params(params_B)
 
     def get_indices(self, y):
-        y = (y + 1.) * .5 * self.opt.mu
-        return y.clamp(0, self.opt.mu).long()
+        y = (y + 1.) * .5 * (self.opt.mu + 1)
+        return y.clamp(0, self.opt.mu + 1).long()
 
     def inv_indices(self, y):
-        return y.float() / (0.5  * self.opt.mu) - 1.
-  
+        return y.float() / (self.opt.mu + 1) * 2. - 1.
+
+    @staticmethod
+    def sample(logits):
+        dist = torch.distributions.categorical.Categorical(logits=logits.transpose(1, 2))
+        return dist.sample()
+ 
     def train(self):
-        self.optimizer_C.zero_grad()
-        self.optimizer_D.zero_grad()
+        if self.prev_A is None:
+            self.prev_A = self.real_A
+        if self.prev_B is None:
+            self.prev_B = self.real_B
+        # if self.pred_D_A is None:
+        #     self.pred_D_A = self.netD_A.embed.weight
+        # if self.pred_D_B is None:
+        #     self.pred_D_B = self.netD_B.embed.weight
 
-        encoded_A = self.netE(self.real_A.unsqueeze(1))
-        encoded_B = self.netE(self.real_B.unsqueeze(1)) 
- 
-        pred_C_A = self.netC(encoded_A)
-        pred_C_B = self.netC(encoded_B)
 
-        self.loss_C_A = self.criterion(pred_C_A, self.A_target)
-        self.loss_C_B = self.criterion(pred_C_B, self.B_target)
-        self.loss_C = self.loss_C_A + self.loss_C_B
-        self.loss_C.backward(retain_graph=True)
-
+        self.optimizer.zero_grad()
+        encoded_A = self.netE(self.real_A.unsqueeze(1)) # Input range: (-1, 1) Output: R^64
+        pred_C_A = self.netC(encoded_A) # (encoded_A + 1.) * self.vector_length / 2)
+        self.loss_C_A = self.criterionDC(pred_C_A, self.A_target)
         encoded_A = nn.functional.interpolate(encoded_A, scale_factor=self.opt.pool_length).to(self.devices[-1])
+        # self.prev_A = (self.prev_A * 0.5 * (self.opt.mu + 1)).to(self.devices[-1])
+        # self.prev_A = self.get_indices(self.prev_A).to(self.devices[-1])
+        self.prev_A = self.prev_A.to(self.devices[-1]).unsqueeze(1)
+        rec_A = self.softmax(self.netD_A((encoded_A, self.prev_A))) 
+        self.loss_D_A = self.criterionDecode(rec_A, self.get_indices(self.real_A)).to(self.devices[0])
+
+        encoded_B = self.netE(self.real_B.unsqueeze(1)) 
+        pred_C_B = self.netC(encoded_B) # (encoded_B + 1.) * self.vector_length / 2)
+        self.loss_C_B = self.criterionDC(pred_C_B, self.B_target)
         encoded_B = nn.functional.interpolate(encoded_B, scale_factor=self.opt.pool_length).to(self.devices[-1])
-          
-        target_A = self.get_indices(self.real_A).to(self.devices[-1])
-        target_B = self.get_indices(self.real_B).to(self.devices[-1])
+        # self.prev_B = (self.prev_B * 0.5 * (self.opt.mu + 1)).to(self.devices[-1])
+        # self.prev_B = self.get_indices(self.prev_B).to(self.devices[-1])
+        self.prev_B = self.prev_B.to(self.devices[-1]).unsqueeze(1)
+        rec_B = self.softmax(self.netD_B((encoded_B, self.prev_B)))   
+        self.loss_D_B = self.criterionDecode(rec_B, self.get_indices(self.real_B)).to(self.devices[0])
+        self.loss = self.loss_C_A + self.loss_D_A + self.loss_C_B + self.loss_D_B
+        self.loss.backward()
+        self.optimizer.step()
 
-        rec_A = self.netD_A((encoded_A, target_A)) 
-        rec_B = self.netD_B((encoded_B, target_B))
+        # print(self.netD_A.embed.weight - self.pred_D_A)
+        # print(self.netD_B.embed.weight - self.pred_D_B)
 
-        self.rec_A = self.inv_indices(rec_A)
-        self.rec_B = self.inv_indices(rec_B)
- 
-        self.loss_D_A = self.criterion(rec_A, target_A).to(self.devices[0])
-        self.loss_D_B = self.criterion(rec_B, target_B).to(self.devices[0])
-        self.loss_D = self.loss_D_A + self.loss_D_B
-        self.loss_D.backward()
+        self.prev_A = self.real_A
+        self.prev_B = self.real_B
+        # self.pred_D_A = self.netD_A.embed.weight
+        # self.pred_D_B = self.netD_B.embed.weight
 
-        self.optimizer_C.step()
-        self.optimizer_D.step()
-
+        with torch.no_grad():
+            self.rec_A = self.inv_indices(self.sample(rec_A))
+            self.rec_B = self.inv_indices(self.sample(rec_B))  
+  
     def test(self):
         with torch.no_grad():
-            encoded_A = self.netE(self.real_A)
-            encoded_B = self.netE(self.real_B) 
+            encoded_A = self.netE(self.real_A.unsqueeze(1))
+            encoded_B = self.netE(self.real_B.unsqueeze(1))
 
-            encoded_A = self.upsample(encoded_A)
-            encoded_B = self.upsample(encoded_B)
+            encoded_A = nn.functional.interpolate(encoded_A, scale_factor=self.opt.pool_length).to(self.devices[-1])
+            encoded_B = nn.functional.interpolate(encoded_B, scale_factor=self.opt.pool_length).to(self.devices[-1])
 
-            self.fake_A = self.netD_A((encoded_B, self.to_onehot(self.real_A).to(self.devices[0])))
-            self.fake_B = self.netD_B((encoded_A, self.to_onehot(self.real_B).to(self.devices[0])))
+            target_A = self.get_indices(self.real_A).to(self.devices[-1])
+            target_B = self.get_indices(self.real_B).to(self.devices[-1])
+
+            fake_A = self.softmax(self.netD_A((encoded_A, target_B)))
+            fake_B = self.softmax(self.netD_B((encoded_B, target_A)))
+            
+            self.fake_A = self.inv_indices(self.sample(fake_A))
+            self.fake_B = self.inv_indices(self.sample(fake_B)) 

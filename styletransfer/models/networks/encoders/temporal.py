@@ -15,11 +15,13 @@ class TemporalEncoder(nn.Module):
     def __init__(self, **kwargs): 
         super(TemporalEncoder, self).__init__()
         option_setter(self, options, kwargs) 
+        self.device = None
  
         self.model = [
             ('conv_init', nn.Conv1d(1, self.width,
                                     kernel_size=self.conv_size,
-                                    padding=((self.conv_size - 1) // 2)))
+                                    padding=((self.conv_size - 1) // 2),
+                                    bias=False))
         ]
 
         for i in range(self.layers):
@@ -29,17 +31,20 @@ class TemporalEncoder(nn.Module):
                 ('nc_dil_conv_%s' % i, nn.Conv1d(self.width, self.width,
                                                  kernel_size=self.conv_size,
                                                  padding=((self.conv_size - 1) * dilation // 2),
-                                                 dilation=dilation)),
+                                                 dilation=dilation,
+                                                 bias=False)),
                 ('relu_second_%i' % i, nn.ReLU()),
                 ('1x1_conv_%s' % i, Conv(self.width, self.width,
                                          kernel_size=1,
-                                         is_causal=True)),
+                                         is_causal=True,
+                                         bias=False)),
             ]
 
         self.model += [
             ('conv_final', Conv(self.width, self.bottleneck_width,
                                 kernel_size=1,
-                                is_causal=True)),
+                                is_causal=True,
+                                bias=False)),
             ('avgpool', nn.AvgPool1d(self.pool_length, stride=self.pool_length))
         ]
 
@@ -48,7 +53,7 @@ class TemporalEncoder(nn.Module):
             if 'nc_dil' in name:
                 nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
             elif 'init' in name:
-                nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('linear'))
+                nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
 
 
 
@@ -60,3 +65,7 @@ class TemporalEncoder(nn.Module):
             if '1x1_conv' in name:
                 input = skip_input + input
         return input
+
+    def to(self, device):
+        self.device = device
+        return super(TemporalEncoder, self).to(device)

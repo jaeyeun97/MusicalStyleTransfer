@@ -34,8 +34,7 @@ class CycleGANModel(BaseModel):
         """
         parser.set_defaults(no_dropout=True, phase='gan')  # default CycleGAN did not use dropout
         opt, _ = parser.parse_known_args()
-        if 'stft' not in opt.preprocess:
-            parser.set_defaults(preprocess=opt.preproccess+',stft')
+        parser.set_defaults(preprocess=opt.preprocess+',stft')
         if is_train:
             parser.add_argument('--lambda_A', type=float, default=10.0, help='weight for cycle loss (A -> B -> A)')
             parser.add_argument('--lambda_B', type=float, default=10.0, help='weight for cycle loss (B -> A -> B)')
@@ -50,7 +49,7 @@ class CycleGANModel(BaseModel):
             opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         BaseModel.__init__(self, opt)
-        self.loss_names = ['D_A', 'G_A', 'idt_A', 'cycle_A', 'D_B', 'G_B', 'cycle_B', 'idt_B']
+        self.loss_names = ['D_A', 'G_A', 'idt_A', 'cycle_A', 'D_B', 'G_B', 'idt_B', 'cycle_B']
 
         output_names_A = ['real_A', 'fake_B', 'rec_A']
         params_names_A = ['params_A'] * 3
@@ -64,7 +63,7 @@ class CycleGANModel(BaseModel):
             params_names_B += ['params_B']
 
         self.output_names = output_names_A + output_names_B  # combine visualizations for A and B
-        self.params_names = params_names_A + parmas_names_B
+        self.params_names = params_names_A + params_names_B
 
         if self.isTrain:
             self.model_names = ['G_A', 'G_B', 'D_A', 'D_B']
@@ -79,9 +78,16 @@ class CycleGANModel(BaseModel):
 
         if self.isTrain:  # define discriminators
             self.netD_A = getDiscriminator(opt, self.devices[-1])
-            self.criterionD_A = GANLoss(opt.gan_mode).to(self.devices[-1]) 
             self.netD_B = getDiscriminator(opt, self.devices[0])
-            self.criterionD_B = GANLoss(opt.gan_mode).to(self.devices[0])
+            
+            if opt.discriminator == 'shallow':
+                self.true_label = torch.LongTensor([0]).to(self.devices[0])
+                self.false_label = torch.LongTensor([1]).to(self.devices[0])
+                self.criterionD_A = torch.nn.CrossEntropyLoss().to(self.devices[-1]) 
+                self.criterionD_B = torch.nn.CrossEntropyLoss().to(self.devices[0])
+            else:
+                self.criterionD_A = GANLoss(opt.gan_mode).to(self.devices[-1]) 
+                self.criterionD_B = GANLoss(opt.gan_mode).to(self.devices[0])
 
             self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
             self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
@@ -106,8 +112,10 @@ class CycleGANModel(BaseModel):
         AtoB = self.opt.direction == 'AtoB'
         first = input[0 if AtoB else 1]
         second = input[1 if AtoB else 0]
-        A, self.params_A = self.preprocess(first)
-        B, self.params_B = self.preprocess(second)
+        A, params_A = first
+        B, params_B = second
+        self.params_A = self.decollate_params(params_A)
+        self.params_B = self.decollate_params(params_B)
 
         self.real_A = tuple(A.to(device=dev) for dev in self.devices)
         self.real_B = tuple(B.to(device=dev) for dev in self.devices) 
@@ -145,14 +153,25 @@ class CycleGANModel(BaseModel):
         pred_A_A_real = self.netD_A(self.real_A[-1])
         pred_A_A_fake = self.netD_A(self.fake_A_pool.query(self.fake_A.detach()))
 
-        self.loss_D_B = (self.criterionD_B(pred_B_A_real, False) + 
-                         self.criterionD_B(pred_B_B_real, True) + 
-                         self.criterionD_B(pred_B_B_fake, False)) / 3
-        self.loss_D_B.backward()
 
-        self.loss_D_A = (self.criterionD_A(pred_A_B_real, False) + 
-                         self.criterionD_A(pred_A_A_real, True) +
-                         self.criterionD_A(pred_A_A_fake, False)) / 3
+        if opt.discriminator == 'shallow':
+            self.loss_D_B = (self.criterionD_B(pred_B_A_real, self.false_label) + 
+                             self.criterionD_B(pred_B_B_real, self.true_label) + 
+                             self.criterionD_B(pred_B_B_fake, self.false_label)) / 3
+
+            self.loss_D_A = (self.criterionD_A(pred_A_B_real, self.false_label) + 
+                             self.criterionD_A(pred_A_A_real, self.true_label) +
+                             self.criterionD_A(pred_A_A_fake, self.false_label) / 3
+        else:
+            self.loss_D_B = (self.criterionD_B(pred_B_A_real, False) + 
+                             self.criterionD_B(pred_B_B_real, True) + 
+                             self.criterionD_B(pred_B_B_fake, False)) / 3
+
+            self.loss_D_A = (self.criterionD_A(pred_A_B_real, False) + 
+                             self.criterionD_A(pred_A_A_real, True) +
+                             self.criterionD_A(pred_A_A_fake, False)) / 3
+
+        self.loss_D_B.backward()
         self.loss_D_A.backward()
         self.optimizer_D.step() 
         # D training done 

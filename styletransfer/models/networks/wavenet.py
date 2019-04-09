@@ -24,7 +24,6 @@
 # 
 # *****************************************************************************
 import torch
-import math
 
 class Conv(torch.nn.Module):
     """
@@ -56,6 +55,7 @@ class WaveNet(torch.nn.Module):
                  n_cond_channels, upsamp_window, upsamp_stride):
         super(WaveNet, self).__init__()
 
+        self.device = None
         self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
                                                  n_cond_channels,
                                                  upsamp_window,
@@ -71,8 +71,15 @@ class WaveNet(torch.nn.Module):
         self.res_layers = torch.nn.ModuleList()
         self.skip_layers = torch.nn.ModuleList()
         
-        self.embed = torch.nn.Embedding(n_in_channels,
-                                             n_residual_channels)
+        # self.embed = torch.nn.Embedding(n_in_channels,
+        #                                      n_residual_channels)
+
+        self.conv_start = Conv(1, n_residual_channels,
+                               kernel_size=2, w_init_gain='linear',
+                               bias=False, is_causal=True)
+        self.skip_start = Conv(n_residual_channels, n_skip_channels,
+                               w_init_gain='relu')
+
         self.conv_out = Conv(n_skip_channels, n_out_channels,
                                  bias=False, w_init_gain='relu')
         self.conv_end = Conv(n_out_channels, n_out_channels,
@@ -107,8 +114,12 @@ class WaveNet(torch.nn.Module):
         if cond_input.size(2) > forward_input.size(1):
             cond_input = cond_input[:, :, :forward_input.size(1)]
        
-        forward_input = self.embed(forward_input.long())
-        forward_input = forward_input.transpose(1, 2)
+        # print(self.embed.weight)
+        # forward_input = self.embed(forward_input.long())
+        # forward_input = forward_input.transpose(1, 2)
+
+        forward_input = self.conv_start(forward_input)
+        output = self.skip_start(forward_input)
        
         cond_acts = self.cond_layers(cond_input)
         cond_acts = cond_acts.view(cond_acts.size(0), self.n_layers, -1, cond_acts.size(2))
@@ -118,14 +129,13 @@ class WaveNet(torch.nn.Module):
             t_act = torch.tanh(in_act[:, :self.n_residual_channels, :])
             s_act = torch.sigmoid(in_act[:, self.n_residual_channels:, :])
             acts = t_act * s_act
-            if i < len(self.res_layers):
+            if i < self.n_layers - 1:
                 res_acts = self.res_layers[i](acts)
-            forward_input = res_acts + forward_input
-
-            if i == 0:
-                output = self.skip_layers[i](acts)
-            else:
-                output = self.skip_layers[i](acts) + output
+                forward_input = res_acts + forward_input
+            # if i == 0:
+            #     output = self.skip_layers[i](acts)
+            # else:
+            output = self.skip_layers[i](acts) + output
 
         output = torch.nn.functional.relu(output, True)
         output = self.conv_out(output)
@@ -199,3 +209,7 @@ class WaveNet(torch.nn.Module):
         # This makes the data channels x batch x num_layers x samples
         cond_input = cond_input.permute(2,0,1,3)
         return cond_input
+
+    def to(self, device):
+        self.device = device
+        return super(WaveNet, self).to(device)
