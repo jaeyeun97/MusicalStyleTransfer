@@ -32,13 +32,13 @@ class CycleGANModel(BaseModel):
         Backward cycle loss: lambda_B * ||G_A(G_B(B)) - B|| (Eqn. (2) in the paper)
         Dropout is not used in the original CycleGAN paper.
         """
-        parser.set_defaults(no_dropout=True, phase='gan')  # default CycleGAN did not use dropout
+        parser.set_defaults(no_dropout=True, phase='gan', gan_mode='wgangp')  # default CycleGAN did not use dropout
         opt, _ = parser.parse_known_args()
         parser.set_defaults(preprocess=opt.preprocess+',stft')
         if is_train:
             parser.add_argument('--lambda_A', type=float, default=10.0, help='weight for cycle loss (A -> B -> A)')
             parser.add_argument('--lambda_B', type=float, default=10.0, help='weight for cycle loss (B -> A -> B)')
-            parser.add_argument('--lambda_identity', type=float, default=0.5, help='use identity mapping. Setting lambda_identity other than 0 has an effect of scaling the weight of the identity mapping loss. For example, if the weight of the identity loss should be 10 times smaller than the weight of the reconstruction loss, please set lambda_identity = 0.1')
+            parser.add_argument('--lambda_identity', type=float, default=1, help='use identity mapping. Setting lambda_identity other than 0 has an effect of scaling the weight of the identity mapping loss. For example, if the weight of the identity loss should be 10 times smaller than the weight of the reconstruction loss, please set lambda_identity = 0.1')
 
         return parser
 
@@ -56,7 +56,9 @@ class CycleGANModel(BaseModel):
         output_names_B = ['real_B', 'fake_A', 'rec_B'] 
         params_names_B = ['params_B'] * 3
 
-        if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
+
+        self.lambda_identity = opt.lambda_identity
+        if self.isTrain and self.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
             output_names_A.append('idt_B')
             params_names_A += ['params_A']
             output_names_B.append('idt_A')
@@ -206,4 +208,6 @@ class CycleGANModel(BaseModel):
         self.loss_G.backward()
         self.optimizer_G.step()
         # G Train done
+
+        self.lambda_identity *= 0.999
 

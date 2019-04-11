@@ -40,7 +40,7 @@ class BaseOptions():
         parser.add_argument('--num_trans_layers', type=int, default=9, help='# of trans layer')
 
         # Conv
-        parser.add_argument('--n_downsample', type=int, default=4, help='Used for ConvAutoencoder: number of downsampling layers')
+        parser.add_argument('--n_downsample', type=int, default=2, help='Used for ConvAutoencoder: number of downsampling layers')
         parser.add_argument('--shrinking_filter', action='store_true', help='Used for ConvAutoencoder: halving/doubling filter size')
 
         # Conv Classifier
