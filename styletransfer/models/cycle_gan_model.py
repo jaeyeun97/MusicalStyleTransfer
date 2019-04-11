@@ -32,9 +32,8 @@ class CycleGANModel(BaseModel):
         Backward cycle loss: lambda_B * ||G_A(G_B(B)) - B|| (Eqn. (2) in the paper)
         Dropout is not used in the original CycleGAN paper.
         """
-        parser.set_defaults(no_dropout=True, phase='gan', gan_mode='wgangp')  # default CycleGAN did not use dropout
         opt, _ = parser.parse_known_args()
-        parser.set_defaults(preprocess=opt.preprocess+',stft')
+        parser.set_defaults(preprocess='stft,'+opt.preprocess, no_dropout=True, phase='gan', gan_mode='wgangp')
         if is_train:
             parser.add_argument('--lambda_A', type=float, default=10.0, help='weight for cycle loss (A -> B -> A)')
             parser.add_argument('--lambda_B', type=float, default=10.0, help='weight for cycle loss (B -> A -> B)')
@@ -91,8 +90,8 @@ class CycleGANModel(BaseModel):
                 self.criterionD_A = GANLoss(opt.gan_mode).to(self.devices[-1]) 
                 self.criterionD_B = GANLoss(opt.gan_mode).to(self.devices[0])
 
-            self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
-            self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            # self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            # self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
             # define loss functions
             self.criterionCycle = torch.nn.L1Loss()
             self.criterionIdt = torch.nn.L1Loss()
@@ -136,7 +135,7 @@ class CycleGANModel(BaseModel):
    
 
     def train(self):  
-        lambda_idt = self.opt.lambda_identity
+        lambda_idt = self.lambda_identity
         lambda_A = self.opt.lambda_A
         lambda_B = self.opt.lambda_B
 
@@ -147,22 +146,24 @@ class CycleGANModel(BaseModel):
         # Train Disc.
         self.set_requires_grad([self.netD_A, self.netD_B], True) 
         self.optimizer_D.zero_grad()   # set D_A and D_B's gradients to zero
-        pred_B_A_real = self.netD_B(self.real_A[0]) # D_B(A)
+        # pred_B_A_real = self.netD_B(self.real_A[0]) # D_B(A)
         pred_B_B_real = self.netD_B(self.real_B[0]) # D_A(A)
-        pred_B_B_fake = self.netD_B(self.fake_B_pool.query(self.fake_B.detach()))
+        # pred_B_B_fake = self.netD_B(self.fake_B_pool.query(self.fake_B.detach()))
+        pred_B_B_fake = self.netD_B(self.fake_B.detach())
 
-        pred_A_B_real = self.netD_A(self.real_B[-1])
+        # pred_A_B_real = self.netD_A(self.real_B[-1])
         pred_A_A_real = self.netD_A(self.real_A[-1])
-        pred_A_A_fake = self.netD_A(self.fake_A_pool.query(self.fake_A.detach()))
+        # pred_A_A_fake = self.netD_A(self.fake_A_pool.query(self.fake_A.detach()))
+        pred_A_A_fake = self.netD_A(self.fake_A.detach())
 
  
-        self.loss_D_B = (self.criterionD_B(pred_B_A_real, False) + 
+        self.loss_D_B = (# self.criterionD_B(pred_B_A_real, False) + 
                          self.criterionD_B(pred_B_B_real, True) + 
-                         self.criterionD_B(pred_B_B_fake, False)) / 3
+                         self.criterionD_B(pred_B_B_fake, False)) / 2
 
-        self.loss_D_A = (self.criterionD_A(pred_A_B_real, False) + 
+        self.loss_D_A = (# self.criterionD_A(pred_A_B_real, False) + 
                          self.criterionD_A(pred_A_A_real, True) +
-                         self.criterionD_A(pred_A_A_fake, False)) / 3
+                         self.criterionD_A(pred_A_A_fake, False)) / 2
 
         self.loss_D_B.backward()
         self.loss_D_A.backward()
@@ -200,5 +201,5 @@ class CycleGANModel(BaseModel):
         self.optimizer_G.step()
         # G Train done
 
-        self.lambda_identity *= 0.999
+        self.lambda_identity *= 0.998
 

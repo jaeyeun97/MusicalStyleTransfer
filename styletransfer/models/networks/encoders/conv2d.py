@@ -3,7 +3,7 @@ from ..util import option_setter
 
 
 options = { 
-    'ngf': 32,
+    'ngf': 64,
     'conv_size': 3,
     'conv_pad': 1,
     'pool_size': (3, 1),
@@ -55,6 +55,7 @@ class Conv2dEncoder(nn.Module):
             mult = next_mult
 
         # Transformer
+        print(self.transformer)
         if self.transformer is not None:
             ts = (self.tensor_size - 1) // (2 ** self.n_downsample) + 1
             kwargs['input_size'] = (ts, ts)
@@ -82,11 +83,10 @@ class Conv2dEncoder(nn.Module):
             mult = next_mult
 
         self.model += [
-            ('pad_final', nn.ReflectionPad(3)),
-            ('conv_final', nn.ConvTranspose2d(mult, 1,
-                                              kernel_size=self.conv_size,
-                                              padding=self.conv_pad,
-                                              bias=self.use_bias)),
+            ('pad_final', nn.ReflectionPad2d(3)),
+            ('conv_final', nn.Conv2d(mult, 1,
+                                     kernel_size=7,
+                                     bias=self.use_bias)),
             ('tanh', nn.Tanh())
         ]
 

@@ -31,9 +31,9 @@ class Resnet2d(nn.Module):
             conv_block += [nn.Dropout(0.5)]
 
         conv_block += [
+                nn.ReflectionPad2d(1),
                 nn.Conv2d(self.nc, self.nc,
                           kernel_size=3,
-                          padding=1,
                           bias=self.use_bias),
                 self.norm_layer(self.nc)
             ]
