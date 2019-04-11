@@ -14,29 +14,28 @@ options = {
 class Resnet2d(nn.Module):
     """Define a Resnet block"""
 
-    def __init__(self, **kwargs): 
-        super(Resnet2d, self).__init__() 
+    def __init__(self, **kwargs):
+        super(Resnet2d, self).__init__()
         option_setter(self, options, kwargs)
-        
+
         conv_block = [
+                nn.ReflectionPad2d(1),
                 nn.Conv2d(self.nc, self.nc,
-                          kernel_size=self.conv_size,
-                          padding=self.conv_pad,
-                          dilation=2,
+                          kernel_size=3,
                           bias=self.use_bias),
                 self.norm_layer(self.nc),
-                nn.LeakyReLU(0.2, True)
+                nn.ReLU(True)
             ]
 
         if self.use_dropout:
             conv_block += [nn.Dropout(0.5)]
- 
+
         conv_block += [
                 nn.Conv2d(self.nc, self.nc,
-                          kernel_size=self.conv_size,
-                          padding=self.conv_pad,
-                          dilation=2,
+                          kernel_size=3,
+                          padding=1,
                           bias=self.use_bias),
+                self.norm_layer(self.nc)
             ]
 
         self.model = nn.Sequential(*conv_block)
