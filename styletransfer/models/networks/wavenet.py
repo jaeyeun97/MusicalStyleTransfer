@@ -58,8 +58,8 @@ class WaveNet(torch.nn.Module):
         self.device = None
         self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
                                                  n_cond_channels,
-                                                 upsamp_window,
-                                                 upsamp_stride)
+                                                 kernel_size=upsamp_window,
+                                                 stride=upsamp_stride)
         
         self.n_layers = n_layers
         self.max_dilation = 2 ** (loop_factor - 1)
@@ -74,9 +74,9 @@ class WaveNet(torch.nn.Module):
         # self.embed = torch.nn.Embedding(n_in_channels,
         #                                      n_residual_channels)
 
-        self.conv_start = Conv(1, n_residual_channels,
-                               kernel_size=2, w_init_gain='linear',
-                               bias=False, is_causal=True)
+        self.conv_start = Conv(n_in_channels, n_residual_channels,
+                               kernel_size=1, w_init_gain='linear',
+                               bias=False)
         # self.skip_start = Conv(n_residual_channels, n_skip_channels,
         #                        w_init_gain='relu')
 
@@ -110,11 +110,10 @@ class WaveNet(torch.nn.Module):
         forward_input = forward_input[1]
         cond_input = self.upsample(features)
 
-        assert(cond_input.size(2) >= forward_input.size(1))
-        if cond_input.size(2) > forward_input.size(1):
-            cond_input = cond_input[:, :, :forward_input.size(1)]
+        # assert(cond_input.size(2) >= forward_input.size(1))
+        # if cond_input.size(2) > forward_input.size(1):
+        #     cond_input = cond_input[:, :, :forward_input.size(1)]
        
-        # print(self.embed.weight)
         # forward_input = self.embed(forward_input.long())
         # forward_input = forward_input.transpose(1, 2)
 

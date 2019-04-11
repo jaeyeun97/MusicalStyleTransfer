@@ -7,7 +7,6 @@ options = {
     'layers': 30,
     'stages': 10,
     'bottleneck_width': 16,
-    'conv_size': 3,
     'pool_length': 512,
 }
 
@@ -18,10 +17,7 @@ class TemporalEncoder(nn.Module):
         self.device = None
  
         self.model = [
-            ('conv_init', nn.Conv1d(1, self.width,
-                                    kernel_size=self.conv_size,
-                                    padding=((self.conv_size - 1) // 2),
-                                    bias=False))
+            ('conv_init', nn.Conv1d(1, self.width, kernel_size=3, padding=1))
         ]
 
         for i in range(self.layers):
@@ -29,22 +25,15 @@ class TemporalEncoder(nn.Module):
             self.model += [
                 ('relu_first_%s' % i, nn.ReLU()),
                 ('nc_dil_conv_%s' % i, nn.Conv1d(self.width, self.width,
-                                                 kernel_size=self.conv_size,
-                                                 padding=((self.conv_size - 1) * dilation // 2),
-                                                 dilation=dilation,
-                                                 bias=False)),
+                                                 kernel_size=3,
+                                                 padding=dilation,
+                                                 dilation=dilation)),
                 ('relu_second_%i' % i, nn.ReLU()),
-                ('1x1_conv_%s' % i, Conv(self.width, self.width,
-                                         kernel_size=1,
-                                         is_causal=True,
-                                         bias=False)),
+                ('1x1_conv_%s' % i, Conv(self.width, self.width)),
             ]
-
+ 
         self.model += [
-            ('conv_final', Conv(self.width, self.bottleneck_width,
-                                kernel_size=1,
-                                is_causal=True,
-                                bias=False)),
+            ('conv_final', Conv(self.width, self.bottleneck_width)),
             ('avgpool', nn.AvgPool1d(self.pool_length, stride=self.pool_length))
         ]
 

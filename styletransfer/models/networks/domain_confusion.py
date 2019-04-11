@@ -13,27 +13,29 @@ class DomainConfusion(nn.Module):
     def __init__(self, layers, num_domain, in_channel, out_channel, input_size):
         super(DomainConfusion, self).__init__()
         self.device = None
+        self.num_domain = num_domain
 
-        model = [
-            GradientFlip(1e-2),
-            nn.Conv1d(in_channel, out_channel, kernel_size=2, bias=False),
-            nn.ELU(),
-        ]
+        conv = nn.Conv1d(in_channel, out_channel, kernel_size=3)
+        elu = nn.ELU()
+        nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / in_channel))
+        model = [GradientFlip(1e-2), conv, elu]
+        # model = [conv, elu]
 
         for i in range(1, layers - 1):
-            model += [
-                nn.Conv1d(out_channel, out_channel, kernel_size=2, bias=False), 
-                nn.ELU(),
-            ]
+            conv = nn.Conv1d(out_channel, out_channel, kernel_size=3)
+            elu = nn.ELU()
+            nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / out_channel))
+            model += [conv, elu]
 
-        model += [
-            nn.Conv1d(out_channel, num_domain, kernel_size=2, bias=False), 
-            nn.ELU(),
+
+        conv = nn.Conv1d(out_channel, num_domain, kernel_size=3) 
+        nn.init.xavier_uniform_(conv.weight, gain=nn.init.calculate_gain('linear'))
+
+        model += [conv,
+            nn.AvgPool1d(input_size - 2 * layers),
+            # Flatten(),
+            # nn.Linear(num_domain * (input_size - 2 * layers), 2),
         ]
-
-        for module in model:
-            if isinstance(module, nn.Conv1d):
-                nn.init.xavier_uniform_(module.weight, gain=math.sqrt(1.55 / module.in_channels))
 
         self.model = nn.Sequential(*model) 
 
@@ -41,8 +43,8 @@ class DomainConfusion(nn.Module):
         # i = i.clone()
         # i.register_hook(hook_factory(1e-2))
         i = self.model(i)
-        i = i.mean(dim=2)
-        return i
+        # i = i.mean(dim=2)
+        return i.view(1, self.num_domain)
 
     def to(self, device):
         self.device = device

@@ -153,23 +153,14 @@ class CycleGANModel(BaseModel):
         pred_A_A_real = self.netD_A(self.real_A[-1])
         pred_A_A_fake = self.netD_A(self.fake_A_pool.query(self.fake_A.detach()))
 
+ 
+        self.loss_D_B = (self.criterionD_B(pred_B_A_real, False) + 
+                         self.criterionD_B(pred_B_B_real, True) + 
+                         self.criterionD_B(pred_B_B_fake, False)) / 3
 
-        if opt.discriminator == 'shallow':
-            self.loss_D_B = (self.criterionD_B(pred_B_A_real, self.false_label) + 
-                             self.criterionD_B(pred_B_B_real, self.true_label) + 
-                             self.criterionD_B(pred_B_B_fake, self.false_label)) / 3
-
-            self.loss_D_A = (self.criterionD_A(pred_A_B_real, self.false_label) + 
-                             self.criterionD_A(pred_A_A_real, self.true_label) +
-                             self.criterionD_A(pred_A_A_fake, self.false_label) / 3
-        else:
-            self.loss_D_B = (self.criterionD_B(pred_B_A_real, False) + 
-                             self.criterionD_B(pred_B_B_real, True) + 
-                             self.criterionD_B(pred_B_B_fake, False)) / 3
-
-            self.loss_D_A = (self.criterionD_A(pred_A_B_real, False) + 
-                             self.criterionD_A(pred_A_A_real, True) +
-                             self.criterionD_A(pred_A_A_fake, False)) / 3
+        self.loss_D_A = (self.criterionD_A(pred_A_B_real, False) + 
+                         self.criterionD_A(pred_A_A_real, True) +
+                         self.criterionD_A(pred_A_A_fake, False)) / 3
 
         self.loss_D_B.backward()
         self.loss_D_A.backward()
