@@ -33,7 +33,7 @@ class Conv2dEncoder(nn.Module):
             ('conv_init', nn.Conv2d(1, mult,
                                     kernel_size=7,
                                     bias=self.use_bias)),
-            ('norm_init', self.norm_layer(mult)),
+            # ('norm_init', self.norm_layer(mult)),
             ('relu_init', nn.ReLU(True)),
         ]
 
@@ -45,7 +45,7 @@ class Conv2dEncoder(nn.Module):
                                                padding=1,
                                                stride=2,
                                                bias=self.use_bias)), 
-                ('norm_down_%s' % i, self.norm_layer(next_mult)),
+                # ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.ReLU(True)),
                 # ('pool_down_%s' % i, nn.MaxPool2d(self.pool_size,
                 #                                   stride=self.pool_stride,
@@ -55,7 +55,6 @@ class Conv2dEncoder(nn.Module):
             mult = next_mult
 
         # Transformer
-        print(self.transformer)
         if self.transformer is not None:
             ts = (self.tensor_size - 1) // (2 ** self.n_downsample) + 1
             kwargs['input_size'] = (ts, ts)
@@ -77,7 +76,7 @@ class Conv2dEncoder(nn.Module):
                                                       padding=1,
                                                       stride=2,
                                                       bias=self.use_bias)),
-                ('norm_up_%s' % i, self.norm_layer(next_mult)),
+                # ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult

@@ -51,7 +51,7 @@ class YoutubeDataset(SingleDataset):
         split = int(split)
         data = self.retrieve_audio(audio, split)
 
-        return data
+        return self.preprocess(data)
 
     def __len__(self):
         """Return the total number of audio files."""

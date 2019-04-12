@@ -1,6 +1,6 @@
 import math
 import torch.nn as nn
-from .wavenet import Conv
+from torch.autograd import Function
 
 def hook_factory(l=1.0):  
     def hook(grad):
@@ -15,14 +15,14 @@ class DomainConfusion(nn.Module):
         self.device = None
         self.num_domain = num_domain
 
-        conv = nn.Conv1d(in_channel, out_channel, kernel_size=3)
+        conv = nn.Conv1d(in_channel, out_channel, groups=1, kernel_size=3)
         elu = nn.ELU()
         nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / in_channel))
-        model = [GradientFlip(1e-2), conv, elu]
-        # model = [conv, elu]
+        # model = [GradientFlip(1e-2), conv, elu]
+        model = [conv, elu]
 
         for i in range(1, layers - 1):
-            conv = nn.Conv1d(out_channel, out_channel, kernel_size=3)
+            conv = nn.Conv1d(out_channel, out_channel, groups=1, kernel_size=3)
             elu = nn.ELU()
             nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / out_channel))
             model += [conv, elu]
@@ -40,8 +40,9 @@ class DomainConfusion(nn.Module):
         self.model = nn.Sequential(*model) 
 
     def forward(self, i):
-        # i = i.clone()
-        # i.register_hook(hook_factory(1e-2))
+        i = i.clone()
+        i.register_hook(hook_factory(1e-2))
+        # GRL.apply(i, 1e-2)
         i = self.model(i)
         # i = i.mean(dim=2)
         return i.view(1, self.num_domain)
@@ -64,7 +65,16 @@ class GradientFlip(nn.Module):
         self.l = l
 
     def forward(self, i):
-        return i.clone()
+        return i.view_as(i)
     
     def backward(self, grad):
-        return -self.l * grad
+        return -1 * self.l * grad.clone()
+
+class GRL(Function):
+    @staticmethod
+    def forward(ctx, x, constant):
+        ctx.constant = constant
+        return x.view_as(x)
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output.neg() * ctx.constant, None

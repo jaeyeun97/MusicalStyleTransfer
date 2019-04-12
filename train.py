@@ -15,11 +15,15 @@ if __name__ == "__main__":
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
     total_iters = 0                # the total number of training iterations
+
     loss_names = model.loss_names
     loss_dir = os.path.join('losses', opt.name)
-    mkdir(loss_dir)
-    loss_file = open(os.path.join(loss_dir, 'losses.csv'), 'w')
-    loss_file.write('epoch,iter,' + ','.join(loss_names) + '\n')
+    if opt.continue_train:
+        loss_file = open(os.path.join(loss_dir, 'losses.csv'), 'a')
+    else:
+        mkdir(loss_dir)
+        loss_file = open(os.path.join(loss_dir, 'losses.csv'), 'w')
+        loss_file.write('epoch,iter,' + ','.join(loss_names) + '\n')
     
     for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
         epoch_start_time = time.time()  # timer for entire epoch

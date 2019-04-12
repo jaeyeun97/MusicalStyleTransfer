@@ -79,7 +79,7 @@ class BaseDataset(data.Dataset, ABC):
             y = librosa.util.fix_length(y, self.audio_length)
         else:
             y = y[:self.audio_length]
-        return self.preprocess(y)
+        return y 
 
     def preprocess(self, y):
         # Preprocess

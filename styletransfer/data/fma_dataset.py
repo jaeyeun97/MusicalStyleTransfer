@@ -57,7 +57,7 @@ class FMADataset(SingleDataset):
         path = self.paths[path_index]
         data = self.retrieve_audio(path, split_index)
 
-        return data
+        return self.preprocess(data)
 
     def __len__(self):
         """Return the total number of audio files."""

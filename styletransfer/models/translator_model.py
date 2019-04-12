@@ -24,6 +24,7 @@ class TranslatorModel(BaseModel):
                                           .replace('normalize', '')
                                           .replace('stft', '') + ',mulaw')
         parser.add_argument('--bottleneck', type=int, default=64, help='bottleneck')
+        parser.add_argument('--dc_width', type=int, default=128, help='width')
         parser.add_argument('--width', type=int, default=128, help='width')
         parser.add_argument('--pool_length', type=int, default=128, help='pool length')
         
@@ -45,13 +46,13 @@ class TranslatorModel(BaseModel):
             'pool_length': opt.pool_length, 
         }).to(self.devices[0])
         self.vector_length = opt.audio_length // opt.pool_length
-        self.netC = DomainConfusion(3, 2, opt.bottleneck, opt.width, self.vector_length).to(self.devices[0])
+        self.netC = DomainConfusion(3, 2, opt.bottleneck, opt.dc_width, self.vector_length).to(self.devices[0])
         self.netD_A = WaveNet(opt.mu+1, 30, 10, 
                               opt.width, 256, 256,
-                              opt.bottleneck, opt.pool_length, opt.pool_length).to(self.devices[-1])
+                              opt.bottleneck, 1, 1).to(self.devices[-1]) # opt.pool_length, opt.pool_length
         self.netD_B = WaveNet(opt.mu+1, 30, 10,
                               opt.width, 256, 256,
-                              opt.bottleneck, opt.pool_length, opt.pool_length).to(self.devices[-1])
+                              opt.bottleneck, 1, 1).to(self.devices[-1]) # opt.pool_length, opt.pool_length
         self.softmax = nn.LogSoftmax(dim=1) # (1, 256, audio_len) -> pick 256
 
         self.prev_A = None
@@ -71,8 +72,10 @@ class TranslatorModel(BaseModel):
             self.criterionDC = nn.CrossEntropyLoss(reduction='mean')
             # self.criterionDC = nn.MSELoss()
             self.criterionDecode = nn.NLLLoss(reduction='mean')
-            self.optimizer = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.998))
-            self.optimizers = [self.optimizer] 
+            self.optimizer_C = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters()), lr=opt.lr, betas=(opt.beta1, 0.998))
+            self.optimizer_D = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.998))
+            # Do not use the scheduler..
+            # self.optimizers = [self.optimizer_C, self.optimizer_D] 
 
     def set_input(self, input): 
         A, params_A = input[0]  
@@ -106,18 +109,22 @@ class TranslatorModel(BaseModel):
         if self.prev_B is None:
             self.prev_B = self.real_B 
 
-        self.optimizer.zero_grad()
+        self.optimizer_C.zero_grad()
+        self.optimizer_D.zero_grad()
+
         encoded_A = self.netE(self.real_A.unsqueeze(1)) # Input range: (-1, 1) Output: R^64
         encoded_B = self.netE(self.real_B.unsqueeze(1)) 
         pred_C_A = self.netC(encoded_A) # (encoded_A + 1.) * self.vector_length / 2)
         pred_C_B = self.netC(encoded_B) # (encoded_B + 1.) * self.vector_length / 2)
         self.loss_C_A = self.criterionDC(pred_C_A, self.A_target)
         self.loss_C_B = self.criterionDC(pred_C_B, self.B_target)
+        loss_C = self.loss_C_A + self.loss_C_B
+        loss_C.backward(retain_graph=True)
 
-        # encoded_A = nn.functional.interpolate(encoded_A, size=self.opt.audio_length).to(self.devices[-1])
-        # encoded_B = nn.functional.interpolate(encoded_B, size=self.opt.audio_length).to(self.devices[-1])
-        encoded_A = encoded_A.to(self.devices[-1])
-        encoded_B = encoded_B.to(self.devices[-1])
+        encoded_A = nn.functional.interpolate(encoded_A, size=self.opt.audio_length).to(self.devices[-1])
+        encoded_B = nn.functional.interpolate(encoded_B, size=self.opt.audio_length).to(self.devices[-1])
+        # encoded_A = encoded_A.to(self.devices[-1])
+        # encoded_B = encoded_B.to(self.devices[-1])
 
         self.prev_A = self.to_onehot(self.prev_A.cpu()).to(self.devices[-1])
         self.prev_B = self.to_onehot(self.prev_B.cpu()).to(self.devices[-1])
@@ -131,9 +138,10 @@ class TranslatorModel(BaseModel):
 
         self.loss_D_A = self.criterionDecode(rec_A, self.get_indices(self.real_A).to(self.devices[-1]))
         self.loss_D_B = self.criterionDecode(rec_B, self.get_indices(self.real_B).to(self.devices[-1]))
-        self.loss = (self.loss_C_A + self.loss_C_B) + (self.loss_D_A + self.loss_D_B).to(self.devices[0])
-        self.loss.backward()
-        self.optimizer.step()
+        loss_D = self.loss_D_A + self.loss_D_B
+        loss_D.backward()
+        self.optimizer_C.step()
+        self.optimizer_D.step()
  
         self.prev_A = self.real_A
         self.prev_B = self.real_B

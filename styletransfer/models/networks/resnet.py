@@ -23,7 +23,7 @@ class Resnet2d(nn.Module):
                 nn.Conv2d(self.nc, self.nc,
                           kernel_size=3,
                           bias=self.use_bias),
-                self.norm_layer(self.nc),
+                # self.norm_layer(self.nc),
                 nn.ReLU(True)
             ]
 
@@ -35,7 +35,7 @@ class Resnet2d(nn.Module):
                 nn.Conv2d(self.nc, self.nc,
                           kernel_size=3,
                           bias=self.use_bias),
-                self.norm_layer(self.nc)
+                # self.norm_layer(self.nc)
             ]
 
         self.model = nn.Sequential(*conv_block)
