@@ -25,7 +25,7 @@ class BaseOptions():
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         # model parameters
         parser.add_argument('--reader', type=str, default='librosa', help='audio reader')
-        parser.add_argument('--duration', type=int, default=8, help='duration of audio')
+        parser.add_argument('--duration', type=float, default=8, help='duration of audio')
         parser.add_argument('--model', type=str, default='cycle_gan', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
         parser.add_argument('--discriminator', type=str, default='conv1d', help='architecture of discriminator')
         parser.add_argument('--transformer', type=str, default='none', help='specify generator transformer architecture')
@@ -124,14 +124,19 @@ class BaseOptions():
         if 'stft' in opt.preprocess:
             tensor_size= opt.nfft // 2 + 1
             hop_length= opt.nfft // 4
-            audio_length = (tensor_size - 1) * hop_length
-            duration = audio_length / opt.sample_rate
+            audio_length = int(opt.duration * opt.sample_rate)
+            square_length = ((tensor_size - 1) * hop_length)
+            duration = square_length / opt.sample_rate
+
+            print('Audio must be a divisor of: {}'.format(duration))
+            print('Current audio length: {}'.format(opt.duration))
+            assert square_length % audio_length == 0 
 
             parser.set_defaults(
                 tensor_size=tensor_size,
                 hop_length=hop_length,
                 audio_length=audio_length,
-                duration=duration)
+                duration_ratio=square_length // audio_length)
         else:
             parser.set_defaults(audio_length=int(opt.sample_rate * opt.duration))
 
