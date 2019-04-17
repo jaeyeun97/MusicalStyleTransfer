@@ -41,8 +41,10 @@ class TemporalEncoder(nn.Module):
             self.add_module(name, module)
             if 'nc_dil' in name:
                 nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
+                # nn.init.kaiming_uniform_(module.weight)
             elif 'init' in name:
                 nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
+                # nn.init.kaiming_uniform_(module.weight)
 
 
 

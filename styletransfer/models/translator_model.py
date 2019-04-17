@@ -1,6 +1,7 @@
 import itertools
 import torch
 import torch.nn as nn
+from adabound import AdaBound
 from .base_model import BaseModel
 from .networks.encoders import TemporalEncoder
 from .networks.domain_confusion import DomainConfusion
@@ -67,15 +68,11 @@ class TranslatorModel(BaseModel):
         if self.isTrain:
             self.A_target = torch.LongTensor([0]).to(self.devices[0])
             self.B_target = torch.LongTensor([1]).to(self.devices[0])
-            # self.A_target = torch.Tensor([1, 0]).to(self.devices[0])
-            # self.B_target = torch.Tensor([0, 1]).to(self.devices[0])
             self.criterionDC = nn.CrossEntropyLoss(reduction='mean')
-            # self.criterionDC = nn.MSELoss()
             self.criterionDecode = nn.NLLLoss(reduction='mean')
-            self.optimizer_C = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters()), lr=opt.lr, betas=(opt.beta1, 0.998))
-            self.optimizer_D = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.998))
-            # Do not use the scheduler..
-            # self.optimizers = [self.optimizer_C, self.optimizer_D] 
+            self.optimizer = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
+            # self.optimizer = AdaBound(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, final_lr=0.1)
+            self.optimizers = [self.optimizer] 
 
     def set_input(self, input): 
         A, params_A = input[0]  
@@ -90,9 +87,9 @@ class TranslatorModel(BaseModel):
         return y.clamp(0, self.opt.mu).long()
 
  
-    def to_onehot(self, y):
+    def to_onehot(self, y, device):
         y = self.get_indices(y).view(-1, 1)
-        y = torch.zeros(y.size()[0], self.opt.mu + 1).scatter_(1, y, 1)
+        y = torch.zeros(y.size()[0], self.opt.mu + 1).to(device).scatter_(1, y, 1)
         return y.transpose(0, 1).unsqueeze(0)
 
     def inv_indices(self, y):
@@ -109,8 +106,7 @@ class TranslatorModel(BaseModel):
         if self.prev_B is None:
             self.prev_B = self.real_B 
 
-        self.optimizer_C.zero_grad()
-        self.optimizer_D.zero_grad()
+        self.optimizer.zero_grad()
 
         encoded_A = self.netE(self.real_A.unsqueeze(1)) # Input range: (-1, 1) Output: R^64
         encoded_B = self.netE(self.real_B.unsqueeze(1)) 
@@ -126,8 +122,8 @@ class TranslatorModel(BaseModel):
         # encoded_A = encoded_A.to(self.devices[-1])
         # encoded_B = encoded_B.to(self.devices[-1])
 
-        self.prev_A = self.to_onehot(self.prev_A.cpu()).to(self.devices[-1])
-        self.prev_B = self.to_onehot(self.prev_B.cpu()).to(self.devices[-1])
+        self.prev_A = self.to_onehot(self.prev_A, self.devices[-1])
+        self.prev_B = self.to_onehot(self.prev_B, self.devices[-1])
         # self.prev_A = self.prev_A.to(self.devices[-1]).unsqueeze(1)
         # self.prev_B = self.prev_B.to(self.devices[-1]).unsqueeze(1)
 
@@ -140,8 +136,8 @@ class TranslatorModel(BaseModel):
         self.loss_D_B = self.criterionDecode(rec_B, self.get_indices(self.real_B).to(self.devices[-1]))
         loss_D = self.loss_D_A + self.loss_D_B
         loss_D.backward()
-        self.optimizer_C.step()
-        self.optimizer_D.step()
+
+        self.optimizer.step()
  
         self.prev_A = self.real_A
         self.prev_B = self.real_B
@@ -180,12 +176,11 @@ class TranslatorModel(BaseModel):
 
             encoded_A = nn.functional.interpolate(encoded_A, scale_factor=self.opt.pool_length).to(self.devices[-1])
             encoded_B = nn.functional.interpolate(encoded_B, scale_factor=self.opt.pool_length).to(self.devices[-1])
+            real_A = self.to_onehot(self.real_A, self.devices[-1])
+            real_B = self.to_onehot(self.real_B, self.devices[-1])
 
-            target_A = self.get_indices(self.real_A).to(self.devices[-1])
-            target_B = self.get_indices(self.real_B).to(self.devices[-1])
+            fake_A = self.softmax(self.netD_A((encoded_B, real_A)))
+            fake_B = self.softmax(self.netD_B((encoded_A, real_B)))
 
-            fake_A = self.softmax(self.netD_A((encoded_A, target_B)))
-            fake_B = self.softmax(self.netD_B((encoded_B, target_A)))
-            
             self.fake_A = self.inv_indices(self.sample(fake_A))
             self.fake_B = self.inv_indices(self.sample(fake_B)) 
