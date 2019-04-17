@@ -15,9 +15,10 @@ class DomainConfusion(nn.Module):
         self.device = None
         self.num_domain = num_domain
 
-        conv = nn.Conv1d(in_channel, out_channel, groups=1, kernel_size=3)
+        conv = nn.Conv1d(in_channel, out_channel, groups=1, kernel_size=3) 
         elu = nn.ELU()
         nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / in_channel))
+        # nn.init.kaiming_uniform_(conv.weight, nonlinearity='relu')
         # model = [GradientFlip(1e-2), conv, elu]
         model = [conv, elu]
 
@@ -25,14 +26,15 @@ class DomainConfusion(nn.Module):
             conv = nn.Conv1d(out_channel, out_channel, groups=1, kernel_size=3)
             elu = nn.ELU()
             nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / out_channel))
+            # nn.init.kaiming_uniform_(conv.weight, nonlinearity='relu')
             model += [conv, elu]
 
 
-        conv = nn.Conv1d(out_channel, num_domain, kernel_size=3) 
+        conv = nn.Conv1d(out_channel, num_domain, groups=1, kernel_size=3) 
         nn.init.xavier_uniform_(conv.weight, gain=nn.init.calculate_gain('linear'))
 
         model += [conv,
-            nn.AvgPool1d(input_size - 2 * layers),
+            # nn.AvgPool1d(input_size - 2 * layers),
             # Flatten(),
             # nn.Linear(num_domain * (input_size - 2 * layers), 2),
         ]
@@ -41,11 +43,11 @@ class DomainConfusion(nn.Module):
 
     def forward(self, i):
         i = i.clone()
-        i.register_hook(hook_factory(1e-2))
-        # GRL.apply(i, 1e-2)
+        i.register_hook(hook_factory(0.01))
+        # GRL.apply(i, 0.1)
         i = self.model(i)
-        # i = i.mean(dim=2)
-        return i.view(1, self.num_domain)
+        i = i.mean(dim=2)
+        return i # .view(1, self.num_domain)
 
     def to(self, device):
         self.device = device
