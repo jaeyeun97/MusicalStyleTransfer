@@ -48,10 +48,10 @@ class TranslatorModel(BaseModel):
         }).to(self.devices[0])
         self.vector_length = opt.audio_length // opt.pool_length
         self.netC = DomainConfusion(3, 2, opt.bottleneck, opt.dc_width, self.vector_length).to(self.devices[0])
-        self.netD_A = WaveNet(opt.mu+1, 30, 10, 
+        self.netD_A = WaveNet(opt.mu+1, 40, 10, 
                               opt.width, 256, 256,
                               opt.bottleneck, 1, 1).to(self.devices[-1]) # opt.pool_length, opt.pool_length
-        self.netD_B = WaveNet(opt.mu+1, 30, 10,
+        self.netD_B = WaveNet(opt.mu+1, 40, 10,
                               opt.width, 256, 256,
                               opt.bottleneck, 1, 1).to(self.devices[-1]) # opt.pool_length, opt.pool_length
         self.softmax = nn.LogSoftmax(dim=1) # (1, 256, audio_len) -> pick 256
@@ -70,8 +70,8 @@ class TranslatorModel(BaseModel):
             self.B_target = torch.LongTensor([1]).to(self.devices[0])
             self.criterionDC = nn.CrossEntropyLoss(reduction='mean')
             self.criterionDecode = nn.NLLLoss(reduction='mean')
-            self.optimizer = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
-            # self.optimizer = AdaBound(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, final_lr=0.1)
+            # self.optimizer = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer = AdaBound(itertools.chain(self.netE.parameters(), self.netC.parameters(), self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, final_lr=0.1)
             self.optimizers = [self.optimizer] 
 
     def set_input(self, input): 
