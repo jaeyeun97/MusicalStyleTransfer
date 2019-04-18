@@ -183,22 +183,24 @@ class CycleGANModel(BaseModel):
         fake_B = self.fake_B.detach()
         # pred_B_B_fake = self.netD_B(self.fake_B_pool.query(fake_B))
         pred_B_B_fake = self.netD_B(fake_B)
-        self.loss_gp_B, _ = cal_gradient_penalty(self.netD_B, self.real_B, fake_B, self.devices[0])
+        # self.loss_gp_B, _ = cal_gradient_penalty(self.netD_B, self.real_B, fake_B, self.devices[0])
+        self.loss_gp_B = 0
         self.loss_D_B = (self.criterionD_B(pred_B_B_real, True) + 
                          self.criterionD_B(pred_B_B_fake, False) +
-                         self.loss_gp_B) * 0.5 
+                         self.loss_gp_B) 
         self.loss_D_B.backward()
 
         pred_A_A_real = self.netD_A(self.real_A)
         fake_A = self.fake_A.detach()
         # pred_A_A_fake = self.netD_A(self.fake_A_pool.query(fake_A))
         pred_A_A_fake = self.netD_A(fake_A)
-        self.loss_gp_A, _ = cal_gradient_penalty(self.netD_A, self.real_A, fake_A, self.devices[-1]) 
+        # self.loss_gp_A, _ = cal_gradient_penalty(self.netD_A, self.real_A, fake_A, self.devices[-1]) 
+        self.loss_gp_A = 0
         self.loss_D_A = (self.criterionD_A(pred_A_A_real, True) +
                          self.criterionD_A(pred_A_A_fake, False) +
-                         self.loss_gp_A) * 0.5
-
+                         self.loss_gp_A)
         self.loss_D_A.backward()
+
         self.optimizer_D.step() 
         # D training done 
  

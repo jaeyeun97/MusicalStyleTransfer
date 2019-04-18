@@ -7,7 +7,8 @@ from .networks.util import get_norm_layer, init_weights, get_use_bias
 
 def getDiscriminator(opt, device):    
     disc = Discriminator(opt).to(device)
-    init_weights(disc, 'xavier', nn.init.calculate_gain('relu'))
+    # init_weights(disc, 'xavier', nn.init.calculate_gain('relu'))
+    init_weights(disc, 'normal', opt.init_gain) # nn.init.calculate_gain('relu'))
     return disc
 
 class Discriminator(nn.Module):

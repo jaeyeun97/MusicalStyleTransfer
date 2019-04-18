@@ -7,7 +7,7 @@ from .networks.util import get_norm_layer, init_weights, get_use_bias
 
 def getGenerator(device, opt):
     generator = Generator(opt).to(device)
-    init_weights(generator, 'xavier', nn.init.calculate_gain('relu'))
+    init_weights(generator, 'normal', opt.init_gain) # nn.init.calculate_gain('relu'))
     return generator
 
 

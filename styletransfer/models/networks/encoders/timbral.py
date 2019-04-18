@@ -41,9 +41,9 @@ class Conv2dEncoder(nn.Module):
             next_mult = mult * 2
             self.model += [
                 ('conv_down_%s' % i, nn.Conv2d(mult, next_mult,
-                                               kernel_size=3,
-                                               padding=1,
-                                               stride=2,
+                                               kernel_size=(3, 1),
+                                               padding=(1, 0),
+                                               stride=(2, 1),
                                                bias=self.use_bias)), 
                 # ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.ReLU(True)),
@@ -72,9 +72,9 @@ class Conv2dEncoder(nn.Module):
                 #                                     stride=self.pool_stride,
                 #                                     padding=self.pool_pad)),
                 ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult,
-                                                      kernel_size=3,
-                                                      padding=1,
-                                                      stride=2,
+                                                      kernel_size=(3, 1),
+                                                      padding=(1, 0),
+                                                      stride=(2, 1),
                                                       bias=self.use_bias)),
                 # ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.ReLU(True))
@@ -86,7 +86,7 @@ class Conv2dEncoder(nn.Module):
             ('conv_final', nn.Conv2d(mult, 1,
                                      kernel_size=7,
                                      bias=self.use_bias)),
-            # ('tanh', nn.Tanh())
+            ('tanh', nn.Tanh())
         ]
 
         for name, module in self.model:
