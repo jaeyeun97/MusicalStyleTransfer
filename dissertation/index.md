@@ -10,9 +10,15 @@
 
 ## CycleGAN
 
-## Audio Signal Processing
+## Audio Signal Processing Using Neural Networks
 
-## Audio Style
+## WaveNet
+
+## TimbreTron
+
+## NSynth
+
+## Universal Music Translation Network
 
 # Implementation
 

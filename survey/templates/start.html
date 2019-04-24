@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class='container'>
+	<form method='post'>
+		{{ form.csrf_token }}
+		<div class='row'>
+			<div class="col-4 form-group">
+				{{ form.name.label }}
+				{{ form.name(class='form-control', placeholder='Full Name') }}
+			</div>
+			<div class="col-4 form-group">
+				{{ form.email.label }}
+				{{ form.email(class='form-control', placeholder='CRSid@cam.ac.uk') }}
+			</div>
+			<div class="col-4 form-group">
+				{{ form.date.label }}
+				{{ form.date(class='form-control', placeholder='YYYY-MM-DD') }}
+			</div>
+		</div>
+		<div class='row'>
+			<button type="submit" class="btn btn-primary btn-lg btn-main">Submit</button>
+		</div>
+	</form>
+{% endblock %}
