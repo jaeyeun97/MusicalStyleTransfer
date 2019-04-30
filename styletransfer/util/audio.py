@@ -38,9 +38,10 @@ def normalize_magnitude(lmag):
     return lmag, mmax, mmin
 
 def denormalize_magnitude(mmax, mmin, lmag):
-    mmax = float(mmax)
-    mmin = float(mmin)
-    return ((mmax - mmin) * (lmag + 1) / 2) + mmin
+    for i in lmag.shape[0]:
+        mmax = float(mmax[i])
+        mmin = float(mmin[i])
+        return ((mmax - mmin) * (lmag[i, :] + 1) / 2) + mmin
 
 def normalize_phase(agl):
     return agl / np.pi
@@ -59,21 +60,23 @@ def stft(y, **kwargs):
     return librosa.stft(y, **kwargs)
 
 def istft(y, **kwargs):
-    return librosa.istft(y, **kwargs)
+    return np.stack([librosa.istft(y[i, :], **kwargs) for i in y.shape[0]])
 
 def hz_to_mel(y, **kwargs):
     return librosa.hz_to_mel(y, **kwargs)
 
 def mel_to_hz(y, **kwargs):
-    return librosa.mel_to_hz(y, **kwargs)
+    return np.stack([librosa.mel_to_hz(y[i, :], **kwargs) for i in y.shape[0]])
+
 
 def frame(y, sr, length=30, stride=15):
     return librosa.frame(y, frame_length=length*sr, hop_length=stride*sr)
 
 def pitch_shift(y, sr):
     l = y.shape[-1]
-    start = np.random.randint(0, l - sr)
-    end = np.random.randint(start+0.25*sr, start+1.25*sr)
+    print(l)
+    start = np.random.randint(0, l - sr) if l > sr else 0
+    end = np.random.randint(start+0.25*sr, l - 0.25*sr)
     shift = np.random.rand() - 0.5
     shifted = [
         y[:start],
@@ -83,15 +86,19 @@ def pitch_shift(y, sr):
     return np.concatenate(shifted), start, end, shift
 
 def pitch_deshift(y, sr, start, end, shift):
-    shifted = [
-        y[:start],
-        librosa.effects.pitch_shift(y[start:end], sr, -1 * shift),
-        y[end:]
-    ]
-    return np.concatenate(shifted)
+    res = list()
+    for i in y.shape[0]:
+        shifted = [
+            y[i, :start],
+            librosa.effects.pitch_shift(y[i, start:end], sr, -1 * shift),
+            y[i, end:]
+        ]
+        res.append(np.concatenate(shifted))
+    return np.stack(res)
 
 def mulaw(x, MU):
     return np.sign(x) * np.log(1. + MU * np.abs(x)) / np.log(1. + MU)
 
 def inv_mulaw(x, MU):
     return np.sign(x) * (1. / MU) * (np.power(1. + MU, np.abs(x)) - 1.)
+
