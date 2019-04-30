@@ -22,6 +22,7 @@ class FMADataset(SingleDataset):
         add_argument('metadata_subdir', type=str, default='fma_metadata', help='FMA metadata directory')
         add_argument('audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         add_argument('genre', type=str, default='Classical', help='Genre title of domain %s' % prefix)
+        add_argument('inverse_genre', action='store_true', help='Inverse genre')
         set_defaults(dataroot='./datasets/fma', max_dataset_size=1000)
 
         return parser
@@ -69,11 +70,16 @@ class FMADataset(SingleDataset):
         if 'all' in self.genre:
             self.genre = all_genres 
 
+
         if all(g not in all_genres for g in self.genre):
             raise Exception('Genre not available! Available genres can be found in the documentation')
 
         ids = self.fma.get_genre_ids(self.genre)
-        paths = self.fma.get_track_ids_by_genres(ids).map(self.fma.get_audio_path).tolist()
+
+        if self.get_opt('inverse_genre'):
+            paths = self.fma.get_track_ids_by_inverse_genres(ids).map(self.fma.get_audio_path).tolist()
+        else:
+            paths = self.fma.get_track_ids_by_genres(ids).map(self.fma.get_audio_path).tolist()
         random.shuffle(paths)
 
         return paths

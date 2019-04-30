@@ -8,14 +8,14 @@ def hook_factory(l=1.0):
     return hook 
 
 
-
 class DomainConfusion(nn.Module):
-    def __init__(self, layers, num_domain, in_channel, out_channel, input_size):
+    def __init__(self, layers, num_domain, in_channel, out_channel, dc_lambda, use_bias=True):
         super(DomainConfusion, self).__init__()
         self.device = None
         self.num_domain = num_domain
+        self.dc_lambda = dc_lambda
 
-        conv = nn.Conv1d(in_channel, out_channel, kernel_size=3) 
+        conv = nn.Conv1d(in_channel, out_channel, kernel_size=1, bias=use_bias) 
         elu = nn.ELU()
         nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / out_channel))
         # nn.init.xavier_uniform_(conv.weight, gain=nn.init.calculate_gain('linear'))
@@ -24,7 +24,7 @@ class DomainConfusion(nn.Module):
         model = [conv, elu]
 
         for i in range(1, layers - 1):
-            conv = nn.Conv1d(out_channel, out_channel, kernel_size=3)
+            conv = nn.Conv1d(out_channel, out_channel, kernel_size=1, bias=use_bias)
             elu = nn.ELU()
             nn.init.xavier_uniform_(conv.weight, gain=math.sqrt(1.55 / out_channel))
             # nn.init.xavier_uniform_(conv.weight, gain=nn.init.calculate_gain('linear')) 
@@ -32,7 +32,7 @@ class DomainConfusion(nn.Module):
             model += [conv, elu]
 
 
-        conv = nn.Conv1d(out_channel, num_domain, kernel_size=3) 
+        conv = nn.Conv1d(out_channel, num_domain, kernel_size=1, bias=use_bias) 
         nn.init.xavier_uniform_(conv.weight, gain=nn.init.calculate_gain('linear'))
 
         model += [conv,
@@ -44,8 +44,9 @@ class DomainConfusion(nn.Module):
         self.model = nn.Sequential(*model) 
 
     def forward(self, i):
-        # i.register_hook(hook_factory(0.01))
-        GRL.apply(i, 0.01)
+        # i = i.clone()
+        # i.register_hook(hook_factory(self.dc_lambda))
+        # GRL.apply(i, self.dc_lambda)
         i = self.model(i)
         i = i.mean(dim=2)
         return i # .view(1, self.num_domain)

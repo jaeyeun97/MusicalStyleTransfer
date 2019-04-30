@@ -57,15 +57,12 @@ class WaveNet(torch.nn.Module):
 
         self.device = None 
 
-        self.no_upsamp = False
-        if upsamp_window == 1 and upsamp_stride == 1:
-            self.no_upsamp = True
-        else:
-            self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
-                                                     n_cond_channels,
-                                                     kernel_size=upsamp_window,
-                                                     stride=upsamp_stride)
         
+        # self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
+        #                                          n_cond_channels,
+        #                                          kernel_size=upsamp_window,
+        #                                          stride=upsamp_stride)
+    
         self.n_layers = n_layers
         self.max_dilation = 2 ** (loop_factor - 1)
         self.n_residual_channels = n_residual_channels 
@@ -76,12 +73,12 @@ class WaveNet(torch.nn.Module):
         self.res_layers = torch.nn.ModuleList()
         self.skip_layers = torch.nn.ModuleList()
         
-        # self.embed = torch.nn.Embedding(n_in_channels,
-        #                                      n_residual_channels)
+        self.embed = torch.nn.Embedding(n_in_channels,
+                                             n_residual_channels)
 
-        self.conv_start = Conv(n_in_channels, n_residual_channels,
-                               kernel_size=1, w_init_gain='linear',
-                               bias=False)
+        # self.conv_start = Conv(n_in_channels, n_residual_channels,
+        #                        kernel_size=1, w_init_gain='linear',
+        #                        bias=False)
         # self.skip_start = Conv(n_residual_channels, n_skip_channels,
         #                        w_init_gain='relu')
 
@@ -114,19 +111,16 @@ class WaveNet(torch.nn.Module):
         features = forward_input[0]
         forward_input = forward_input[1]
 
-        if self.no_upsamp:
-            cond_input = features
-        else:
-            cond_input = self.upsample(features)
+        cond_input = features # self.upsample(features)
 
-        # assert(cond_input.size(2) >= forward_input.size(1))
-        # if cond_input.size(2) > forward_input.size(1):
-        #     cond_input = cond_input[:, :, :forward_input.size(1)]
+        assert(cond_input.size(2) >= forward_input.size(1))
+        if cond_input.size(2) > forward_input.size(1):
+            cond_input = cond_input[:, :, :forward_input.size(1)]
        
-        # forward_input = self.embed(forward_input.long())
-        # forward_input = forward_input.transpose(1, 2)
+        forward_input = self.embed(forward_input.long())
+        forward_input = forward_input.transpose(1, 2)
 
-        forward_input = self.conv_start(forward_input)
+        # forward_input = self.conv_start(forward_input)
         # output = self.skip_start(forward_input)
        
         cond_acts = self.cond_layers(cond_input)
