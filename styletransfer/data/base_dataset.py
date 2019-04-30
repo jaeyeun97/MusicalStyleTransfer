@@ -83,13 +83,14 @@ class BaseDataset(data.Dataset, ABC):
 
     def preprocess(self, y):
         # Preprocess
-        params = dict()
+        params = {'original': y}
         if 'shift' in self.preprocesses:
             y, params['start'], params['end'], params['shift'] = pitch_shift(y, self.opt.sample_rate)
         if 'mel' in self.preprocesses:
             y = hz_to_mel(y) 
         if 'mulaw' in self.preprocesses:
             y = mulaw(y, self.opt.mu)
+            params['original'] = mulaw(params['original'], self.opt.mu)
         # STFT
         if 'stft' in self.preprocesses:
             D = stft(y, n_fft=self.opt.nfft)

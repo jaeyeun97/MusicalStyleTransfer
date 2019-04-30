@@ -72,8 +72,8 @@ def frame(y, sr, length=30, stride=15):
 
 def pitch_shift(y, sr):
     l = y.shape[-1]
-    start = np.random.randint(0, l - sr)
-    end = np.random.randint(start+0.25*sr, start+1.25*sr)
+    start = np.random.randint(0, l - sr) if l > sr else 0
+    end = np.random.randint(start+0.25*sr, l-0.25*sr)
     shift = np.random.rand() - 0.5
     shifted = [
         y[:start],

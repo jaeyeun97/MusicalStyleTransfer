@@ -45,6 +45,15 @@ class FMA(object):
         mask = self.tracks['track', 'genres_all'].apply(lambda row: any(g in row for g in genre_ids))
         return self.tracks[mask].index
 
+    def get_track_ids_by_inverse_genres(self, genre_ids):
+        """
+        @param genre_id (pd.Index): Genre ID
+        @returns tracks (pd.Series): Tracks of said genre.
+        """
+        mask = self.tracks['track', 'genres_all'].apply(lambda row: not any(g in row for g in genre_ids))
+        return self.tracks[mask].index
+
+
     def get_audio_path(self, track_id):
         tid_str = '{:06d}'.format(track_id)
         return os.path.join(self.audio_dir, tid_str[:3], tid_str + '.mp3')
