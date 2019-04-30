@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id='question' class='container'>
+
+	<div class='row'>
+		<div class='col'>
+			{{ paths[0] }}
+		</div>
+		<div class='col'>
+			{{ paths[1] }}
+		</div>
+	</div>
+
+	<form method='post'>
+		{{ form.csrf_token }}	
+
+		<h4>1) Which of the two sound more chilled?</h4>	
+		<div class='row'>
+			{% for field in form.binary %}
+				<div class='col'>
+					<div class="binary-col input-group">
+						<div class="input-group-prepend">
+							{{ field.label(class="input-group-text") }}
+						</div>
+						<div class="form-control">
+							{{ field() }}
+						</div>
+					</div>		
+				</div>
+			{% endfor %} 
+		</div>
+		
+		<h4>2) How similar do the two clips sound?</h4>
+		<div class="input-group">
+			{% for field in form.likert %}
+				<div class="form-control input-group-text">
+					{{ field() }}
+				</div>
+			{% endfor %} 
+		</div>		
+		<div class='likert-label-row'>
+			{% for field in form.likert %}
+				<div class='likert-label-col'>
+					{{field.label}}
+				</div> 
+			{% endfor %} 
+		</div>
+		<div class='row'>
+			<button type="submit" class="btn btn-primary btn-lg btn-main">Submit</button>
+		</div>
+	</form>	
+</div>
+{% endblock %}

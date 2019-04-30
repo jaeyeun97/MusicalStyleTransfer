@@ -1,0 +1,33 @@
+.btn-main {
+	color: white !important;
+	display:block;
+	width: 200px;
+	height: 75px;
+	margin: 15px auto; 
+}
+
+.likert-label-row {
+	display: flex;
+	flex-wrap: wrap;
+}
+.likert-label-col {
+	padding-left: 5px;
+	flex-basis: 0;
+	flex-grow: 1;
+	text-align: center;
+}
+
+.input-group-text input[type='radio'] {
+	margin: auto
+}
+
+.binary-col {
+	width: fit-content;
+	margin: auto;
+}
+
+#question > div, #question > form > div {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
