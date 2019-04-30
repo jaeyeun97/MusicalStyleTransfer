@@ -59,8 +59,8 @@ class TranslatorModel(BaseModel):
         self.softmax = nn.LogSoftmax(dim=1) # (1, 256, audio_len) -> pick 256
         
         if self.isTrain:
-            self.A_target = torch.LongTensor([0]).to(self.devices[0])
-            self.B_target = torch.LongTensor([1]).to(self.devices[0])
+            self.A_target = torch.LongTensor([0] * opt.batch_size).to(self.devices[0])
+            self.B_target = torch.LongTensor([1] * opt.batch_size).to(self.devices[0])
             self.criterionDC = nn.CrossEntropyLoss(reduction='mean')
             self.criterionDecode = nn.NLLLoss(reduction='mean')
             # self.optimizer_C = torch.optim.Adam(itertools.chain(self.netE.parameters(), self.netC.parameters()), lr=opt.lr)
