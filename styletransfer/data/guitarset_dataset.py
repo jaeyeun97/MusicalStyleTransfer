@@ -17,7 +17,7 @@ class GuitarsetDataset(SingleDataset):
     def modify_commandline_options(parser, prefix, is_train): 
         parser = SingleDataset.modify_commandline_options(parser, prefix, is_train)
         set_defaults = SingleDataset.get_default_setter(parser, prefix)
-        set_defaults(dataroot='./datasets/GuitarSet', max_dataset_size=4000) 
+        set_defaults(dataroot='./datasets/GuitarSet', max_dataset_size=5000) 
         return parser
 
     def __init__(self, opt, prefix):
@@ -35,7 +35,6 @@ class GuitarsetDataset(SingleDataset):
             num_split = int(librosa.get_duration(filename=f) // self.duration)
             for split in range(num_split):
                 self.paths.append('{}:{}'.format(f, str(split)))
-        self.size = len(self.paths)
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.

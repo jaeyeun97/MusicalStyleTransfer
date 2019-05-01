@@ -58,10 +58,10 @@ class WaveNet(torch.nn.Module):
         self.device = None 
 
         
-        # self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
-        #                                          n_cond_channels,
-        #                                          kernel_size=upsamp_window,
-        #                                          stride=upsamp_stride)
+        self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
+                                                 n_cond_channels,
+                                                 kernel_size=upsamp_window,
+                                                 stride=upsamp_stride)
     
         self.n_layers = n_layers
         self.max_dilation = 2 ** (loop_factor - 1)
@@ -111,7 +111,7 @@ class WaveNet(torch.nn.Module):
         features = forward_input[0]
         forward_input = forward_input[1]
 
-        cond_input = features # self.upsample(features)
+        cond_input = self.upsample(features)
 
         assert(cond_input.size(2) >= forward_input.size(1))
         if cond_input.size(2) > forward_input.size(1):

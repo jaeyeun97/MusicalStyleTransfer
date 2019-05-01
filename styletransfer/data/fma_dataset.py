@@ -23,7 +23,7 @@ class FMADataset(SingleDataset):
         add_argument('audio_subdir', type=str, default='fma_medium', help='FMA audio data directory')
         add_argument('genre', type=str, default='Classical', help='Genre title of domain %s' % prefix)
         add_argument('inverse_genre', action='store_true', help='Inverse genre')
-        set_defaults(dataroot='./datasets/fma', max_dataset_size=1000)
+        set_defaults(dataroot='./datasets/fma', max_dataset_size=5000)
 
         return parser
 

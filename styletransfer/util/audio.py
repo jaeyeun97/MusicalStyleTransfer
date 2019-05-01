@@ -38,7 +38,7 @@ def normalize_magnitude(lmag):
     return lmag, mmax, mmin
 
 def denormalize_magnitude(mmax, mmin, lmag):
-    for i in lmag.shape[0]:
+    for i in range(lmag.shape[0]):
         mmax = float(mmax[i])
         mmin = float(mmin[i])
         return ((mmax - mmin) * (lmag[i, :] + 1) / 2) + mmin
@@ -60,13 +60,13 @@ def stft(y, **kwargs):
     return librosa.stft(y, **kwargs)
 
 def istft(y, **kwargs):
-    return np.stack([librosa.istft(y[i, :], **kwargs) for i in y.shape[0]])
+    return np.stack([librosa.istft(y[i, :], **kwargs) for i in range(y.shape[0])])
 
 def hz_to_mel(y, **kwargs):
     return librosa.hz_to_mel(y, **kwargs)
 
 def mel_to_hz(y, **kwargs):
-    return np.stack([librosa.mel_to_hz(y[i, :], **kwargs) for i in y.shape[0]])
+    return np.stack([librosa.mel_to_hz(y[i, :], **kwargs) for i in range(y.shape[0])])
 
 
 def frame(y, sr, length=30, stride=15):
@@ -86,7 +86,7 @@ def pitch_shift(y, sr):
 
 def pitch_deshift(y, sr, start, end, shift):
     res = list()
-    for i in y.shape[0]:
+    for i in range(y.shape[0]):
         shifted = [
             y[i, :start],
             librosa.effects.pitch_shift(y[i, start:end], sr, -1 * shift),

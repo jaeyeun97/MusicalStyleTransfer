@@ -129,7 +129,7 @@ class BaseModel(ABC):
             return v
         if isinstance(v, torch.Tensor):
             v.requires_grad = False
-            return v.squeeze(0).numpy()
+            return v.numpy()
         else:
             return v
     
@@ -137,7 +137,7 @@ class BaseModel(ABC):
         return {k: self.decollator(k, v) for k, v in params.items()}
              
     def postprocess(self, y, params):
-        y = y.detach().cpu().squeeze(0).numpy() 
+        y = y.detach().cpu().numpy() 
         if 'stft' in self.preprocesses:
             if 'normalize' in self.preprocesses:
                 if 'max' not in params or 'min' not in params:

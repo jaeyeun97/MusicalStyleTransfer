@@ -14,7 +14,7 @@ class YoutubeDataset(SingleDataset):
     def modify_commandline_options(parser, prefix, is_train): 
         parser = SingleDataset.modify_commandline_options(parser, prefix, is_train)
         set_defaults = SingleDataset.get_default_setter(parser, prefix)
-        set_defaults(dataroot='./datasets/youtube', max_dataset_size=1000) 
+        set_defaults(dataroot='./datasets/youtube', max_dataset_size=5000) 
         return parser
 
     def __init__(self, opt, prefix):

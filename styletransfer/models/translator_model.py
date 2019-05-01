@@ -85,10 +85,10 @@ class TranslatorModel(BaseModel):
         return y.clamp(0, self.opt.mu).long()
 
  
-    def to_onehot(self, y, device):
-        y = self.get_indices(y).view(-1, 1)
-        y = torch.zeros(y.size()[0], self.opt.mu + 1).to(device).scatter_(1, y, 1)
-        return y.transpose(0, 1).unsqueeze(0)
+    # def to_onehot(self, y, device):
+    #     y = self.get_indices(y).view(-1, 1)
+    #     y = torch.zeros(y.size()[0], self.opt.mu + 1).to(device).scatter_(1, y, 1)
+    #     return y.transpose(0, 1).unsqueeze(0)
 
     def inv_indices(self, y):
         return y.float() / (self.opt.mu + 1) * 2. - 1.
@@ -137,9 +137,9 @@ class TranslatorModel(BaseModel):
         loss = loss_D - loss_C
         loss.backward()
         self.optimizer_D.step()
-         
-        self.pred_C_A = pred_C_A
-        self.pred_C_B = pred_C_B
+
+        self.rec_A = self.inv_indices(self.sample(rec_A))
+        self.rec_B = self.inv_indices(self.sample(rec_B)) 
           
   
     def test(self):
