@@ -88,9 +88,9 @@ def pitch_deshift(y, sr, start, end, shift):
     res = list()
     for i in range(y.shape[0]):
         shifted = [
-            y[i, :start],
-            librosa.effects.pitch_shift(y[i, start:end], sr, -1 * shift),
-            y[i, end:]
+            y[i, :start[i]],
+            librosa.effects.pitch_shift(y[i, start[i]:end[i]], sr, -1 * shift[i]),
+            y[i, end[i]:]
         ]
         res.append(np.concatenate(shifted))
     return np.stack(res)
