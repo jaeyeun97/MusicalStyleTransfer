@@ -12,7 +12,9 @@ options = {
     'use_bias': False,
     'shrinking_filter': False,
     'tensor_size': 1025,
-    'duration_ratio': 1
+    'duration_ratio': 1,
+    'input_nc': 1,
+    'flatten': False
 }
 
 class Conv2dClassifier(nn.Module):
@@ -24,26 +26,53 @@ class Conv2dClassifier(nn.Module):
 
         option_setter(self, options, kwargs) 
 
-        self.tensor_height = self.tensor_size
+        if 'tensor_height' in kwargs:
+            self.tensor_height = kwargs['tensor_height'] 
+        else:
+            self.tensor_height = self.tensor_size
+
         self.tensor_width = (self.tensor_size - 1) // self.duration_ratio + 1
-        self.n_layers = int(np.log2(self.tensor_width - 1))
 
         model = [
-            nn.Conv2d(1, self.ndf,
-                      kernel_size=3, 
-                      padding=1,
+            nn.Conv2d(self.input_nc, self.ndf,
+                      kernel_size=self.conv_size, 
+                      padding=self.conv_pad,
                       bias=self.use_bias),  
             nn.ReLU()
         ]
         mult = self.ndf
 
+        if self.tensor_height >= self.tensor_width:
+            diff = int(np.log2((self.tensor_height - 1) // (self.tensor_width - 1)))
+            for i in range(diff):
+                model += [
+                    nn.Conv2d(mult, mult,
+                              kernel_size=self.conv_size,
+                              padding=self.conv_pad,
+                              stride=(2, 1),
+                              bias=self.use_bias), 
+                    nn.ReLU()
+                ]  
+        else:
+            diff = int(np.log2((self.tensor_width - 1) // (self.tensor_height - 1)))
+            for i in range(diff):
+                model += [
+                    nn.Conv2d(mult, mult,
+                              kernel_size=self.conv_size,
+                              padding=self.conv_pad,
+                              stride=(1, 2),
+                              bias=self.use_bias), 
+                    nn.ReLU()
+                ]
+         
+        self.n_layers = int(np.log2(min(self.tensor_height, self.tensor_width) - 1))
         first = int(np.log2(self.conv_size - 1))
         for n in range(first, self.n_layers):
             next_mult = mult * 2
             model += [
                 nn.Conv2d(mult, next_mult,
-                          kernel_size=3, # self.conv_size,
-                          padding=1, # self.conv_pad,
+                          kernel_size=self.conv_size,
+                          padding=self.conv_pad,
                           stride=2,
                           bias=self.use_bias), 
                 nn.ReLU()
@@ -51,16 +80,29 @@ class Conv2dClassifier(nn.Module):
             mult = next_mult
 
         model += [
-            nn.Conv2d(mult, mult * 2, kernel_size=(5, 3)),
+            nn.Conv2d(mult, mult * 2, kernel_size=3),
         ]
+
+        if self.flatten:
+            model += [
+                Flatten(),
+                nn.Linear(mult*2, 2)
+                # nn.Conv2d(mult*2, 2, kernel_size=1)
+            ]
  
-        self.model = nn.Sequential(*model)
+        self.model = nn.ModuleList(model) # nn.Sequential(*model)
 
     def forward(self, input):
         """Standard forward."""
-        input = input.unsqueeze(1)
-        input = self.model(input)
+        if len(input.size()) < 4:
+            input = input.unsqueeze(1)
+        for model in self.model:
+            input = model(input) 
         return input
+
+    def to(self, device):
+        self.device = device
+        return super(Conv2dClassifier, self).to(device)
 
 
 class Flatten(nn.Module):
