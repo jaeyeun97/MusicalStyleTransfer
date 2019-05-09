@@ -1,0 +1,177 @@
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Rectangle [id:dp4124655364237044] 
+\draw   (81,73.4) -- (178.5,73.4) -- (178.5,164.2) -- (81,164.2) -- cycle ;
+%Straight Lines [id:da5717820737331014] 
+\draw    (80,91.2) -- (179,91.2) ;
+
+
+%Straight Lines [id:da5357013588295783] 
+\draw    (80,109.2) -- (179,109.2) ;
+
+
+%Straight Lines [id:da8058766641451298] 
+\draw    (80,126.2) -- (179,126.2) ;
+
+
+%Straight Lines [id:da20894207909875928] 
+\draw    (80,146.2) -- (179,146.2) ;
+
+
+%Straight Lines [id:da008961093211080629] 
+\draw    (100,73.2) -- (100,165.2) ;
+
+
+%Straight Lines [id:da09374540228254458] 
+\draw    (120,73.2) -- (120,165.2) ;
+
+
+%Straight Lines [id:da021105487657136823] 
+\draw    (140,73.2) -- (140,165.2) ;
+
+
+%Straight Lines [id:da025913620604082643] 
+\draw    (160,73.2) -- (160,165.2) ;
+
+
+%Shape: Rectangle [id:dp6828711783726085] 
+\draw   (81,73.4) -- (139.75,73.4) -- (139.75,126.5) -- (81,126.5) -- cycle ;
+%Shape: Rectangle [id:dp014161596386326858] 
+\draw   (221,91.4) -- (279.75,91.4) -- (279.75,146) -- (221,146) -- cycle ;
+%Straight Lines [id:da7023749521270584] 
+\draw    (221,108.2) -- (280,108.2) ;
+
+
+%Straight Lines [id:da3146088086098686] 
+\draw    (221,127.2) -- (280,127.2) ;
+
+
+%Straight Lines [id:da687537562607798] 
+\draw    (240,91.2) -- (240,146.2) ;
+
+
+%Straight Lines [id:da18633362782773055] 
+\draw    (260,91.2) -- (260,146.2) ;
+
+
+%Shape: Rectangle [id:dp614960235310106] 
+\draw   (323,91.4) -- (381.75,91.4) -- (381.75,146) -- (323,146) -- cycle ;
+%Straight Lines [id:da6797284056473785] 
+\draw    (323,108.2) -- (382,108.2) ;
+
+
+%Straight Lines [id:da6611660244790465] 
+\draw    (323,127.2) -- (382,127.2) ;
+
+
+%Straight Lines [id:da5556314631783001] 
+\draw    (342,91.2) -- (342,146.2) ;
+
+
+%Straight Lines [id:da6718669591948201] 
+\draw    (362,91.2) -- (362,146.2) ;
+
+
+%Straight Lines [id:da9233327997133625] 
+\draw    (288,120) -- (314,120) ;
+\draw [shift={(316,120)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+
+% Text Node
+\draw (91,83.4) node  [align=left] {4};
+% Text Node
+\draw (110,83.4) node  [align=left] {5};
+% Text Node
+\draw (130,83.4) node  [align=left] {7};
+% Text Node
+\draw (150,83.4) node  [align=left] {2};
+% Text Node
+\draw (170,83.4) node  [align=left] {1};
+% Text Node
+\draw (90,101.4) node  [align=left] {9};
+% Text Node
+\draw (110,101.4) node  [align=left] {6};
+% Text Node
+\draw (130,101.4) node  [align=left] {4};
+% Text Node
+\draw (150,101.4) node  [align=left] {6};
+% Text Node
+\draw (170,101.4) node  [align=left] {7};
+% Text Node
+\draw (90,117.4) node  [align=left] {7};
+% Text Node
+\draw (110,117.4) node  [align=left] {3};
+% Text Node
+\draw (130,117.4) node  [align=left] {2};
+% Text Node
+\draw (150,117.4) node  [align=left] {8};
+% Text Node
+\draw (170,117.4) node  [align=left] {9};
+% Text Node
+\draw (90,135.4) node  [align=left] {5};
+% Text Node
+\draw (90,155.4) node  [align=left] {4};
+% Text Node
+\draw (110,135.4) node  [align=left] {4};
+% Text Node
+\draw (130,135.4) node  [align=left] {8};
+% Text Node
+\draw (150,135.4) node  [align=left] {1};
+% Text Node
+\draw (170,135.4) node  [align=left] {3};
+% Text Node
+\draw (110,155.4) node  [align=left] {8};
+% Text Node
+\draw (130,155.4) node  [align=left] {9};
+% Text Node
+\draw (150,155.4) node  [align=left] {1};
+% Text Node
+\draw (170,155.4) node  [align=left] {2};
+% Text Node
+\draw (231,99.9) node  [align=left] {1};
+% Text Node
+\draw (250,99.9) node  [align=left] {0};
+% Text Node
+\draw (270,99.9) node  [align=left] {1};
+% Text Node
+\draw (231,118.9) node  [align=left] {0};
+% Text Node
+\draw (250,118.9) node  [align=left] {1};
+% Text Node
+\draw (270,118.9) node  [align=left] {0};
+% Text Node
+\draw (231,136.9) node  [align=left] {1};
+% Text Node
+\draw (250,136.9) node  [align=left] {0};
+% Text Node
+\draw (270,136.9) node  [align=left] {0};
+% Text Node
+\draw (200,117.33) node  [align=left] {$\displaystyle \star $};
+% Text Node
+\draw (333,99.9) node  [align=left] {24};
+% Text Node
+\draw (352,99.9) node  [align=left] {14};
+% Text Node
+\draw (372,99.9) node  [align=left] {16};
+% Text Node
+\draw (333,118.9) node  [align=left] {21};
+% Text Node
+\draw (352,118.9) node  [align=left] {16};
+% Text Node
+\draw (372,118.9) node  [align=left] {27};
+% Text Node
+\draw (333,136.9) node  [align=left] {17};
+% Text Node
+\draw (352,136.9) node  [align=left] {27};
+% Text Node
+\draw (372,136.9) node  [align=left] {21};
+% Text Node
+\draw (130,180) node  [align=left] {(a)};
+% Text Node
+\draw (250,180) node  [align=left] {(b)};
+% Text Node
+\draw (352,180) node  [align=left] {(c)};
+
+
+\end{tikzpicture}

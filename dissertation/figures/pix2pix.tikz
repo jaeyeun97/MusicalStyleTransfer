@@ -1,0 +1,82 @@
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Rectangle [id:dp9869301312669678] 
+\draw   (55,43) -- (125,43) -- (125,83) -- (55,83) -- cycle ;
+
+%Curve Lines [id:da6384630075815743] 
+\draw    (18.5,77.8) .. controls (26.42,106.71) and (108.83,140.32) .. (149.29,111.88) ;
+\draw [shift={(150.5,111)}, rotate = 503.13] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da9182122325204025] 
+\draw    (31,65) -- (50,65) ;
+\draw [shift={(52,65)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da47949028879446587] 
+\draw    (130,65) -- (149,65) ;
+\draw [shift={(151,65)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da9685274348532213] 
+\draw    (179,75) -- (197.21,84.11) ;
+\draw [shift={(199,85)}, rotate = 206.57] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da9235069037739743] 
+\draw    (179,105) -- (197.21,95.89) ;
+\draw [shift={(199,95)}, rotate = 513.4300000000001] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Shape: Rectangle [id:dp09836087645631308] 
+\draw   (278,68) -- (318.5,68) -- (318.5,108) -- (278,108) -- cycle ;
+
+%Straight Lines [id:da2569631934624046] 
+\draw    (324,89) -- (343,89) ;
+\draw [shift={(345,89)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da047573346388519955] 
+\draw    (250,90) -- (269,90) ;
+\draw [shift={(271,90)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da25616867812918587] 
+\draw    (179,166) -- (197.21,175.11) ;
+\draw [shift={(199,176)}, rotate = 206.57] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da8595303098776126] 
+\draw    (179,196) -- (197.21,186.89) ;
+\draw [shift={(199,186)}, rotate = 513.4300000000001] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Shape: Rectangle [id:dp18107592567896003] 
+\draw   (278,159) -- (318.5,159) -- (318.5,199) -- (278,199) -- cycle ;
+
+%Straight Lines [id:da46859806034961293] 
+\draw    (324,180) -- (343,180) ;
+\draw [shift={(345,180)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da17170673130748915] 
+\draw    (250,181) -- (269,181) ;
+\draw [shift={(271,181)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+
+% Text Node
+\draw (20,63) node  [align=left] {$\displaystyle \vec{x}$};
+% Text Node
+\draw (90,63) node  [align=left] {$\displaystyle G$};
+% Text Node
+\draw (173,63) node  [align=left] {$\displaystyle G(\vec{x})$};
+% Text Node
+\draw (166,106) node  [align=left] {$\displaystyle \vec{x}$};
+% Text Node
+\draw (223.25,89) node  [align=left] {concat};
+% Text Node
+\draw (298.25,88) node  [align=left] {$\displaystyle D$};
+% Text Node
+\draw (368.25,88) node  [align=left] {$\displaystyle \mathcal{L}_{fake}$};
+% Text Node
+\draw (166,158) node  [align=left] {$\displaystyle \vec{y}$};
+% Text Node
+\draw (166,197) node  [align=left] {$\displaystyle \vec{x}$};
+% Text Node
+\draw (223.25,180) node  [align=left] {concat};
+% Text Node
+\draw (368.25,179) node  [align=left] {$\displaystyle \mathcal{L}_{real}$};
+% Text Node
+\draw (298.25,179) node  [align=left] {$\displaystyle D$};
+\end{tikzpicture}
