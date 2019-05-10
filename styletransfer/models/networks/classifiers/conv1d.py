@@ -6,6 +6,7 @@ from ...util.debug import Print
 
 options = { 
     'n_layers': 3,
+    'ndf': 2048,
     'conv_size': 5,
     'conv_pad': 4, 
     'pool_size': 3,
@@ -29,7 +30,7 @@ class Conv1dClassifier(nn.Module):
 
         mult = self.tensor_size
         for n in range(self.n_layers):
-            next_mult = min(2048, mult * 2)
+            next_mult = min(self.ndf, mult * 2)
             self.model += [
                 nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
@@ -52,4 +53,4 @@ class Conv1dClassifier(nn.Module):
     def forward(self, input):
         """Standard forward."""
         input = self.model(input)
-        return input.mean(dim=2)
+        return input.mean(dim=2).squeeze(1)

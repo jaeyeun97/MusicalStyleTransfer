@@ -36,6 +36,7 @@ class BaseOptions():
         parser.add_argument('--ngf', type=int, default=4, help='# of generator filters')
         parser.add_argument('--mgf', type=float, default=0.5, help='generator filter number multiplier')
         parser.add_argument('--ndf', type=int, default=2, help='# of discriminator filters')
+        parser.add_argument('--n_layers', type=int, default=3, help='# of discriminator conv layers')
 
         parser.add_argument('--num_trans_layers', type=int, default=9, help='# of trans layer')
 

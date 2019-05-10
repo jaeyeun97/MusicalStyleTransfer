@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from adabound import AdaBound
 from .base_model import BaseModel
 from .discriminator import getDiscriminator
 
@@ -18,12 +19,13 @@ class ClassifierModel(BaseModel):
 
         self.netD = getDiscriminator(opt, self.devices[0])
         # self.criterion = nn.CrossEntropyLoss() 
-        self.A_target = torch.tensor(0.).to(self.devices[0])
-        self.B_target = torch.tensor(1.).to(self.devices[0])
+        self.A_target = torch.zeros(opt.batch_size).to(self.devices[0])
+        self.B_target = torch.ones(opt.batch_size).to(self.devices[0])
         self.criterion = nn.MSELoss()
 
         if self.isTrain:
-            self.optimizer = torch.optim.Adam(self.netD.parameters())
+            # self.optimizer = torch.optim.Adam(self.netD.parameters())
+            self.optimizer = AdaBound(self.netD.parameters(), lr=opt.lr)
             self.optimizers = [self.optimizer]
 
     def set_input(self, input):

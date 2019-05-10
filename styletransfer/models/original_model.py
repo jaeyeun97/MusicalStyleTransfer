@@ -20,7 +20,7 @@ class OriginalModel(BaseModel):
         Returns:
             the modified parser.
         """
-        preprocess = 'mel,normalize,mulaw,stft'
+        preprocess = 'mel,normalize,mulaw,cqt'
         parser.set_defaults(preprocess=preprocess)
         parser.add_argument('--wavenet_layers', type=int, default=30, help='wavenet layers')
         parser.add_argument('--wavenet_blocks', type=int, default=15, help='wavenet layers')
