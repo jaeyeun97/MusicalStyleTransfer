@@ -96,6 +96,7 @@ def pitch_deshift(y, sr, start, end, shift):
     return np.stack(res)
 
 def mulaw(x, MU):
+    x = np.clip(x, -1, 1)
     return np.sign(x) * np.log(1. + MU * np.abs(x)) / np.log(1. + MU)
 
 def inv_mulaw(x, MU):

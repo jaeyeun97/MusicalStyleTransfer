@@ -4,7 +4,7 @@ from .util import option_setter
 
 options = {
     'conv_size': 5,
-    'conv_pad': 4,
+    'conv_pad': 2,
     'nc': 1025,
     'use_bias': False,
     'norm_layer': nn.BatchNorm1d,
@@ -23,7 +23,7 @@ class Resnet2d(nn.Module):
                 nn.Conv2d(self.nc, self.nc,
                           kernel_size=3,
                           bias=self.use_bias),
-                # self.norm_layer(self.nc),
+                self.norm_layer(self.nc),
                 nn.ReLU(True)
             ]
 
@@ -35,7 +35,7 @@ class Resnet2d(nn.Module):
                 nn.Conv2d(self.nc, self.nc,
                           kernel_size=3,
                           bias=self.use_bias),
-                # self.norm_layer(self.nc)
+                self.norm_layer(self.nc)
             ]
 
         self.model = nn.Sequential(*conv_block)
@@ -53,13 +53,12 @@ class Resnet1d(nn.Module):
         option_setter(self, options, kwargs)
 
         conv_block = [
-                nn.Conv1d(self.nc, self.nc * 2,
+                nn.Conv1d(self.nc, self.nc,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
-                          dilation=2,
                           groups=self.nc,
                           bias=self.use_bias),
-                self.norm_layer(self.nc*2),
+                # self.norm_layer(self.nc),
                 nn.LeakyReLU(0.2, True)
             ]
 
@@ -67,12 +66,12 @@ class Resnet1d(nn.Module):
             conv_block += [nn.Dropout(0.5)]
  
         conv_block += [
-                nn.Conv1d(self.nc * 2, self.nc,
+                nn.Conv1d(self.nc, self.nc,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
-                          dilation=2,
                           groups=self.nc,
                           bias=self.use_bias),
+                # self.norm_layer(self.nc)
             ]
 
         self.model = nn.Sequential(*conv_block)

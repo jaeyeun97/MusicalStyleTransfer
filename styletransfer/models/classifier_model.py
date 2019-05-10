@@ -8,7 +8,7 @@ class ClassifierModel(BaseModel):
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
         opt, _ = parser.parse_known_args()
-        parser.set_defaults(preprocess=opt.preprocess+',stft')
+        parser.set_defaults(preprocess=opt.preprocess+',stft', flatten=True)
         return parser
 
     def __init__(self, opt):
@@ -17,9 +17,10 @@ class ClassifierModel(BaseModel):
         self.model_names = ['D']
 
         self.netD = getDiscriminator(opt, self.devices[0])
-        self.criterion = nn.CrossEntropyLoss() 
-        self.A_target = torch.LongTensor([0]).to(self.devices[0])
-        self.B_target = torch.LongTensor([1]).to(self.devices[0])
+        # self.criterion = nn.CrossEntropyLoss() 
+        self.A_target = torch.tensor(0.).to(self.devices[0])
+        self.B_target = torch.tensor(1.).to(self.devices[0])
+        self.criterion = nn.MSELoss()
 
         if self.isTrain:
             self.optimizer = torch.optim.Adam(self.netD.parameters())

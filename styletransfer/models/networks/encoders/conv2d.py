@@ -16,6 +16,7 @@ options = {
     'reshaped': False,
     'transformer': None,
     'tensor_size': 1025,
+    'nc': 1
 }
 
 class Conv2dEncoder(nn.Module):
@@ -30,10 +31,10 @@ class Conv2dEncoder(nn.Module):
         mult = self.ngf
         self.model = [
             ('pad_init', nn.ReflectionPad2d(3)),
-            ('conv_init', nn.Conv2d(1, mult,
+            ('conv_init', nn.Conv2d(self.nc, mult,
                                     kernel_size=7,
                                     bias=self.use_bias)),
-            # ('norm_init', self.norm_layer(mult)),
+            ('norm_init', self.norm_layer(mult)),
             ('relu_init', nn.ReLU(True)),
         ]
 
@@ -76,7 +77,7 @@ class Conv2dEncoder(nn.Module):
                                                       padding=1,
                                                       stride=2,
                                                       bias=self.use_bias)),
-                # ('norm_up_%s' % i, self.norm_layer(next_mult)),
+                ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult
@@ -86,14 +87,15 @@ class Conv2dEncoder(nn.Module):
             ('conv_final', nn.Conv2d(mult, 1,
                                      kernel_size=7,
                                      bias=self.use_bias)),
-            # ('tanh', nn.Tanh())
+            ('tanh', nn.Tanh())
         ]
 
         for name, module in self.model:
             self.add_module(name, module)
 
     def forward(self, input):
-        input = input.unsqueeze(1)
+        if len(input.size()) < 4:
+            input = input.unsqueeze(1)
         for name, module in self.model:
             if 'pool_down' in name:
                 input, indices = module(input)

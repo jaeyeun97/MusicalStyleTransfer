@@ -57,11 +57,14 @@ class WaveNet(torch.nn.Module):
 
         self.device = None 
 
-        
-        self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
-                                                 n_cond_channels,
-                                                 kernel_size=upsamp_window,
-                                                 stride=upsamp_stride)
+        if upsamp_stride == 1 and upsamp_window == 1:
+            self.no_upsamp = True 
+        else:
+            self.no_upsamp = False
+            self.upsample = torch.nn.ConvTranspose1d(n_cond_channels,
+                                                     n_cond_channels,
+                                                     kernel_size=upsamp_window,
+                                                     stride=upsamp_stride)
     
         self.n_layers = n_layers
         self.max_dilation = 2 ** (loop_factor - 1)
@@ -111,7 +114,10 @@ class WaveNet(torch.nn.Module):
         features = forward_input[0]
         forward_input = forward_input[1]
 
-        cond_input = self.upsample(features)
+        if self.no_upsamp:
+            cond_input = features
+        else:
+            cond_input = self.upsample(features)
 
         assert(cond_input.size(2) >= forward_input.size(1))
         if cond_input.size(2) > forward_input.size(1):
@@ -203,9 +209,13 @@ class WaveNet(torch.nn.Module):
         Takes in features and gets the 2*R x batch x # layers x samples tensor
         """
         # TODO(rcosta): trim conv artifacts. mauybe pad spec to kernel multiple
-        cond_input = self.upsample(features)
-        time_cutoff = self.upsample.kernel_size[0] - self.upsample.stride[0]
-        cond_input = cond_input[:, :, :-time_cutoff]
+        if self.no_upsamp:
+            cond_input = features
+        else:
+            cond_input = self.upsample(features)
+            time_cutoff = self.upsample.kernel_size[0] - self.upsample.stride[0]
+            if time_cutoff > 0:
+                cond_input = cond_input[:, :, :-time_cutoff]
         cond_input = self.cond_layers(cond_input).data
         cond_input = cond_input.view(cond_input.size(0), self.n_layers, -1, cond_input.size(2))
         # This makes the data channels x batch x num_layers x samples
