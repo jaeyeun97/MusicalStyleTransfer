@@ -19,9 +19,9 @@ class Resnet2d(nn.Module):
         option_setter(self, options, kwargs)
 
         conv_block = [
-                nn.ReflectionPad2d(1),
                 nn.Conv2d(self.nc, self.nc,
-                          kernel_size=3,
+                          kernel_size=self.conv_size,
+                          padding=self.conv_pad,
                           bias=self.use_bias),
                 self.norm_layer(self.nc),
                 nn.ReLU(True)
@@ -31,9 +31,9 @@ class Resnet2d(nn.Module):
             conv_block += [nn.Dropout(0.5)]
 
         conv_block += [
-                nn.ReflectionPad2d(1),
                 nn.Conv2d(self.nc, self.nc,
-                          kernel_size=3,
+                          kernel_size=self.conv_size,
+                          padding=self.conv_pad,
                           bias=self.use_bias),
                 self.norm_layer(self.nc)
             ]
@@ -56,20 +56,17 @@ class Resnet1d(nn.Module):
                 nn.Conv1d(self.nc, self.nc,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
-                          groups=self.nc,
                           bias=self.use_bias),
-                # self.norm_layer(self.nc),
-                nn.LeakyReLU(0.2, True)
+                nn.ReLU(True)
             ]
 
         if self.use_dropout:
             conv_block += [nn.Dropout(0.5)]
- 
+
         conv_block += [
                 nn.Conv1d(self.nc, self.nc,
                           kernel_size=self.conv_size,
                           padding=self.conv_pad,
-                          groups=self.nc,
                           bias=self.use_bias),
                 # self.norm_layer(self.nc)
             ]

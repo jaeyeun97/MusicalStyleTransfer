@@ -31,26 +31,24 @@ class Conv1dEncoder(nn.Module):
         mult = (self.tensor_size - 1) * self.ngf
         self.model = [
             ('conv_init', nn.Conv1d(self.tensor_size, mult,
-                                    kernel_size=self.conv_size,
-                                    padding=self.conv_pad,
-                                    dilation=2,
+                                    kernel_size=self.conv_size + 2,
+                                    padding=self.conv_pad + 1,
                                     bias=self.use_bias)),
-            ('norm_init', self.norm_layer(mult)),
-            ('relu_init', nn.LeakyReLU(0.2, True))
+            # ('norm_init', self.norm_layer(mult)),
+            ('relu_init', nn.ReLU(True))
         ]
  
         # Downsample
         for i in range(self.n_downsample):
-            next_mult = int(mult * self.mgf) # if i % 2 == 0 else mult
+            next_mult = int(mult * self.mgf) if i % 2 == 0 else mult
             self.model += [
                 ('conv_down_%s' % i, nn.Conv1d(mult, next_mult,
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
-                                               dilation=2,
-                                               # stride=2,
+                                               stride=2,
                                                bias=self.use_bias)), 
-                ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('relu_down_%s' % i, nn.LeakyReLU(0.2, True)),
+                # ('norm_down_%s' % i, self.norm_layer(next_mult)),
+                ('relu_down_%s' % i, nn.ReLU(True)),
                 # ('pool_down_%s' % i, nn.MaxPool1d(self.pool_size,
                 #                                   stride=self.pool_stride,
                 #                                   padding=self.pool_pad,
@@ -65,7 +63,7 @@ class Conv1dEncoder(nn.Module):
 
         # Upsample
         for i in range(self.n_downsample):
-            next_mult = int(mult // self.mgf) # if (self.n_downsample - i) % 2 == 1 else mult
+            next_mult = int(mult // self.mgf) if (self.n_downsample - i) % 2 == 1 else mult
             self.model += [
                 # ('unpool_up_%s' % i, nn.MaxUnpool1d(self.pool_size,
                 #                                     stride=self.pool_stride,
@@ -73,22 +71,19 @@ class Conv1dEncoder(nn.Module):
                 ('conv_up_%s' % i, nn.ConvTranspose1d(mult, next_mult,
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
-                                                      dilation=2,
-                                                      # stride=2,
+                                                      stride=2,
                                                       bias=self.use_bias)),
-                ('norm_up_%s' % i, self.norm_layer(next_mult)),
-                ('relu_up_%s' % i, nn.LeakyReLU(0.2, True))
+                # ('norm_up_%s' % i, self.norm_layer(next_mult)),
+                ('relu_up_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult
 
         self.model += [
             ('conv_final', nn.ConvTranspose1d(mult, self.tensor_size,
-                                              kernel_size=self.conv_size,
-                                              padding=self.conv_pad,
-                                              dilation=2,
+                                              kernel_size=self.conv_size + 2,
+                                              padding=self.conv_pad + 1,
                                               bias=self.use_bias)),
-            ('norm_final', self.norm_layer(self.tensor_size)),
-            ('tanh_final', nn.Tanh())
+            # ('tanh_final', nn.Tanh())
         ]
 
         for name, module in self.model:
