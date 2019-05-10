@@ -8,14 +8,13 @@ options = {
     'ndf': 8,
     'conv_size': 5,
     'conv_pad': 4,
-    'pool_size': (1, 2),
-    'pool_pad': (0, 1),
-    'pool_stride': (1, 2),
     'norm_layer': nn.BatchNorm2d,
     'use_bias': False,
     'shrinking_filter': False,
     'tensor_size': 1025,
-    'duration_ratio': 1
+    'duration_ratio': 1,
+    'input_nc': 1,
+    'flatten': False
 }
 
 class TimbralClassifier(nn.Module):
@@ -27,57 +26,54 @@ class TimbralClassifier(nn.Module):
 
         option_setter(self, options, kwargs) 
 
-        print(self.duration_ratio) 
-        self.tensor_size = (self.tensor_size - 1) // self.duration_ratio + 1
-        self.n_layers = int(np.log2(self.tensor_size - 1))
-        # self.conv_pad = self.conv_pad - (kernel_size - 1) // 2
+        if 'tensor_height' in kwargs:
+            self.tensor_height = kwargs['tensor_height'] 
+        else:
+            self.tensor_height = self.tensor_size
+
+        self.tensor_width = (self.tensor_size - 1) // self.duration_ratio + 1
 
         model = [
-            nn.Conv2d(1, self.ndf,
-                      kernel_size=3, # self.conv_size,
-                      padding=1,
+            nn.Conv2d(self.input_nc, self.ndf,
+                      kernel_size=self.conv_size, 
+                      padding=self.conv_pad,
                       bias=self.use_bias),  
+            self.norm_layer(self.ndf),
             nn.ReLU()
         ]
-        mult = self.ndf
-
+        mult = self.ndf 
+        
+        self.n_layers = int(np.log2(self.tensor_height - 1))
         first = int(np.log2(self.conv_size - 1))
         for n in range(first, self.n_layers):
-            next_mult = mult * 2
+            next_mult = mult * 2 if n % 2 == 0 else mult
             model += [
                 nn.Conv2d(mult, next_mult,
-                          kernel_size=3, # self.conv_size,
-                          padding=1, # self.conv_pad,
+                          kernel_size=self.conv_size,
+                          padding=self.conv_pad,
+                          stride=(2, 1),
                           bias=self.use_bias), 
-                nn.AvgPool2d(self.pool_size,
-                             padding=self.pool_pad,
-                             stride=self.pool_stride),
                 nn.ReLU()
             ]
             mult = next_mult
 
-        # ts = ((self.tensor_size - 1) // (2 ** self.n_layers) + 1) ** 2
         model += [
-            nn.Conv2d(mult, 1, kernel_size=self.conv_size, padding=(1, 0)),
-            # nn.LeakyReLU(0.2, True),
-            # Flatten(),
-            # nn.Linear(self.tensor_size, 2),
-            # nn.Tanh(),
-            # nn.Linear(2, 2),
+            nn.Conv2d(mult, 1, kernel_size=3),
         ]
  
-        self.model = nn.Sequential(*model)
+        self.model = nn.ModuleList(model) # nn.Sequential(*model)
 
     def forward(self, input):
         """Standard forward."""
-        input = input.unsqueeze(1)
-        input = self.model(input)
+        if len(input.size()) < 4:
+            input = input.unsqueeze(1)
+        for model in self.model:
+            input = model(input) 
+        if self.flatten:
+            input = input.view(input.size(0), -1)
+            input = input.mean(dim=1)
         return input
 
-
-class Flatten(nn.Module):
-    def __init__(self):
-        super(Flatten, self).__init__()
-
-    def forward(self, input):
-        return input.view(1, -1)
+    def to(self, device):
+        self.device = device
+        return super(TimbralClassifier, self).to(device)

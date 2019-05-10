@@ -38,6 +38,7 @@ class Conv2dClassifier(nn.Module):
                       kernel_size=self.conv_size, 
                       padding=self.conv_pad,
                       bias=self.use_bias),  
+            self.norm_layer(self.ndf),
             nn.ReLU()
         ]
         mult = self.ndf
@@ -51,6 +52,7 @@ class Conv2dClassifier(nn.Module):
                               padding=self.conv_pad,
                               stride=(2, 1),
                               bias=self.use_bias), 
+                    self.norm_layer(mult),
                     nn.ReLU()
                 ]  
         else:

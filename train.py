@@ -62,7 +62,7 @@ if __name__ == "__main__":
             mkdir(epoch_dir)
             for name, y in clips.items():
                 for i in range(y.shape[0]):
-                    librosa.output.write_wav(os.path.join(epoch_dir, '{}.wav'.format(name)), y, opt.sample_rate)
+                    librosa.output.write_wav(os.path.join(epoch_dir, '{}.{}.wav'.format(name, i)), y[i, :], opt.sample_rate)
 
         if epoch % opt.save_epoch_freq == 0:              # cache our model every <save_epoch_freq> epochs
             print('saving the model at the end of epoch %d, iters %d' % (epoch, total_iters))

@@ -89,7 +89,7 @@ class DatasetLoader():
             B_class = find_dataset_using_name(getattr(opt, 'B_dataset'))
             B_dataset = self.get_subset(B_class(opt, 'B'))
             self.B_dataset = self.get_dataloader(B_dataset)
-            self.size = min(len(A_dataset), len(B_dataset))
+            self.size = max(len(A_dataset), len(B_dataset))
             print("Single datasets [{}] and [{}] were created".format(
                 type(A_dataset).__name__,
                 type(B_dataset).__name__))

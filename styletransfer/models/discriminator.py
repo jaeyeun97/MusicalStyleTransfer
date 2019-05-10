@@ -18,8 +18,8 @@ class Discriminator(nn.Module):
         model = opt.discriminator
         self.device = None
 
-        if 'shallow' in model:
-            pass
+        if 'shallow' in model or 'timbral' in model:
+            args['norm_layer'] = get_norm_layer(2, opt.norm_layer)
         elif '2d' in model:
             args['norm_layer'] = get_norm_layer(2, opt.norm_layer)
         elif '1d' in model:
@@ -33,6 +33,8 @@ class Discriminator(nn.Module):
             self.net = Conv1dClassifier(**args)
         elif model == 'conv2d':
             self.net = Conv2dClassifier(**args)
+        elif model == 'timbral':
+            self.net = TimbralClassifier(**args)
         elif model == 'shallow':
             self.net = ShallowClassifier(**args)
         else:

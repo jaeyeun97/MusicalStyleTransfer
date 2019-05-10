@@ -31,7 +31,7 @@ class BaseOptions():
         parser.add_argument('--transformer', type=str, default='none', help='specify generator transformer architecture')
         parser.add_argument('--encoder', type=str, default='conv1d', help='specify generator autoencoder architecture')
         parser.add_argument('--conv_size', type=int, default=3, help='conv filter size')
-        parser.add_argument('--conv_pad', type=int, default=2, help='conv padding size')
+        parser.add_argument('--conv_pad', type=int, default=1, help='conv padding size')
 
         parser.add_argument('--ngf', type=int, default=4, help='# of generator filters')
         parser.add_argument('--mgf', type=float, default=0.5, help='generator filter number multiplier')
