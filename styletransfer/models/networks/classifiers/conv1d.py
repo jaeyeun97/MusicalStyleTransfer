@@ -52,4 +52,5 @@ class Conv1dClassifier(nn.Module):
     def forward(self, input):
         """Standard forward."""
         input = self.model(input)
-        return input.mean(dim=2).squeeze(1)
+        input = input.mean(dim=2).squeeze(1)
+        return torch.sigmoid(input)

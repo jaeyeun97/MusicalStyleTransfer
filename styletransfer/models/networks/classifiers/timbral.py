@@ -38,11 +38,11 @@ class TimbralClassifier(nn.Module):
         ]
   
         height = self.tensor_height
-        while height > 4:
-            # next_mult = mult * 2 
+        while height > 2:
+            next_mult = mult * 2 
             pool_size = 2 if height % 2 == 0 else 3
             model += [
-                    nn.Conv2d(self.ndf, self.ndf, # mult, next_mult,
+                    nn.Conv2d(mult, next_mult,
                           kernel_size=self.conv_size,
                           padding=(self.conv_pad, 0),   
                           bias=self.use_bias), 
@@ -50,7 +50,7 @@ class TimbralClassifier(nn.Module):
                 nn.AvgPool2d(pool_size, stride=(2, 1))
             ]
             height = int((height - pool_size) / 2 + 1)
-            # mult = next_mult
+            mult = next_mult
 
         for module in model:
             if isinstance(module, nn.Conv2d):
@@ -68,6 +68,7 @@ class TimbralClassifier(nn.Module):
         for model in self.model:
             input = model(input)
         if self.flatten:
-            input = input.view(input.size(0), -1)
+            input = input.squeeze(1)
+            input = input.squeeze(1)
             input = input.mean(dim=1)
-        return input
+        return torch.sigmoid(input)
