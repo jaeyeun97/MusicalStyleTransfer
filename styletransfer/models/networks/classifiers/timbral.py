@@ -36,26 +36,27 @@ class TimbralClassifier(nn.Module):
             # self.norm_layer(self.ndf),
             nn.ReLU()
         ]
-        
-        self.n_layers = int(np.log2(self.tensor_height - 1))
-        first = int(np.log2(self.conv_size - 1))
-        for n in range(first, self.n_layers):
-            next_mult = mult * 2 
+  
+        height = self.tensor_height
+        while height > 4:
+            # next_mult = mult * 2 
+            pool_size = 2 if height % 2 == 0 else 3
             model += [
-                nn.Conv2d(mult, next_mult,
+                    nn.Conv2d(self.ndf, self.ndf, # mult, next_mult,
                           kernel_size=self.conv_size,
-                          padding=(self.conv_pad, 0),
-                          stride=(2, 1),
+                          padding=(self.conv_pad, 0),   
                           bias=self.use_bias), 
-                nn.ReLU()
+                nn.ReLU(),
+                nn.AvgPool2d(pool_size, stride=(2, 1))
             ]
-            mult = next_mult
+            height = int((height - pool_size) / 2 + 1)
+            # mult = next_mult
 
         for module in model:
             if isinstance(module, nn.Conv2d):
                 nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
 
-        last_conv = nn.Conv2d(mult, 1, kernel_size=3)
+        last_conv = nn.Conv2d(self.ndf, 1, kernel_size=height)
         nn.init.xavier_uniform_(last_conv.weight, gain=nn.init.calculate_gain('linear'))
         model.append(last_conv)
         self.model = nn.ModuleList(model)
