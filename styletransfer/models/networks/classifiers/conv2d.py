@@ -84,13 +84,6 @@ class Conv2dClassifier(nn.Module):
         model += [
             nn.Conv2d(mult, mult * 2, kernel_size=3),
         ]
-
-        if self.flatten:
-            model += [
-                Flatten(),
-                nn.Linear(mult*2, 2)
-                # nn.Conv2d(mult*2, 2, kernel_size=1)
-            ]
  
         self.model = nn.ModuleList(model) # nn.Sequential(*model)
 

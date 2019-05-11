@@ -34,7 +34,6 @@ class Conv1dClassifier(nn.Module):
             self.model += [
                 nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
-                          padding=self.conv_pad,
                           bias=self.use_bias),  
                 nn.ReLU()
             ]
