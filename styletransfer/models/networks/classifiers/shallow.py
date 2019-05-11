@@ -11,7 +11,8 @@ options = {
     'norm_layer': nn.BatchNorm2d,
     'use_bias': False,
     'shrinking_filter': False,
-    'tensor_size': 1025,
+    'tensor_width': 1025,
+    'tensor_height': 1025,
     'duration_ratio': 1,
     'input_nc': 1,
     'flatten': False
@@ -25,13 +26,6 @@ class ShallowClassifier(nn.Module):
         super(ShallowClassifier, self).__init__()
 
         option_setter(self, options, kwargs) 
-
-        if 'tensor_height' in kwargs:
-            self.tensor_height = kwargs['tensor_height'] 
-        else:
-            self.tensor_height = self.tensor_size
-
-        self.tensor_width = (self.tensor_size - 1) // self.duration_ratio + 1
 
         model = [
             nn.Conv2d(self.input_nc, self.ndf,

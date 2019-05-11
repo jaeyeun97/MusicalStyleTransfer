@@ -5,7 +5,7 @@ import math
 
 def calc(D, eps):
     if isinstance(D, np.ndarray):
-        lmag = np.log(np.abs(D) + eps)
+        lmag = np.log(np.abs(D, dtype='float32') + eps)
         agl = np.angle(D)
     elif isinstance(D, torch.Tensor):
         real = D[:, 0 , :, :]
@@ -61,6 +61,9 @@ def stft(y, **kwargs):
 
 def istft(y, **kwargs):
     return np.stack([librosa.istft(y[i, :], **kwargs) for i in range(y.shape[0])])
+
+def icqt(y, **kwargs):
+    return np.stack([librosa.icqt(y[i, :], **kwargs) for i in range(y.shape[0])])
 
 def hz_to_mel(y, **kwargs):
     return librosa.hz_to_mel(y, **kwargs)

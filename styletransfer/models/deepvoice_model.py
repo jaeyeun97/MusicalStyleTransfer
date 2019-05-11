@@ -21,7 +21,7 @@ class CQTModel(BaseModel):
             the modified parser.
         """
         opt, _ = parser.parse_known_args() 
-        preprocess = 'mulaw,cqt'
+        preprocess = 'mulaw,normalize,cqt'
         parser.set_defaults(preprocess=preprocess)
         parser.add_argument('--wavenet_layers', type=int, default=30, help='wavenet layers')
         parser.add_argument('--wavenet_blocks', type=int, default=15, help='wavenet layers')
@@ -37,13 +37,20 @@ class CQTModel(BaseModel):
             self.output_names = ['real_A', 'real_B', 'fake_B', 'fake_A']
             self.params_names = ['params_A', 'params_B'] * 2
         self.model_names = ['D_A', 'D_B'] 
+
+        if 'stft' in self.preprocess:
+            stride = 2 * ((opt.nfft // 8) - 1)
+            window =  opt.nfft // opt.duration_ratio
+        elif 'cqt' in self.preprocess:
+            stride = opt.hop_length
+            window = opt.hop_length
  
         self.netD_A = WaveNet(opt.mu+1, opt.wavenet_layers, opt.wavenet_blocks, 
                               opt.width, 256, 256,
-                              84, 512, 512).to(self.devices[-1]) 
+                              opt.tensor_height, window, stride).to(self.devices[-1]) 
         self.netD_B = WaveNet(opt.mu+1, opt.wavenet_layers, opt.wavenet_blocks,
                               opt.width, 256, 256,
-                              84, 512, 512).to(self.devices[-1])
+                              opt.tensor_height, window, stride).to(self.devices[-1])
         self.softmax = nn.LogSoftmax(dim=1) # (1, 256, audio_len) -> pick 256
         
         if self.isTrain:

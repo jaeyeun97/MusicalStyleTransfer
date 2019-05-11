@@ -3,7 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from .util.scheduler import get_scheduler
-from ..util.audio import (denormalize_magnitude, istft, inv_mulaw, pitch_deshift, decalc, mel_to_hz)
+from ..util.audio import (denormalize_magnitude, istft, icqt, inv_mulaw, pitch_deshift, decalc, mel_to_hz)
 
 
 class BaseModel(ABC):
@@ -145,6 +145,13 @@ class BaseModel(ABC):
                 y = denormalize_magnitude(params['max'], params['min'], y)
             y = decalc(y, params['phase'], self.opt.smoothing_factor)
             y = istft(y)
+        if 'cqt' in self.preprocesses:
+            if 'normalize' in self.preprocesses:
+                if 'max' not in params or 'min' not in params:
+                    raise Exception('No max or min')
+                y = denormalize_magnitude(params['max'], params['min'], y)
+            y = decalc(y, params['phase'], self.opt.smoothing_factor)
+            y = icqt(y, sr=self.opt.sample_rate, bins_per_octave=self.opt.cqt_octave_bins)
         if 'mulaw' in self.preprocesses:
             y = inv_mulaw(y, self.opt.mu)
         if 'mel' in self.preprocesses:

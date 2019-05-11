@@ -14,7 +14,7 @@ options = {
     'pool_stride': 2,
     'norm_layer': nn.BatchNorm2d,
     'use_bias': False,
-    'tensor_size': 1025
+    'tensor_height': 1025
 }
 
 class Conv1dClassifier(nn.Module):
@@ -28,7 +28,7 @@ class Conv1dClassifier(nn.Module):
         
         self.model = list() 
 
-        mult = self.tensor_size
+        mult = self.tensor_height
         for n in range(self.n_layers):
             next_mult = min(self.ndf, mult * 2)
             self.model += [

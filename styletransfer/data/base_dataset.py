@@ -99,7 +99,12 @@ class BaseDataset(data.Dataset, ABC):
                 lmag, params['max'], params['min'] = normalize_magnitude(lmag)
             return torch.from_numpy(lmag), params
         elif 'cqt' in self.preprocesses:
-            params['bins'] = 84
-            return torch.from_numpy(np.abs(librosa.cqt(y, sr=self.sample_rate), dtype='float32')), params
+            D = librosa.cqt(y, sr=self.sample_rate,
+                            bins_per_octave=self.opt.cqt_octave_bins,
+                            n_bins=self.opt.tensor_height)
+            lmag, params['phase'] = calc(D, self.opt.smoothing_factor) 
+            if 'normalize' in self.preprocesses:
+                lmag, params['max'], params['min'] = normalize_magnitude(lmag)
+            return torch.from_numpy(lmag), params
         else:
             return torch.from_numpy(y), params
