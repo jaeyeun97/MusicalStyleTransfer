@@ -145,13 +145,14 @@ class BaseModel(ABC):
                 y = denormalize_magnitude(params['max'], params['min'], y)
             y = decalc(y, params['phase'], self.opt.smoothing_factor)
             y = istft(y)
-        if 'cqt' in self.preprocesses:
+        elif 'cqt' in self.preprocesses:
             if 'normalize' in self.preprocesses:
                 if 'max' not in params or 'min' not in params:
                     raise Exception('No max or min')
                 y = denormalize_magnitude(params['max'], params['min'], y)
             y = decalc(y, params['phase'], self.opt.smoothing_factor)
             y = icqt(y, sr=self.opt.sample_rate, bins_per_octave=self.opt.cqt_octave_bins)
+
         if 'mulaw' in self.preprocesses:
             y = inv_mulaw(y, self.opt.mu)
         if 'mel' in self.preprocesses:
@@ -212,12 +213,9 @@ class BaseModel(ABC):
                 net = getattr(self, 'net' + name)
                 if isinstance(net, torch.nn.DataParallel):
                     net = net.module
-                print('loading the model from %s' % load_path)
-                # if you are using PyTorch newer than 0.4 (e.g., built from
-                # GitHub source), you can remove str() on self.device
-                state_dict = torch.load(load_path, map_location=net.device)
-                if hasattr(state_dict, '_metadata'):
-                    del state_dict._metadata
+                print('loading the model from %s' % load_path) 
+                state_dict = torch.load(load_path, map_location=str(net.device))
+                net.load_state_dict(state_dict)
 
     def print_networks(self, verbose):
         """Print the total number of parameters in the network and (if verbose) network architecture

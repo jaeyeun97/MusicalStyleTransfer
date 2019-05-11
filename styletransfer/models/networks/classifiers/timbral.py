@@ -56,7 +56,7 @@ class TimbralClassifier(nn.Module):
             if isinstance(module, nn.Conv2d):
                 nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
 
-        last_conv = nn.Conv2d(self.ndf, 1, kernel_size=height)
+        last_conv = nn.Conv2d(mult, 1, kernel_size=height)
         nn.init.xavier_uniform_(last_conv.weight, gain=nn.init.calculate_gain('linear'))
         model.append(last_conv)
         self.model = nn.ModuleList(model)
