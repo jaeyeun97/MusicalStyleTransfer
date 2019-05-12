@@ -1,7 +1,7 @@
 \PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
 \PassOptionsToPackage{hyphens}{url}
 %
-\documentclass[]{article}
+\documentclass[]{report}
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
@@ -51,10 +51,10 @@
 \begin{document}
 
 \hypertarget{introduction}{%
-\section{Introduction}\label{introduction}}
+\chapter{Introduction}\label{introduction}}
 
 \hypertarget{project-goals}{%
-\subsection{Project Goals}\label{project-goals}}
+\section{Project Goals}\label{project-goals}}
 
 This project aims to design and train a neural network architecture that
 learns a specific musical style, in order to transform a given piece of
@@ -78,7 +78,7 @@ prepared in order to test the efficacy of the networks. {[}writeup
 after{]}
 
 \hypertarget{preparation}{%
-\section{Preparation}\label{preparation}}
+\chapter{Preparation}\label{preparation}}
 
 The general aim of this project is to perform digital audio processing
 using Deep Learning methods. Although Neural Networks are introduced in
@@ -89,7 +89,7 @@ aim to clarify the starting point and the previous works I relied on to
 implement the project.
 
 \hypertarget{starting-point}{%
-\subsection{Starting Point}\label{starting-point}}
+\section{Starting Point}\label{starting-point}}
 
 \begin{itemize}
 \item
@@ -113,7 +113,7 @@ implement the project.
 \end{itemize}
 
 \hypertarget{neural-networks}{%
-\subsection{Neural Networks}\label{neural-networks}}
+\section{Neural Networks}\label{neural-networks}}
 
 \begin{figure}[h]
     \includegraphics[width=0.5\textwidth]{./figures/simple_neural_network.png}
@@ -122,7 +122,7 @@ implement the project.
 \end{figure}
 
 \hypertarget{convolutional-neural-networks}{%
-\subsubsection{Convolutional Neural
+\subsection{Convolutional Neural
 Networks}\label{convolutional-neural-networks}}
 
 \begin{figure}[h]
@@ -132,8 +132,7 @@ Networks}\label{convolutional-neural-networks}}
 \end{figure}
 
 \hypertarget{residual-neural-networks}{%
-\subsubsection{Residual Neural
-Networks}\label{residual-neural-networks}}
+\subsection{Residual Neural Networks}\label{residual-neural-networks}}
 
 \begin{figure}[h]
     \includegraphics[width=0.5\textwidth]{./figures/resnet.png}
@@ -142,7 +141,7 @@ Networks}\label{residual-neural-networks}}
 \end{figure}
 
 \hypertarget{style-transfer-using-neural-networks}{%
-\subsection{Style Transfer using Neural
+\section{Style Transfer using Neural
 Networks}\label{style-transfer-using-neural-networks}}
 
 Gatys et al.~introduced a mechanism for image style transfer based on
@@ -187,7 +186,7 @@ counterpart. Therefore, other mechanisms using Generative Adversarial
 Networks have been investigated.
 
 \hypertarget{gan-style-transfers}{%
-\subsection{GAN Style Transfers}\label{gan-style-transfers}}
+\section{GAN Style Transfers}\label{gan-style-transfers}}
 
 Isola et al.~introduced CycleGAN and \texttt{pix2pix}, which performs
 image style transfer without any pre-trained network. By using
@@ -197,7 +196,7 @@ therefore allow a general-purpose solution to image style transfer,
 without designing a domain-specific loss function. {[}@pix2pix{]}
 
 \hypertarget{generative-adversarial-networks}{%
-\subsubsection{Generative Adversarial
+\subsection{Generative Adversarial
 Networks}\label{generative-adversarial-networks}}
 
 Generative Adversarial Nets are neural network architectures that
@@ -247,7 +246,7 @@ We can create a conditional adversarial network that models
 both \(G\) and \(D\), as we will see in \texttt{pix2pix}.
 
 \hypertarget{pix2pix}{%
-\subsubsection{\texorpdfstring{\texttt{pix2pix}}{pix2pix}}\label{pix2pix}}
+\subsection{\texorpdfstring{\texttt{pix2pix}}{pix2pix}}\label{pix2pix}}
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{figures/pix2pix.tikz}
@@ -278,7 +277,7 @@ have a set of paired data, which is hard to acquire. Therefore, I took a
 closer look into CycleGAN, which does not require a paired dataset.
 
 \hypertarget{cyclegan}{%
-\subsubsection{CycleGAN}\label{cyclegan}}
+\subsection{CycleGAN}\label{cyclegan}}
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{figures/cyclegan.tikz}
@@ -384,7 +383,7 @@ pre-trained classifiers; therefore, I have chosen to investigate further
 possibilities of audio style transfer using the CycleGAN architecture.
 
 \hypertarget{audio-signal-processing-using-neural-networks}{%
-\subsection{Audio Signal Processing Using Neural
+\section{Audio Signal Processing Using Neural
 Networks}\label{audio-signal-processing-using-neural-networks}}
 
 The neural network structures introduced above have been designed mainly
@@ -393,7 +392,7 @@ transfers I will investigate on previous mechanisms for audio processing
 using neural networks in this section.
 
 \hypertarget{data-representations}{%
-\subsubsection{Data Representations}\label{data-representations}}
+\subsection{Data Representations}\label{data-representations}}
 
 We can choose either to use the raw audio directly as the input to our
 neural network model or convert it into some intermediate
@@ -479,7 +478,7 @@ frequency \(f\):
 \end{equation}
 
 \hypertarget{wavenet}{%
-\subsubsection{WaveNet}\label{wavenet}}
+\subsection{WaveNet}\label{wavenet}}
 
 \begin{figure}[!h]
     \includegraphics[width=0.7\textwidth]{./figures/wavenet.png}
@@ -567,7 +566,7 @@ model to input pitch data, as we will see in the section below for
 TimbreTron and Universal Music Translation Networks.
 
 \hypertarget{timbretron}{%
-\subsubsection{TimbreTron}\label{timbretron}}
+\subsection{TimbreTron}\label{timbretron}}
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{figures/timbretron.tikz}
@@ -636,7 +635,7 @@ the identity loss throughout the training process since it can hinder
 the legitimate style transfer process as the training continues.
 
 \hypertarget{universal-music-translation-network}{%
-\subsubsection{Universal Music Translation
+\subsection{Universal Music Translation
 Network}\label{universal-music-translation-network}}
 
 \begin{figure}[h]
@@ -659,7 +658,7 @@ method has been effective for timbre transfer.
 \end{figure}
 
 \hypertarget{the-temporal-encoder}{%
-\paragraph{The Temporal Encoder}\label{the-temporal-encoder}}
+\subsubsection{The Temporal Encoder}\label{the-temporal-encoder}}
 
 Engel et al.~introduced an encoder network design which when combined
 with a conditional WaveNet decoder acts as an autoencoder, as shown in
@@ -682,7 +681,7 @@ training process.
 \end{figure}
 
 \hypertarget{domain-confusion}{%
-\paragraph{Domain Confusion}\label{domain-confusion}}
+\subsubsection{Domain Confusion}\label{domain-confusion}}
 
 To further aid the domain independence of the output of the temporal
 encoder, the model includes a domain confusion network. It takes the
@@ -697,7 +696,7 @@ domain classifier as shown in figure \ref{fig:dann}, as that was the
 original design of @dann.
 
 \hypertarget{pitch-shift}{%
-\paragraph{Pitch Shift}\label{pitch-shift}}
+\subsubsection{Pitch Shift}\label{pitch-shift}}
 
 Lastly, to improve the generalization capability of the encoder (i.e.~to
 translate well to unseen pitches in the dataset), all input audio file
@@ -706,7 +705,7 @@ length and amount of pitch shift is chosen randomly; details of the
 pitch shift will be described in the implementations section.
 
 \hypertarget{total-loss-function}{%
-\paragraph{Total Loss Function}\label{total-loss-function}}
+\subsubsection{Total Loss Function}\label{total-loss-function}}
 
 Combining all elements detailed above, we can now write the loss
 functions of the model. Given
@@ -736,7 +735,7 @@ where \(\mathcal{L}_{decoder}\), \(\mathcal{L}_{dc}\) are Cross Entropy
 loss functions.
 
 \hypertarget{implementation}{%
-\section{Implementation}\label{implementation}}
+\chapter{Implementation}\label{implementation}}
 
 The networks shared above is the current state of art in audio
 processing using neural networks. In this section I will implement
@@ -753,7 +752,7 @@ distributed model training (i.e.~training a single model across multiple
 GPUs).
 
 \hypertarget{datasets}{%
-\subsection{Datasets}\label{datasets}}
+\section{Datasets}\label{datasets}}
 
 The data loading module is split into two processes: a set of
 dataset-specific loaders that is responsible for selecting the right
@@ -762,7 +761,7 @@ a preprocessing pipeline, which applies the same preprocessing pipeline
 to all data samples.
 
 \hypertarget{dataset-loader}{%
-\subsubsection{Dataset Loader}\label{dataset-loader}}
+\subsection{Dataset Loader}\label{dataset-loader}}
 
 The dataset loader is expected to:
 
@@ -796,7 +795,7 @@ is always balanced, since we provided an equal number of samples from
 each domain on every iteration.
 
 \hypertarget{sources}{%
-\subsubsection{Sources}\label{sources}}
+\subsection{Sources}\label{sources}}
 
 First, I gathered a diverse set of datasets in order to try different
 combinations of audio style transfer; I tried to gather a dataset of
@@ -834,7 +833,7 @@ dataset contains pairs of soloist and accompanist recordings, which are
 mixed using \texttt{numpy} when the dataset is loaded. {[}@guitarset{]}
 
 \hypertarget{preprocess}{%
-\subsubsection{Preprocess}\label{preprocess}}
+\subsection{Preprocess}\label{preprocess}}
 
 The preprocessing pipeline processes the sliced data samples into the
 necessary form needed for different models. Each model sets the default
@@ -863,7 +862,7 @@ distribution between 0 and 1. \(\mu\)-law function needed for
 quantization was implemented based on equation \ref{eq:mulaw}.
 
 \hypertarget{postprocess}{%
-\paragraph{Postprocess}\label{postprocess}}
+\subsubsection{Postprocess}\label{postprocess}}
 
 The parameters that are needed to recover the original matrix are given
 to the network model with the data samples to be passed on to the
@@ -878,51 +877,103 @@ simple experiment of applying CQT and restoring it, with \(b = 120\) and
 restore the audio for the purpose of this project.
 
 \hypertarget{network-models}{%
-\subsection{Network Models}\label{network-models}}
+\section{Network Models}\label{network-models}}
 
-In this se
+In this section I introduce two neural network models inspired by
+TimbreTron and UMTN, along with an implementation of UMTN. TimbreTron
+could not be implemented because the network model was too large to fit
+into my system; moreover, @timbretron does not include many details
+(such as the generator architecture) which is essential to the
+implementation of the network.
 
-\hypertarget{encoders}{%
-\subsubsection{Encoders}\label{encoders}}
+First of the two new models is the CycleGAN model that uses the
+Griffin-Lim algorithm as the reconstruction mechanism. I tried to
+implement different generator and classifier networks to use with the
+time-frequency representations. Unlike generator networks, classifier
+networks can be evaluated independently in order to test the capacity of
+the network; hence I have written a separate model to evaluates these
+networks.
+
+The second model was inspired by UMTN; while the UMTN learns pitch data
+from the temporal classifiers, I wondered if the results could change by
+using an encoder network with a time-frequency representation. The
+encoder networks from the CycleGAN model were used to implement such a
+model.
 
 \hypertarget{classifiers}{%
-\subsubsection{Classifiers}\label{classifiers}}
+\subsection{Classifiers}\label{classifiers}}
 
-To be used for models later on
+I have experimented with three different classifier networks. First is
+\texttt{PatchGAN} which has been introduced by the original CycleGAN
+paper. The other two are of my original design, for which I will explain
+the intuition and implementation in the paragraphs below.
 
-STFT/CQT * conv1d, full\_spectrum * PatchGAN (baseline) * conv2d,
-full\_spectrum
+\hypertarget{patchgan-classifier-baseline}{%
+\subsubsection{PatchGAN classifier
+(Baseline)}\label{patchgan-classifier-baseline}}
+
+\hypertarget{conv1d}{%
+\subsubsection{\texorpdfstring{\texttt{conv1d}}{conv1d}}\label{conv1d}}
+
+\hypertarget{timbral-classifier}{%
+\subsubsection{Timbral classifier}\label{timbral-classifier}}
 
 \hypertarget{cyclegan-1}{%
-\subsubsection{CycleGAN}\label{cyclegan-1}}
+\subsection{CycleGAN}\label{cyclegan-1}}
 
-TimbreTron? - Uses CycleGAN on CQT spectrograms, and produces wavs by
-using WaveNet - Architecture needs 6 networks! Too large to fit into a
-system - We will look into possibilities of a Wavenet-less system
+@timbretron introduces a model that uses Griffin-Lim on STFT matrices as
+the baseline, but fails to present the equivalent for CQT
+representations. By implementing a CycleGAN model that uses Griffin-Lim
+reconstruction on both STFT and CQT representations, I hoped to clarify
+(1) the necessity of WaveNet in the TimbreTron model, and (2) the
+differences between STFT and CQT CycleGAN models.
 
 \hypertarget{generator-models}{%
-\paragraph{Generator Models}\label{generator-models}}
-
-\begin{itemize}
-\tightlist
-\item
-  basic Conv2d
-\item
-  freq as channel
-\end{itemize}
+\subsubsection{Generator Models}\label{generator-models}}
 
 \hypertarget{discriminators}{%
-\paragraph{Discriminators}\label{discriminators}}
+\subsubsection{Discriminators}\label{discriminators}}
 
 For discriminator units, we use the classifiers that have been evaluated
 above in section \ref{classifiers}.
 
 \hypertarget{distributed-training-system}{%
-\paragraph{Distributed Training
+\subsubsection{Distributed Training
 System}\label{distributed-training-system}}
 
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{./figures/cyclegan_gpu.tikz}
+    \centering
+    \caption{A modification of figure \ref{fig:cyclegan} to show how the model is split between the two GPUs. The two yellow points show the point at which the tensor has to be transferred; this way we can minimize the necessity of transferring the output vector.} \label{fig:cyclegan_gpu}
+\end{figure}
+
+Some generator models made the entire network architecture too large to
+fit in the memory of a single GPU. The original model implemented by Zhu
+et al., however, only had multi-GPU training capacities using dataset
+distribution. Therefore, the code structure was modified to store a
+generator and a discriminator pair on each GPU, and the relevant device
+management code was modified. With distributed modelling techniques, the
+transfer of tensors between the GPU can become a major bottleneck within
+the system; therefore, the modified codebase relies on individual model
+implementation to design ways to transfer minimal information between
+the devices. For the CycleGAN module, this was done as seen in figure
+\ref{fig:cyclegan_gpu}, which needs only two transfer between the
+devices for a single iteration. \texttt{PyTorch} handles the transfer of
+gradients between devices during back-propagation so there was no worry
+of losing gradient information.
+
+\hypertarget{timbretron-1}{%
+\subsection{TimbreTron}\label{timbretron-1}}
+
+With the distributed training in place, I was hoping to be able to train
+TimbreTron on this system; however, there was still not enough memory
+resources to train the six networks together. Without looking further
+ways to solve this issue, I have decided to implement the Universal
+Music Translation Network which included some promising audio samples
+within the paper.
+
 \hypertarget{universal-music-translation-network-1}{%
-\subsubsection{Universal Music Translation
+\subsection{Universal Music Translation
 Network}\label{universal-music-translation-network-1}}
 
 \begin{figure}[h]
@@ -940,12 +991,12 @@ STFT -\textgreater{} Resnet2d -\textgreater{} WaveNet -\textgreater{}
 Classifier
 
 \hypertarget{code-structure}{%
-\subsection{Code Structure}\label{code-structure}}
+\section{Code Structure}\label{code-structure}}
 
 \hypertarget{evaluation}{%
-\section{Evaluation}\label{evaluation}}
+\chapter{Evaluation}\label{evaluation}}
 
 \hypertarget{conclusion}{%
-\section{Conclusion}\label{conclusion}}
+\chapter{Conclusion}\label{conclusion}}
 
 \end{document}

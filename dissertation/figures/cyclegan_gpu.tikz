@@ -1,0 +1,103 @@
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Rectangle [id:dp24846518583940957] 
+\draw   (201,136) -- (271,136) -- (271,176) -- (201,176) -- cycle ;
+%Shape: Rectangle [id:dp09187485314989052] 
+\draw   (351,136) -- (421,136) -- (421,176) -- (351,176) -- cycle ;
+%Shape: Rectangle [id:dp4400433715069092] 
+\draw   (201,66) -- (271,66) -- (271,106) -- (201,106) -- cycle ;
+%Shape: Rectangle [id:dp9927409407823993] 
+\draw   (351,66) -- (421,66) -- (421,106) -- (351,106) -- cycle ;
+%Straight Lines [id:da2750484686898702] 
+\draw [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ]   (160.5,150.6) -- (194.5,150.6) ;
+\draw [shift={(196.5,150.6)}, rotate = 180] [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da7908615405766315] 
+\draw [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ]   (307.5,145.6) -- (274.91,113.01) ;
+\draw [shift={(273.5,111.6)}, rotate = 405] [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da924893305102142] 
+\draw [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ]   (314.5,145.6) -- (349.11,109.64) ;
+\draw [shift={(350.5,108.2)}, rotate = 493.91] [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da28151338483708055] 
+\draw [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ]   (427.5,94.6) -- (455.5,94.79) ;
+\draw [shift={(457.5,94.8)}, rotate = 180.38] [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da13133114822668834] 
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ]   (456.5,79.6) -- (427.5,79.79) ;
+\draw [shift={(425.5,79.8)}, rotate = 359.63] [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da23603632376440253] 
+\draw [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ]   (274.5,156.6) -- (290.5,156.6) ;
+\draw [shift={(292.5,156.6)}, rotate = 180] [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da49169750876600915] 
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ]   (307.5,97.6) -- (274.88,131.75) ;
+\draw [shift={(273.5,133.2)}, rotate = 313.68] [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da28560269283185824] 
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ]   (349.5,90.6) -- (334.5,90.6) ;
+\draw [shift={(332.5,90.6)}, rotate = 360] [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da7639259059544568] 
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ]   (316.5,99.6) -- (347.11,131.16) ;
+\draw [shift={(348.5,132.6)}, rotate = 225.88] [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da20704910138108756] 
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ]   (195.5,167.6) -- (160.5,167.79) ;
+\draw [shift={(158.5,167.8)}, rotate = 359.69] [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da6928626633280668] 
+\draw [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ]   (195.5,87.6) -- (160.5,87.79) ;
+\draw [shift={(158.5,87.8)}, rotate = 359.69] [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da4693722708450141] 
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ]   (427.5,157.6) -- (455.5,157.79) ;
+\draw [shift={(457.5,157.8)}, rotate = 180.38] [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Shape: Rectangle [id:dp24198746409387306] 
+\draw  [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,draw opacity=1 ][dash pattern={on 0.84pt off 2.51pt}] (194,58) -- (332.5,58) -- (332.5,186.2) -- (194,186.2) -- cycle ;
+%Shape: Rectangle [id:dp40740422645240226] 
+\draw  [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][dash pattern={on 4.5pt off 4.5pt}] (290.5,58) -- (437.5,58) -- (437.5,186.2) -- (290.5,186.2) -- cycle ;
+%Shape: Circle [id:dp642739470567989] 
+\draw  [color={rgb, 255:red, 255; green, 255; blue, 255 }  ,draw opacity=1 ][fill={rgb, 255:red, 245; green, 166; blue, 35 }  ,fill opacity=1 ] (285.2,115.9) .. controls (285.2,113.19) and (287.39,111) .. (290.1,111) .. controls (292.81,111) and (295,113.19) .. (295,115.9) .. controls (295,118.61) and (292.81,120.8) .. (290.1,120.8) .. controls (287.39,120.8) and (285.2,118.61) .. (285.2,115.9) -- cycle ;
+%Shape: Circle [id:dp22269608467414015] 
+\draw  [color={rgb, 255:red, 255; green, 255; blue, 255 }  ,draw opacity=1 ][fill={rgb, 255:red, 245; green, 166; blue, 35 }  ,fill opacity=1 ] (327.2,126.9) .. controls (327.2,124.19) and (329.39,122) .. (332.1,122) .. controls (334.81,122) and (337,124.19) .. (337,126.9) .. controls (337,129.61) and (334.81,131.8) .. (332.1,131.8) .. controls (329.39,131.8) and (327.2,129.61) .. (327.2,126.9) -- cycle ;
+
+% Text Node
+\draw (140,166) node  [align=left] { };
+% Text Node
+\draw (236,156) node  [align=left] {$\displaystyle G_{A\ \rightarrow B}$};
+% Text Node
+\draw (387,86) node  [align=left] {$\displaystyle G_{B\ \rightarrow A}$};
+% Text Node
+\draw (387,157) node  [align=left] {$\displaystyle D_{A}$};
+% Text Node
+\draw (237,87) node  [align=left] {$\displaystyle D_{B}$};
+% Text Node
+\draw (141,150) node [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,opacity=1 ] [align=left] {$\displaystyle A_{real}$};
+% Text Node
+\draw (315,156) node [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,opacity=1 ] [align=left] {$\displaystyle B_{fake}$};
+% Text Node
+\draw (480,94) node [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,opacity=1 ] [align=left] {$\displaystyle A_{cycle}$};
+% Text Node
+\draw (480,77) node [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle B_{real}$};
+% Text Node
+\draw (312,87) node [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle A_{fake}$};
+% Text Node
+\draw (142,167) node [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle B_{cycle}$};
+% Text Node
+\draw (143,88) node [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,opacity=1 ] [align=left] {$\displaystyle L_{D_{B}}$};
+% Text Node
+\draw (477,158) node [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle L_{D_{A}}$};
+% Text Node
+\draw (120,127) node  [align=left] {$ $};
+% Text Node
+\draw (266,46) node [color={rgb, 255:red, 38; green, 77; blue, 197 }  ,opacity=1 ] [align=left] {GPU0};
+% Text Node
+\draw (361,46) node [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {GPU1};
+
+
+\end{tikzpicture}

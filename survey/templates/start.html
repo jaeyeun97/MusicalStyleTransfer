@@ -2,6 +2,29 @@
 
 {% block content %}
 <div class='container'>
+
+	<h2 class='display-4 text-center'>Consent Form</h2>
+
+	<h4>Experiment Purpose & Procedure</h4>
+
+	<p>The purpose of this experiment is to use neural networks to translate musical styles from instruments or curated playlists. The experiment consists of 2 sections, each with 30 questions, during which you will be asked to listen to a pair of audio samples and answer two questions, one regarding the similarity in content of the two samples, and the other regarding the difference in audio style between the two samples. Each sample will be 4 seconds long, and you can play each sample as many times as you require. The questionnaire includes more detailed instructions for you to follow.</p>
+
+	<p>Please note that none of the tasks is a test of your personal intelligence or ability. The objective is to test the efficacy of the neural networks in translating the style of an audio sample to the other.</p>
+
+	<p>You may also withdraw from the experiment at any time, and hold no obligation to finish the questionnaire.</p>
+
+	<h4>Confidentiality</h4>
+	<p>The following data will be recorded to remove possibilities of duplication and participation gifts, and will be discarded after the experiments conclude:</p>
+	<ul>
+		<li>Name</li>
+		<li>Email address</li>
+	</ul>
+	<p>All data will be coded so that your anonymity will be protected in any research papers and presentations that result from this work.</p>
+	<h4>Finding out about result</h4>
+	<p>If interested, you can find out the result of the study by contacting the researcher, Charles Yoon, after 17 May, 2019. His email address is jyy24`at`cam.ac.uk.</p>
+	<h4>Record of Consent</h4>
+	<p>By filling out the form below indicates that you have understood the information about this experiment and consent to your participation. The participation is voluntary and you may refuse to answer certain questions on the questionnaire and withdraw from the study at any time with no penalty. This does not waive your legal rights. You should have received a copy of the consent form for your own record. If you have further questions related to this research, please contact the researcher.</p>
+
 	<form method='post'>
 		{{ form.csrf_token }}
 		<div class='row'>
@@ -22,4 +45,4 @@
 			<button type="submit" class="btn btn-primary btn-lg btn-main">Submit</button>
 		</div>
 	</form>
-{% endblock %}
+	{% endblock %}

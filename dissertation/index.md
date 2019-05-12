@@ -6,6 +6,7 @@ header-includes:
 - \tikzset{every picture/.style={line width=0.75pt}}
 subparagraph: True
 numbersections: true
+documentclass: report
 ---
 
 # Introduction
@@ -379,31 +380,30 @@ The parameters that are needed to recover the original matrix are given to the n
 
 ## Network Models
 
-In this section I introduce a number of neural network models inspired by TimbreTron and UMTN, along with a faithful implementation of UMTN (later in this section I will explain why I chose not to implement TimbreTron).
+In this section I introduce two neural network models inspired by TimbreTron and UMTN, along with an implementation of UMTN. TimbreTron could not be implemented because the network model was too large to fit into my system; moreover, @timbretron does not include many details (such as the generator architecture) which is essential to the implementation of the network.
 
-### Encoders
+First of the two new models is the CycleGAN model that uses the Griffin-Lim algorithm as the reconstruction mechanism. I tried to implement different generator and classifier networks to use with the time-frequency representations. Unlike generator networks, classifier networks can be evaluated independently in order to test the capacity of the network; hence I have written a separate model to evaluates these networks.
+
+The second model was inspired by UMTN; while the UMTN learns pitch data from the temporal classifiers, I wondered if the results could change by using an encoder network with a time-frequency representation. The encoder networks from the CycleGAN model were used to implement such a model.
 
 ### Classifiers
 
-To be used for models later on
+I have experimented with three different classifier networks. First is `PatchGAN` which has been introduced by the original CycleGAN paper. The other two are of my original design, for which I will explain the intuition and implementation in the paragraphs below. 
 
-STFT/CQT
-* conv1d, full_spectrum
-* PatchGAN (baseline)
-* conv2d, full_spectrum
+#### PatchGAN classifier (Baseline)
 
+#### `conv1d`
+
+Failed to converge
+
+#### Timbral classifier
 
 ### CycleGAN
 
-TimbreTron?
-- Uses CycleGAN on CQT spectrograms, and produces wavs by using WaveNet
-- Architecture needs 6 networks! Too large to fit into a system
-- We will look into possibilities of a Wavenet-less system
+@timbretron introduces a model that uses Griffin-Lim on STFT matrices as the baseline, but fails to present the equivalent for CQT representations. By implementing a CycleGAN model that uses Griffin-Lim reconstruction on both STFT and CQT representations, I hoped to clarify (1) the necessity of WaveNet in the TimbreTron model, and (2) the differences between STFT and CQT CycleGAN models.
 
 #### Generator Models
 
-- basic Conv2d 
-- freq as channel
 
 #### Discriminators 
 
@@ -412,6 +412,17 @@ For discriminator units, we use the classifiers that have been evaluated above i
 
 #### Distributed Training System
 
+\begin{figure}[h]
+	\includegraphics[width=\textwidth]{./figures/cyclegan_gpu.tikz}
+	\centering
+	\caption{A modification of figure \ref{fig:cyclegan} to show how the model is split between the two GPUs. The two yellow points show the point at which the tensor has to be transferred; this way we can minimize the necessity of transferring the output vector.} \label{fig:cyclegan_gpu}
+\end{figure}
+
+Some generator models made the entire network architecture too large to fit in the memory of a single GPU. The original model implemented by Zhu et al., however, only had multi-GPU training capacities using dataset distribution. Therefore, the code structure was modified to store a generator and a discriminator pair on each GPU, and the relevant device management code was modified. With distributed modelling techniques, the transfer of tensors between the GPU can become a major bottleneck within the system; therefore, the modified codebase relies on individual model implementation to design ways to transfer minimal information between the devices. For the CycleGAN module, this was done as seen in figure \ref{fig:cyclegan_gpu}, which needs only two transfer between the devices for a single iteration. `PyTorch` handles the transfer of gradients between devices during back-propagation so there was no worry of losing gradient information.
+
+### TimbreTron
+
+With the distributed training in place, I was hoping to be able to train TimbreTron on this system; however, there was still not enough memory resources to train the six networks together. Without looking further ways to solve this issue, I have decided to implement the Universal Music Translation Network which included some promising audio samples within the paper.
 
 ### Universal Music Translation Network
 
@@ -424,7 +435,7 @@ For discriminator units, we use the classifiers that have been evaluated above i
 I don't know what the problem is here..
 
 
-## Original Model
+### Original Model
 
 STFT -> Resnet2d ->  WaveNet
 				 ->  Classifier 
