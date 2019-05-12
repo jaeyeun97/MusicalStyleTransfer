@@ -35,7 +35,7 @@ class Conv1dClassifier(nn.Module):
                 nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
                           bias=self.use_bias),  
-                nn.ReLU()
+                nn.ReLU(True)
             ]
             mult = next_mult
 
@@ -53,4 +53,4 @@ class Conv1dClassifier(nn.Module):
         """Standard forward."""
         input = self.model(input)
         input = input.mean(dim=2).squeeze(1)
-        return torch.sigmoid(input)
+        return input # torch.sigmoid(input)

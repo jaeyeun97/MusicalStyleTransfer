@@ -10,6 +10,7 @@ class ClassifierModel(BaseModel):
     def modify_commandline_options(parser, is_train=True):
         opt, _ = parser.parse_known_args()
         parser.set_defaults(preprocess=opt.preprocess+',stft', flatten=True)
+        parser.add_argument('--sigmoid', action='store_true', help='sigmoid')
         return parser
 
     def __init__(self, opt):

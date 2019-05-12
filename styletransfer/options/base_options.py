@@ -37,6 +37,7 @@ class BaseOptions():
         parser.add_argument('--ngf', type=int, default=4, help='# of generator filters')
         parser.add_argument('--mgf', type=float, default=0.5, help='generator filter number multiplier')
         parser.add_argument('--ndf', type=int, default=2, help='# of discriminator filters')
+        parser.add_argument('--mdf', type=int, default=2, help='generator filter number multiplier')
         parser.add_argument('--n_layers', type=int, default=3, help='# of discriminator conv layers')
 
         parser.add_argument('--num_trans_layers', type=int, default=9, help='# of trans layer')
@@ -126,8 +127,8 @@ class BaseOptions():
 
         # set lengths
         if 'stft' in opt.preprocess:
-            tensor_size= opt.nfft // 2 + 1
-            hop_length= opt.nfft // 4
+            tensor_size = opt.nfft // 2 + 1
+            hop_length = opt.nfft // 4
             audio_length = int(opt.duration * opt.sample_rate)
             square_length = ((tensor_size - 1) * hop_length)
             duration = square_length / opt.sample_rate
