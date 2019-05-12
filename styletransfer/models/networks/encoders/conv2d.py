@@ -19,13 +19,12 @@ options = {
     'tensor_width': 1025,
 }
 
+
 class Conv2dEncoder(nn.Module):
     def __init__(self, **kwargs):
         super(Conv2dEncoder, self).__init__()
 
-        option_setter(self, options, kwargs) 
-
-        self.indices = list()
+        option_setter(self, options, kwargs)
 
         # Downsample
         mult = self.ngf
@@ -45,29 +44,21 @@ class Conv2dEncoder(nn.Module):
                                                kernel_size=self.conv_size,
                                                padding=self.conv_pad,
                                                stride=2,
-                                               bias=self.use_bias)), 
+                                               bias=self.use_bias)),
                 ('norm_down_%s' % i, self.norm_layer(next_mult)),
-                ('relu_down_%s' % i, nn.ReLU(True)),
-                # ('pool_down_%s' % i, nn.MaxPool2d(self.pool_size,
-                #                                   stride=self.pool_stride,
-                #                                   padding=self.pool_pad,
-                #                                   return_indices=True)),
+                ('relu_down_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult
 
         # Transformer
         if self.transformer is not None:
-            kwargs['channel_size'] = mult 
+            kwargs['channel_size'] = mult
             self.model.append(('trans', self.transformer(**kwargs)))
- 
- 
+
         # Upsample
-        for i in range(self.n_downsample): 
+        for i in range(self.n_downsample):
             next_mult = mult // 2
             self.model += [
-                # ('unpool_up_%s' % i, nn.MaxUnpool2d(self.pool_size,
-                #                                     stride=self.pool_stride,
-                #                                     padding=self.pool_pad)),
                 ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult,
                                                       kernel_size=self.conv_size,
                                                       padding=self.conv_pad,
@@ -78,15 +69,23 @@ class Conv2dEncoder(nn.Module):
             ]
             mult = next_mult
 
-        self.model += [
-            ('conv_final', nn.Conv2d(mult, 1,
-                                     kernel_size=7,
-                                     padding=3,
-                                     bias=self.use_bias)),
-            ('tanh', nn.Tanh())
-        ]
+        self.model.append(('conv_final', nn.Conv2d(mult, 1,
+                                                   kernel_size=7,
+                                                   padding=3,
+                                                   bias=self.use_bias)))
+
+        if self.tanh:
+            self.model.append(('tanh', nn.Tanh()))
 
         for name, module in self.model:
+            if 'conv_final' in name: 
+                if self.tanh:
+                    nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('tanh'))
+                else:
+                    nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('linear'))
+            elif 'conv' in name:
+                nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
+
             self.add_module(name, module)
 
     def forward(self, input):
@@ -94,13 +93,6 @@ class Conv2dEncoder(nn.Module):
         if len(input.size()) < 4:
             flag = True
             input = input.unsqueeze(1)
-        for name, module in self.model:
-            # if 'pool_down' in name:
-            #     input, indices = module(input)
-            #     self.indices.append(indices)
-            # elif 'unpool_up' in name:
-            #     indices = self.indices.pop()
-            #     input = module(input, indices)
-            # else:
+        for name, module in self.model: 
             input = module(input)
         return input.squeeze(1) if flag else input
