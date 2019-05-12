@@ -1,5 +1,5 @@
 from .lstm import LSTMTransformer
 from .resnet1d import Resnet1dTransformer
 from .resnet2d import Resnet2dTransformer
-from .resnet1d_skip import Resnet1dSkipTransformer
-from .resnet2d_skip import Resnet2dSkipTransformer
+from .gated_resnet1d import GatedResnet1dTransformer
+from .gated_resnet2d import GatedResnet2dTransformer

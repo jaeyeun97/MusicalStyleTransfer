@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from adabound import AdaBound
+# from adabound import AdaBound
 from .base_model import BaseModel
 from .discriminator import getDiscriminator
 
@@ -10,6 +10,7 @@ class ClassifierModel(BaseModel):
     def modify_commandline_options(parser, is_train=True):
         opt, _ = parser.parse_known_args()
         parser.set_defaults(preprocess=opt.preprocess+',stft', flatten=True)
+        parser.add_argument('--sigmoid', action='store_true', help='sigmoid')
         return parser
 
     def __init__(self, opt):
@@ -24,8 +25,8 @@ class ClassifierModel(BaseModel):
         self.criterion = nn.MSELoss()
 
         if self.isTrain:
-            # self.optimizer = torch.optim.Adam(self.netD.parameters())
-            self.optimizer = AdaBound(self.netD.parameters(), lr=opt.lr)
+            self.optimizer = torch.optim.Adam(self.netD.parameters(), lr=opt.lr)
+            # self.optimizer = AdaBound(self.netD.parameters(), lr=opt.lr)
             self.optimizers = [self.optimizer]
 
     def set_input(self, input):

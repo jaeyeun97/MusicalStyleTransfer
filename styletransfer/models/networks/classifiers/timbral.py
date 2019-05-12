@@ -6,8 +6,7 @@ from ...util.debug import Print
 
 options = { 
     'ndf': 4,
-    'conv_size': 5,
-    'conv_pad': 4,
+    'mdf': 2,
     'norm_layer': nn.BatchNorm2d,
     'use_bias': False,
     'shrinking_filter': False,
@@ -15,7 +14,8 @@ options = {
     'tensor_width': 1025,
     'duration_ratio': 1,
     'input_nc': 1,
-    'flatten': False
+    'flatten': False,
+    'sigmoid': False
 }
 
 class TimbralClassifier(nn.Module):
@@ -29,27 +29,24 @@ class TimbralClassifier(nn.Module):
 
         mult = self.ndf 
         model = [
-            nn.Conv2d(self.input_nc, self.ndf,
-                      kernel_size=self.conv_size, 
-                      padding=(self.conv_pad, 0),
+            nn.Conv2d(self.input_nc, mult,
+                      kernel_size=4, 
                       bias=self.use_bias),  
-            # self.norm_layer(self.ndf),
             nn.ReLU()
         ]
   
-        height = self.tensor_height
-        while height > 2:
-            next_mult = mult * 2 
-            pool_size = 2 if height % 2 == 0 else 3
+        height = self.tensor_height - 3
+        while height > 4:
+            next_mult = mult * self.mdf
+            conv_size = 4 if height % 2 == 0 else 3
             model += [
-                    nn.Conv2d(mult, next_mult,
-                          kernel_size=self.conv_size,
-                          padding=(self.conv_pad, 0),   
+                nn.Conv2d(mult, next_mult,
+                          kernel_size=conv_size,
+                          stride=(2, 1),
                           bias=self.use_bias), 
                 nn.ReLU(),
-                nn.AvgPool2d(pool_size, stride=(2, 1))
             ]
-            height = int((height - pool_size) / 2 + 1)
+            height = int((height - conv_size) / 2 + 1)
             mult = next_mult
 
         for module in model:
@@ -57,7 +54,10 @@ class TimbralClassifier(nn.Module):
                 nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
 
         last_conv = nn.Conv2d(mult, 1, kernel_size=height)
-        nn.init.xavier_uniform_(last_conv.weight, gain=nn.init.calculate_gain('linear'))
+        if self.sigmoid:
+            nn.init.xavier_uniform_(last_conv.weight, gain=nn.init.calculate_gain('sigmoid'))
+        else:
+            nn.init.xavier_uniform_(last_conv.weight, gain=nn.init.calculate_gain('linear'))
         model.append(last_conv)
         self.model = nn.ModuleList(model)
 
@@ -70,5 +70,7 @@ class TimbralClassifier(nn.Module):
         if self.flatten:
             input = input.squeeze(1)
             input = input.squeeze(1)
+            if self.sigmoid:
+                input = torch.sigmoid(input)
             input = input.mean(dim=1)
-        return torch.sigmoid(input)
+        return input # torch.sigmoid(input)
