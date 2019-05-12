@@ -1,6 +1,6 @@
 %% Creator: Inkscape inkscape 0.92.4, www.inkscape.org
 %% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
-%% Accompanies image file 'dann.pdf' (pdf, eps, ps)
+%% Accompanies image file 'facebook_umtn.pdf' (pdf, eps, ps)
 %%
 %% To include the image in your LaTeX document, write
 %%   \input{<filename>.pdf_tex}
@@ -38,7 +38,7 @@
   \newcommand*\fsize{\dimexpr\f@size pt\relax}%
   \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
   \ifx\svgwidth\undefined%
-    \setlength{\unitlength}{367.198425bp}%
+    \setlength{\unitlength}{385.36812283bp}%
     \ifx\svgscale\undefined%
       \relax%
     \else%
@@ -47,10 +47,12 @@
   \else%
     \setlength{\unitlength}{\svgwidth}%
   \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
   \makeatother%
-  \begin{picture}(1,0.42006598)%
+  \begin{picture}(1,0.50804454)%
     \lineheight{1}%
     \setlength\tabcolsep{0pt}%
-    \put(0,0){\includegraphics[width=\unitlength,page=1]{dann.pdf}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{facebook_umtn.pdf}}%
   \end{picture}%
 \endgroup%

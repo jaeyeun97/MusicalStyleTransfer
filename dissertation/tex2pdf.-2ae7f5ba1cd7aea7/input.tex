@@ -422,6 +422,14 @@ where \(x[n]\) is the input signal and \(w[n]\) the window function at
 the n\textsuperscript{th} window. The process can be thought of as
 computing the discrete Fourier transform on \(x[n]w[n - m]\).
 
+\subparagraph{Griffin-Lim}
+
+One advantage of using STFT is that we can recover the original audio
+from the STFT matrix using Griffin-Lim algorithm. The details of the
+Griffin-Lim algorithm is beyond the scope of this project; however, we
+will later use an implementation to recover an audio sample from the
+neural networks.
+
 \paragraph{Constant-Q Transform}
 
 Constant-Q Transform is another time-frequency transform which unlike
@@ -439,13 +447,6 @@ reflect human perception of sound; when \(b\) is set to 12, the
 frequency cutoffs match the spacing between each semitone in an equally
 tempered scale.
 
-\subparagraph{Griffin-Lim}
-
-We can recover the original audio from the STFT matrix using Griffin-Lim
-algorithm. The details of the Griffin-Lim algorithm is beyond the scope
-of this project; however, we will later use an implementation to recover
-an audio sample from the neural networks.
-
 \paragraph{STFT vs CQT}
 
 Since CQT uses a logarithmic scale of frequency (due to the exponential
@@ -455,6 +456,8 @@ music. It also has a higher resolution on lower frequencies, which
 allows for a better representation of instruments in the lower
 frequencies. {[}@timbretron{]} Given that higher frequencies are less
 frequent in most songs, CQT seems to be the appropriate representation.
+However, CQT lacks a restoration algorithm unlike STFT, and therefore
+may be hard to use for audio transformation.
 
 \paragraph{Raw audio vs Time-Frequency Analyses}
 
@@ -512,7 +515,7 @@ digital conversion. Given an input sample point \(x, 0 \leq x \leq 1\)
 and \(\mu\) the quantization equation is:
 
 \begin{equation}
-    F(x) = sign(x) \frac{\log(1 + \mu \lvert x \lvert )}{1 +  \mu} \label{eq:mulaw}
+    F(x) = sign(x) \frac{\log(1 + \mu \lvert x \lvert )}{1 +  \mu}
 \end{equation}
 
 \(\mu\) notates the vector space to which the signal is quantized to;
@@ -595,13 +598,14 @@ original design.
 
 \paragraph{WaveNet}
 
-TimbreTron uses a conditional WaveNet to generate the audio from the CQT
-matrix. Although not specified in the paper, The CycleGAN model and
-WaveNet are assumed to be trained separately to yield a theoretically
-sound model. If so, it is questionable whether they needed to use
-CycleGAN to transform the CQT data to resemble that of the other
-instrument, as our objective can be simplified to extracting the pitch
-data from the CQT representation.
+To mitigate the lack of a restoration algorithm for CQT, TimbreTron uses
+a conditional WaveNet to generate the audio from the CQT matrix.
+Although not specified in the paper, The CycleGAN model and WaveNet are
+assumed to be trained separately to yield a theoretically sound model.
+If so, it is questionable whether they needed to use CycleGAN to
+transform the CQT data to resemble that of the other instrument, as our
+objective can be simplified to extracting the pitch data from the CQT
+representation.
 
 \paragraph{Gradient Penalty}
 
@@ -722,186 +726,49 @@ functions of the model. Given
 \item
   input augmentation \(O\),
 \item
-  random noise distribution \(p_z\)
+  random noise distribution \(p_z\) we have the reconstruction loss:
 \end{itemize}
 
-we have the reconstruction loss:
-
 \begin{multline}
-    \mathcal{L}_{recon} = \sum_{i \in I} \mathbb{E}_{x \sim p_{data}(x), \{r, s, t, u\} \sim p_{z}} \\
-    [\mathcal{L}_{decoder}(D_i(E(O(x, r), s), t))  - \lambda \mathcal{L}_{dc}(C(E(O(x, r), s), u))]
+    \mathcal{L}_{recon} = \sum_{i \in I} \mathbb{E}_{x \sim p_{data}(x), \{r, s, t, u\} \sim p_{z}} [ \mathcal{L}_{decoder}(D_i(E(O(x, r), s), t))  - \lambda \mathcal{L}_{dc}(C(E(O(x, r), s), u))
 \end{multline}
 
-where \(\mathcal{L}_{decoder}\), \(\mathcal{L}_{dc}\) are Cross Entropy
-loss functions.
+where \(\mathcal{L}_{decoder}\), \(\mathcal{L}_{confusion}\) are Cross
+Entropy loss functions.
 
 \hypertarget{implementation}{%
 \section{Implementation}\label{implementation}}
 
 The networks shared above is the current state of art in audio
 processing using neural networks. In this section I will implement
-network architectures inspired by these networks. I have used
-\texttt{PyTorch} to implement all models and data processing, and
-\texttt{librosa} to preprocess the audio samples. {[}@pytorch,
-@librosa{]} All hyper-parameters and preprocessing options are passed in
-through command-line options to allow for more flexible and faster
-experiment iterations. I have used code written by Zhu et al.
-{[}@cyclegan, @pix2pix{]} for CycleGAN image style transfer as the
-boilerplate of the project, but has been heavily modified to accommodate
-for flexible dataset combinations, diverse neural network models, and
-distributed model training (i.e.~training a single model across multiple
-GPUs).
+network architectures inspired by these networks.
 
 \hypertarget{datasets}{%
 \subsection{Datasets}\label{datasets}}
 
-The data loading module is split into two processes: a set of
-dataset-specific loaders that is responsible for selecting the right
-subset of the dataset using metadata files and commandline options, and
-a preprocessing pipeline, which applies the same preprocessing pipeline
-to all data samples.
-
-\hypertarget{dataset-loader}{%
-\subsubsection{Dataset Loader}\label{dataset-loader}}
-
-The dataset loader is expected to:
-
-\begin{itemize}
-\tightlist
-\item
-  maintain a set of paths to audio samples,
-\item
-  store the total size and relevant metadata such as duration,
-\item
-  load the audio files from the dataset using \texttt{librosa},
-\item
-  resample to a user-set sample rate,
-\item
-  and slice them into fixed intervals.
-\end{itemize}
-
-The \texttt{Dataset} module from PyTorch allows all audio slices are
-loaded parallelly, which reduces the latency caused by preprocessing in
-between training iterations. The original codebase includes a dynamic
-class loader for datasets that allows switching between datasets
-convenient. The code for the loader was modified to be able to combine
-(\texttt{zip} in Python terms) two different datasets into a set of
-pairs of data samples, instead of writing a loader for each combination
-of datasets. During training, the data loader randomizes the order of
-the samples, which prevents the models from training a mapping between
-the two pairs.
-
-It is important to note that the batch of data generated by the loader
-is always balanced, since we provided an equal number of samples from
-each domain on every iteration.
-
-\hypertarget{sources}{%
-\subsubsection{Sources}\label{sources}}
-
-First, I gathered a diverse set of datasets in order to try different
-combinations of audio style transfer; I tried to gather a dataset of
-recorded music as opposed to MIDI generated data, in order to
-encapsulate real world examples of music which contain different playing
-styles of instruments.
-
 \paragraph{Free Music Archive}
-
-The Free Music Archive has a set of license-free music, classified by
-genre. Defferrard et al.~compiled the songs from the archive into 30
-second clips along their metadata information organized into a csv file.
-{[}@fma{]}
 
 \paragraph{Youtube}
 
-Thanks to \texttt{MellowBeatSeaker}, a Korean YouTube channel that
-streams ``Chill Lo-Fi Study Beats'', I could gather 60 hours of curated
-chill music. These files were processed using \texttt{librosa} to be cut
-into non-silent intervals.
-
 \paragraph{Maestro}
-
-Maestro is a dataset of piano music compiled by the Google Magenta
-Project. It includes 172 hours worth of MIDI and wav files. They were
-gathered by using Yamaha Disklavier, which can record MIDI data from
-acoustic piano keys. Only the audio data has been used for this project.
-{[}@maestro{]}
 
 \paragraph{GuitarSet}
 
-GuitarSet is compiled by Xi et al.~at NYU Music and Audio Research Lab
-using hexaphonic pickups and microphones on acoustic guitars. The
-dataset contains pairs of soloist and accompanist recordings, which are
-mixed using \texttt{numpy} when the dataset is loaded. {[}@guitarset{]}
-
-\hypertarget{preprocess}{%
-\subsubsection{Preprocess}\label{preprocess}}
-
-The preprocessing pipeline processes the sliced data samples into the
-necessary form needed for different models. Each model sets the default
-preprocessing options to indicate necessary elements, and the data
-samples are processed ``to spec'' before being converted into
-\texttt{PyTorch} tensors. I used \texttt{librosa}, a python audio
-processing package, to convert the data samples into Mel frequency scale
-and generate STFT or CQT matrices.
-
-If the model uses STFT or CQT, the output matrix is separated into
-magnitude and phase by calculating the absolute value and the angle of
-the complex value. The magnitude is then \(\log\)ed and linearly scaled
-to have a maximum of 1 and minimum of -1. This process, as done by
-GANSynth and DeepVoice, provides a wider variance and prevents gradient
-explosion from large input values. Furthermore, to remove any volume
-differences between the samples when not using time-frequency analyses,
-I have normalized the volume of all audio samples used for the datasets
-using \texttt{ffmpeg-normalize} prior to any training.
-
-Quantization and pitch shift, which are needed for UMTN and other
-WaveNet based models, are part of the preprocessing pipeline as well.
-Pitch shift is done by \texttt{librosa}, on a single random-length
-interval, chosen within the 25\% to 75\% mark with respect to the length
-of the data sample. The amount to be shifted was sampled from uniform
-distribution between 0 and 1. \(\mu\)-law function needed for
-quantization was implemented based on equation \ref{eq:mulaw}.
-
-\hypertarget{postprocess}{%
-\paragraph{Postprocess}\label{postprocess}}
-
-The parameters that are needed to recover the original matrix are given
-to the network model with the data samples to be passed on to the
-postprocess pipeline. Inverses of all preprocess functions are
-implemented. STFT and CQT matrices are reconstructed using the
-Griffin-Lim algorithm which has been implemented by \texttt{librosa}.
-Its implementation of the restoration algorithm for CQT matrices,
-however, is unstable and the authors of the library do not recommend
-using it for purposes other than that diagnostic applications. With a
-simple experiment of applying CQT and restoring it, with \(b = 120\) and
-\(k_max = 84\), I could verify that the algorithm can successfully
-restore the audio for the purpose of this project.
-
-\hypertarget{network-models}{%
-\subsection{Network Models}\label{network-models}}
-
-In this se
-
-\hypertarget{encoders}{%
-\subsubsection{Encoders}\label{encoders}}
-
 \hypertarget{classifiers}{%
-\subsubsection{Classifiers}\label{classifiers}}
-
-To be used for models later on
-
-STFT/CQT * conv1d, full\_spectrum * PatchGAN (baseline) * conv2d,
-full\_spectrum
+\subsection{Classifiers}\label{classifiers}}
 
 \hypertarget{cyclegan-1}{%
-\subsubsection{CycleGAN}\label{cyclegan-1}}
+\subsection{CycleGAN}\label{cyclegan-1}}
 
 TimbreTron? - Uses CycleGAN on CQT spectrograms, and produces wavs by
 using WaveNet - Architecture needs 6 networks! Too large to fit into a
 system - We will look into possibilities of a Wavenet-less system
 
+\hypertarget{distributed-model}{%
+\subsubsection{Distributed Model}\label{distributed-model}}
+
 \hypertarget{generator-models}{%
-\paragraph{Generator Models}\label{generator-models}}
+\subsubsection{Generator Models}\label{generator-models}}
 
 \begin{itemize}
 \tightlist
@@ -911,18 +778,12 @@ system - We will look into possibilities of a Wavenet-less system
   freq as channel
 \end{itemize}
 
-\hypertarget{discriminators}{%
-\paragraph{Discriminators}\label{discriminators}}
+\paragraph{Discriminators}
 
-For discriminator units, we use the classifiers that have been evaluated
-above in section \ref{classifiers}.
-
-\hypertarget{distributed-training-system}{%
-\paragraph{Distributed Training
-System}\label{distributed-training-system}}
+Shallow(Semi), Temporal(?), Full\_spectrum (X)
 
 \hypertarget{universal-music-translation-network-1}{%
-\subsubsection{Universal Music Translation
+\subsection{Universal Music Translation
 Network}\label{universal-music-translation-network-1}}
 
 \begin{figure}[h]

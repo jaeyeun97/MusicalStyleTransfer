@@ -3,7 +3,6 @@
 header-includes: 
 - \usepackage{tikz}
 - \usepackage{tikzscale}
-- \usepackage{svg}
 - \tikzset{every picture/.style={line width=0.75pt}}
 subparagraph: True
 numbersections: true
@@ -44,7 +43,7 @@ The general aim of this project is to perform digital audio processing using Dee
 ### Convolutional Neural Networks
 
 \begin{figure}[h]
-	\includegraphics{./figures/conv.tikz}
+	\includegraphics[width=\textwidth]{./figures/conv.tikz}
 	\centering
 	\caption{Example of a 2D Convolution function, with (a) as input, (b) as the filter, and (c) as the output. For each output channel there exists a filter with different parameters (\texttt{num\_out\_channel} = \texttt{num\_filters}). Therefore we can consider all Convolutional layer as fully connected in the channel dimension (given we do not group filters).}
 \end{figure}
@@ -103,7 +102,7 @@ We can create a conditional adversarial network that models $p(\mathbf{x} \mid c
 ### `pix2pix`
 
 \begin{figure}[h]
-	\includegraphics[]{figures/pix2pix.tikz}
+	\includegraphics[width=\textwidth]{figures/pix2pix.tikz}
 \centering
 \caption{\texttt{pix2pix} model dataflow. Each $\mathcal{L}$ is a loss value calculated by computing the mean squared error between the discriminator output and the correct label. \label{fig:pix2pix}}
 \end{figure}
@@ -119,7 +118,7 @@ The implementation would look like figure \ref{fig:pix2pix}, where each $\mathca
 ### CycleGAN
 
 \begin{figure}[h]
-	\includegraphics[]{figures/cyclegan.tikz}
+	\includegraphics[width=\textwidth]{figures/cyclegan.tikz}
 \centering
 \caption{Dataflow of CycleGAN architecture. $G_{A \rightarrow B} = G$ and $G_{B \rightarrow A} = F$ from equations \ref{eq:cyclegan_1} and \ref{eq:cyclegan_2}. \label{fig:cyclegan}}
 \end{figure}
@@ -190,11 +189,12 @@ We can choose either to use the raw audio directly as the input to our neural ne
 
 where $x[n]$ is the input signal and $w[n]$ the window function at the n^th^ window. The process can be thought of as computing the discrete Fourier transform on $x[n]w[n - m]$.
 
-\subparagraph{Griffin-Lim} One advantage of using STFT is that we can recover the original audio from the STFT matrix using Griffin-Lim algorithm. The details of the Griffin-Lim algorithm is beyond the scope of this project; however, we will later use an implementation to recover an audio sample from the neural networks.
 
 \paragraph{Constant-Q Transform} Constant-Q Transform is another time-frequency transform which unlike STFT does not use a fixed frequency window, but uses a exponentially spaced frequency bands. Frequency cutoffs are defined as $\omega_k = 2^{\frac{k}{b}} \omega_0$ for $k \in \{ 1, ..., k_{max}\}$, where $\omega_0$ is the starting frequency, $k_{max}$ the number of frequency bands to compute (i.e. the height of the resulting matrix), and $b$ is the scaling factor. Each frequency band $\Delta_k = \omega_k - \omega_{k-1} = \omega_k 2^{\frac{1}{b} - 1}$, which gives a constant frequency to resolution $Q = \frac{\Delta_k}{\omega_k}  = 2^{\frac{1}{b} -1}$. Resulting matrix reflect human perception of sound; when $b$ is set to 12, the frequency cutoffs match the spacing between each semitone in an equally tempered scale. 
 
-\paragraph{STFT vs CQT} Since CQT uses a logarithmic scale of frequency (due to the exponential cutoffs) and has explicit parameters for starting and ending frequencies, we can ensure that all frequency ranges used by modern music. It also has a higher resolution on lower frequencies, which allows for a better representation of instruments in the lower frequencies. [@timbretron] Given that higher frequencies are less frequent in most songs, CQT seems to be the appropriate representation. However, CQT lacks a restoration algorithm unlike STFT, and therefore may be hard to use for audio transformation.
+\subparagraph{Griffin-Lim} We can recover the original audio from the STFT matrix using Griffin-Lim algorithm. The details of the Griffin-Lim algorithm is beyond the scope of this project; however, we will later use an implementation to recover an audio sample from the neural networks.
+
+\paragraph{STFT vs CQT} Since CQT uses a logarithmic scale of frequency (due to the exponential cutoffs) and has explicit parameters for starting and ending frequencies, we can ensure that all frequency ranges used by modern music. It also has a higher resolution on lower frequencies, which allows for a better representation of instruments in the lower frequencies. [@timbretron] Given that higher frequencies are less frequent in most songs, CQT seems to be the appropriate representation. 
 
 \paragraph{Raw audio vs Time-Frequency Analyses} Dieleman et al. compared performances of audio classification and auto-tagging tasks between raw audio and intermediate representations. While the performance of the classifiers using intermediate representations work better, they have also shown that neural networks using raw audio can also autonomously learn the features to a comparative degree.[@endtoend] WaveNet, which we will cover later in this section, uses raw audio as an input, and learns timbral qualities, such as human voice.[@wavenet]
 
@@ -224,13 +224,13 @@ Both the input and output of WaveNet are expected to be quantized, which allows 
 \paragraph{Quantization} To quantize the audio input, we use $\mu$-law, which is traditionally used to quantize PCM signals (raw audio signal standard) for analog to digital conversion. Given an input sample point $x, 0 \leq x \leq 1$ and $\mu$ the quantization equation is:
 
 \begin{equation}
-	F(x) = sign(x) \frac{\log(1 + \mu \lvert x \lvert )}{1 +  \mu}
+	F(x) = sign(x) \frac{\log(1 + \mu \lvert x \lvert )}{1 +  \mu} \label{eq:mulaw}
 \end{equation}
 
 $\mu$ notates the vector space to which the signal is quantized to; with $\mu = 255$, the resulting signal can be represented in $\{0, 1\}^{256}$.
 
-\begin{figure}[!h]
-	\includegraphics[]{./figures/causal_conv.png}
+\begin{figure}[h]
+	\includegraphics[width=\textwidth]{./figures/causal_conv.png}
 	\centering
 	\caption{A diagram of a causal convolutional network.} \label{fig:causal_conv}
 \end{figure}
@@ -255,7 +255,7 @@ TimbreTron is a combination of CQT, CycleGAN, and WaveNet that has been shown to
 
 \paragraph{Full Spectrum Discriminator} The discriminator used by the original CycleGAN model, PatchGAN, computes the likelihood probability on 70x70 patches of the image and takes the mean of each patch loss. Since such discrimination process do not make sense when dealing with audio data, the discriminator has been modified to compute the entire frequency spectrum. The details of the discriminator design is not included in the paper, so in the implementation section I will present different discriminators of original design.
 
-\paragraph{WaveNet} To mitigate the lack of a restoration algorithm for CQT, TimbreTron uses a conditional WaveNet to generate the audio from the CQT matrix. Although not specified in the paper, The CycleGAN model and WaveNet are assumed to be trained separately to yield a theoretically sound model. If so, it is questionable whether they needed to use CycleGAN to transform the CQT data to resemble that of the other instrument, as our objective can be simplified to extracting the pitch data from the CQT representation.
+\paragraph{WaveNet} TimbreTron uses a conditional WaveNet to generate the audio from the CQT matrix. Although not specified in the paper, The CycleGAN model and WaveNet are assumed to be trained separately to yield a theoretically sound model. If so, it is questionable whether they needed to use CycleGAN to transform the CQT data to resemble that of the other instrument, as our objective can be simplified to extracting the pitch data from the CQT representation.
 
 \paragraph{Gradient Penalty} TimbreTron uses the GAN value function introduced by the Wasserstein GAN model, along with gradient penalty as the Lipschitz constraint introduced by Gulrajani et al. The resulting value function given posterior distribution $p_g$ from the generator and random sample $p_z$ is:
 
@@ -276,64 +276,153 @@ By using gradient penalty the authors of TimbreTron claim that they were able mi
 
 ### Universal Music Translation Network
 
-\begin{figure}[h]
-	\includegraphics[width=\textwidth]{figures/umtn.tikz}
-\centering 
-\caption{Architecture of the Universal Music Translation Network \label{fig:facebook}}
-\end{figure}
-
-#### WaveNet AutoEncoder
-
-![https://magenta.tensorflow.org/nsynth \label{fig:nsynth}](./figures/nsynth.png)
-
-Engel et al. introduced an encoder network design which when combined with a conditional WaveNet decoder acts as an autoencoder, as shown in figure \ref{fig:nsynth}. The encoder is a chain of convolutional layers with increasing dilation and residual connections much like WaveNet, but with ReLU activations. The paper showed that the resulting vector $Z$ can encode temporal features. For Universal Music Translation Network, we aim to use this Temporal Encoder to extract pitch from the input audio. 
-
-
-#### Domain Agnostic Neural Networks
 
 \begin{figure}[h]
-    \def\svgwidth{\textwidth}
-    \input{dann.pdf_tex}
+	\includegraphics[width=\textwidth]{figures/facebook_umtn.eps}
     \centering
-	\caption{Structure of Domain Agnostic Neural Networks \label{fig:dann}}
+	\caption{Universal Music Translation Network Diagram, as shared by Mor et al. \label{fig:facebook_umtn}}
 \end{figure}
+
+The Universal Music Translation Network (UMTN) by Mor et al. is another method for timbre transfer which uses the temporal encoder introduced by Engel et al. for Google Magenta project. UMTN extracts the pitch data from the source data using said encoder, and provides it as the conditional input to the WaveNet module. The paper states that such method has been effective for timbre transfer.
+
+\begin{figure}[h]
+	\includegraphics[width=\textwidth]{./figures/nsynth.png}.
+	\centering
+	\caption{https://magenta.tensorflow.org/nsynth \label{fig:nsynth}}
+\end{figure}
+
+#### The Temporal Encoder
+
+Engel et al. introduced an encoder network design which when combined with a conditional WaveNet decoder acts as an autoencoder, as shown in figure \ref{fig:nsynth}. The encoder is a chain of convolutional layers with increasing dilation and residual connections much like WaveNet, but with ReLU activations. The paper showed that the resulting vector $Z$ can encode temporal features. For UMTN, we aim to use this Temporal Encoder to extract pitch from the input audio. 
+
+One integral design decision made for UMTN is that the encoder is shared by all inputs to the network model, while they train a WaveNet decoder for each instrument domain. This domain-independent encoder allows timbre transfer for audio input of an instrument not seen during the training process.
+
+\begin{figure}[h]
+	\includegraphics[width=\textwidth]{figures/dann.eps}
+    \centering
+	\caption{Structure of Domain Adversarial Neural Networks \label{fig:dann}}
+\end{figure}
+
+#### Domain Confusion
+
+To further aid the domain independence of the output of the temporal encoder, the model includes a domain confusion network. It takes the output of the temporal decoder as the input and tries to predict its source domain. By training to maximise the loss function instead, as shown effective by Domain Adversarial Training of Neural Networks by Ganin et al., we train the encoder to output the pitch data regardless of the domain specific features (i.e. timbre). [@dann] @umtn does not mention how they have implemented their domain confusion but cites the @dann instead. Therefore I have assumed here that they have used the domain classifier as shown in figure \ref{fig:dann}, as that was the original design of @dann.
+
+#### Pitch Shift
+
+Lastly, to improve the generalization capability of the encoder (i.e. to translate well to unseen pitches in the dataset), all input audio file has been pitch-shifted, resulting in a slightly off-tune input. The length and amount of pitch shift is chosen randomly; details of the pitch shift will be described in the implementations section. 
+
+#### Total Loss Function
+
+Combining all elements detailed above, we can now write the loss functions of the model. Given 
+
+* the encoder function $E$, 
+* decoder function $D_i$ for each instrument $i \in I$,
+* domain confusion network function $C$,
+* input augmentation $O$, 
+* random noise distribution $p_z$ 
+
+we have the reconstruction loss:
+
+\begin{multline}
+	\mathcal{L}_{recon} = \sum_{i \in I} \mathbb{E}_{x \sim p_{data}(x), \{r, s, t, u\} \sim p_{z}} \\
+	[\mathcal{L}_{decoder}(D_i(E(O(x, r), s), t))  - \lambda \mathcal{L}_{dc}(C(E(O(x, r), s), u))]
+\end{multline}
+
+where $\mathcal{L}_{decoder}$, $\mathcal{L}_{dc}$ are Cross Entropy loss functions.
+
 
 # Implementation
 
+The networks shared above is the current state of art in audio processing using neural networks. In this section I will implement network architectures inspired by these networks. I have used `PyTorch` to implement all models and data processing, and `librosa` to preprocess the audio samples. [@pytorch, @librosa] All hyper-parameters and preprocessing options are passed in through command-line options to allow for more flexible and faster experiment iterations. I have used code written by Zhu et al. [@cyclegan, @pix2pix] for CycleGAN image style transfer as the boilerplate of the project, but has been heavily modified to accommodate for flexible dataset combinations, diverse neural network models, and distributed model training (i.e. training a single model across multiple GPUs).
+
 ## Datasets 
 
-\paragraph{Free Music Archive}
+The data loading module is split into two processes: a set of dataset-specific loaders that is responsible for selecting the right subset of the dataset using metadata files and commandline options, and a preprocessing pipeline, which applies the same preprocessing pipeline to all data samples. 
 
-\paragraph{Youtube}
+### Dataset Loader
 
-\paragraph{Maestro}
+The dataset loader is expected to:
 
-\paragraph{GuitarSet}
+* maintain a set of paths to audio samples,
+* store the total size and relevant metadata such as duration,
+* load the audio files from the dataset using `librosa`,
+* resample to a user-set sample rate,
+* and slice them into fixed intervals.
 
-## Classifiers
+The `Dataset` module from PyTorch allows all audio slices are loaded parallelly, which reduces the latency caused by preprocessing in between training iterations. The original codebase includes a dynamic class loader for datasets that allows switching between datasets convenient. The code for the loader was modified to be able to combine (`zip` in Python terms) two different datasets into a set of pairs of data samples, instead of writing a loader for each combination of datasets. During training, the data loader randomizes the order of the samples, which prevents the models from training a mapping between the two pairs.
 
-## CycleGAN
+It is important to note that the batch of data generated by the loader is always balanced, since we provided an equal number of samples from each domain on every iteration.
+
+### Sources
+
+First, I gathered a diverse set of datasets in order to try different combinations of audio style transfer; I tried to gather a dataset of recorded music as opposed to MIDI generated data, in order to encapsulate real world examples of music which contain different playing styles of instruments.
+
+\paragraph{Free Music Archive} The Free Music Archive has a set of license-free music, classified by genre. Defferrard et al. compiled the songs from the archive into 30 second clips along their metadata information organized into a csv file. [@fma]
+
+\paragraph{Youtube} Thanks to `MellowBeatSeaker`, a Korean YouTube channel that streams "Chill Lo-Fi Study Beats", I could gather 60 hours of curated chill music. These files were processed using `librosa` to be cut into non-silent intervals.
+
+\paragraph{Maestro} Maestro is a dataset of piano music compiled by the Google Magenta Project. It includes 172 hours worth of MIDI and wav files. They were gathered by using Yamaha Disklavier, which can record MIDI data from acoustic piano keys. Only the audio data has been used for this project. [@maestro]
+
+\paragraph{GuitarSet} GuitarSet is compiled by Xi et al. at NYU Music and Audio Research Lab using hexaphonic pickups and microphones on acoustic guitars. The dataset contains pairs of soloist and accompanist recordings, which are mixed using `numpy` when the dataset is loaded. [@guitarset]
+
+### Preprocess 
+
+The preprocessing pipeline processes the sliced data samples into the necessary form needed for different models. Each model sets the default preprocessing options to indicate necessary elements, and the data samples are processed "to spec" before being converted into `PyTorch` tensors. I used `librosa`, a python audio processing package, to convert the data samples into Mel frequency scale and generate STFT or CQT matrices. 
+
+If the model uses STFT or CQT, the output matrix is separated into magnitude and phase by calculating the absolute value and the angle of the complex value. The magnitude is then $\log$ed and linearly scaled to have a maximum of 1 and minimum of -1. This process, as done by GANSynth and DeepVoice, provides a wider variance and prevents gradient explosion from large input values. Furthermore, to remove any volume differences between the samples when not using time-frequency analyses, I have normalized the volume of all audio samples used for the datasets using `ffmpeg-normalize` prior to any training. 
+
+Quantization and pitch shift, which are needed for UMTN and other WaveNet based models, are part of the preprocessing pipeline as well. Pitch shift is done by `librosa`, on a single random-length interval, chosen within the 25% to 75% mark with respect to the length of the data sample. The amount to be shifted was sampled from uniform distribution between 0 and 1. $\mu$-law function needed for quantization was implemented based on equation \ref{eq:mulaw}.
+
+#### Postprocess 
+
+The parameters that are needed to recover the original matrix are given to the network model with the data samples to be passed on to the postprocess pipeline. Inverses of all preprocess functions are implemented. STFT and CQT matrices are reconstructed using the Griffin-Lim algorithm which has been implemented by `librosa`. Its implementation of the restoration algorithm for CQT matrices, however, is unstable and the authors of the library do not recommend using it for purposes other than that diagnostic applications. With a simple experiment of applying CQT and restoring it, with $b = 120$ and $k_max = 84$, I could verify that the algorithm can successfully restore the audio for the purpose of this project.
+
+## Network Models
+
+In this section I introduce a number of neural network models inspired by TimbreTron and UMTN, along with a faithful implementation of UMTN (later in this section I will explain why I chose not to implement TimbreTron).
+
+### Encoders
+
+### Classifiers
+
+To be used for models later on
+
+STFT/CQT
+* conv1d, full_spectrum
+* PatchGAN (baseline)
+* conv2d, full_spectrum
+
+
+### CycleGAN
 
 TimbreTron?
 - Uses CycleGAN on CQT spectrograms, and produces wavs by using WaveNet
 - Architecture needs 6 networks! Too large to fit into a system
 - We will look into possibilities of a Wavenet-less system
 
-
-\paragraph{Distributed Model}
-
-### Generator Models
+#### Generator Models
 
 - basic Conv2d 
 - freq as channel
 
-\paragraph{Discriminators} Shallow(Semi), Temporal(?), Full_spectrum (X)
+#### Discriminators 
 
-## Universal Music Translation Network
+For discriminator units, we use the classifiers that have been evaluated above in section \ref{classifiers}.
 
-- General Architecture
 
-* Troubleshooting, and differences from paper.
+#### Distributed Training System
+
+
+### Universal Music Translation Network
+
+\begin{figure}[h]
+	\includegraphics[width=\textwidth]{figures/umtn.tikz}
+\centering 
+\caption{Architecture of the Universal Music Translation Network \label{fig:umtn}}
+\end{figure}
+
+I don't know what the problem is here..
+
 
 ## Original Model
 
@@ -341,6 +430,7 @@ STFT -> Resnet2d ->  WaveNet
 				 ->  Classifier 
 
 ## Code Structure
+
 
 
 # Evaluation
