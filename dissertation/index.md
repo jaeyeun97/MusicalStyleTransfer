@@ -304,6 +304,8 @@ One integral design decision made for UMTN is that the encoder is shared by all 
 	\caption{Structure of Domain Adversarial Neural Networks \label{fig:dann}}
 \end{figure}
 
+#### Interpolation
+
 #### Domain Confusion
 
 To further aid the domain independence of the output of the temporal encoder, the model includes a domain confusion network. It takes the output of the temporal decoder as the input and tries to predict its source domain. By training to maximise the loss function instead, as shown effective by Domain Adversarial Training of Neural Networks by Ganin et al., we train the encoder to output the pitch data regardless of the domain specific features (i.e. timbre). [@dann] @umtn does not mention how they have implemented their domain confusion but cites the @dann instead. Therefore I have assumed here that they have used the domain classifier as shown in figure \ref{fig:dann}, as that was the original design of @dann.
@@ -398,6 +400,8 @@ Failed to converge
 
 #### Timbral classifier
 
+### Encoders
+
 ### CycleGAN
 
 @timbretron introduces a model that uses Griffin-Lim on STFT matrices as the baseline, but fails to present the equivalent for CQT representations. By implementing a CycleGAN model that uses Griffin-Lim reconstruction on both STFT and CQT representations, I hoped to clarify (1) the necessity of WaveNet in the TimbreTron model, and (2) the differences between STFT and CQT CycleGAN models.
@@ -432,8 +436,18 @@ With the distributed training in place, I was hoping to be able to train TimbreT
 \caption{Architecture of the Universal Music Translation Network \label{fig:umtn}}
 \end{figure}
 
-I don't know what the problem is here..
+#### `nv-wavenet`
 
+* upsampling removal
+* embedding
+
+* pool length
+* representation width
+* interpolation
+
+#### Optimization Tweaks
+
+algorithm2e - classifier & encoder training
 
 ### Original Model
 
