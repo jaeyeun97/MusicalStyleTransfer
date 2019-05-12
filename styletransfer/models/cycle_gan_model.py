@@ -1,5 +1,6 @@
 import torch
 import itertools
+from adabound import AdaBound
 from ..util.audio_pool import AudioPool
 from .generator import getGenerator
 from .discriminator import getDiscriminator
@@ -57,6 +58,7 @@ class CycleGANModel(BaseModel):
 
         if self.isTrain:
             self.lambda_identity = opt.lambda_identity
+            self.l_i_decay = self.opt.lambda_identity * (1 / 50000)
             if self.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
                 output_names_A.append('idt_B')
                 params_names_A += ['params_A']
@@ -84,8 +86,8 @@ class CycleGANModel(BaseModel):
             self.criterionD_A = GANLoss(opt.gan_mode).to(self.devices[-1]) 
             self.criterionD_B = GANLoss(opt.gan_mode).to(self.devices[0])
 
-            # self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
-            # self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            self.fake_A_pool = AudioPool(opt.audio_pool_size) # create image buffer
+            self.fake_B_pool = AudioPool(opt.audio_pool_size) # create image buffer
             # define loss functions
             self.criterionCycle = torch.nn.L1Loss()
             self.criterionIdt = torch.nn.L1Loss()
@@ -109,6 +111,7 @@ class CycleGANModel(BaseModel):
         second = input[1 if AtoB else 0]
         A, params_A = first
         B, params_B = second
+
         self.params_A = self.decollate_params(params_A)
         self.params_B = self.decollate_params(params_B)
 
@@ -181,28 +184,26 @@ class CycleGANModel(BaseModel):
         self.optimizer_D.zero_grad() 
         pred_B_B_real = self.netD_B(self.real_B) # D_B(B)
         fake_B = self.fake_B.detach()
-        # pred_B_B_fake = self.netD_B(self.fake_B_pool.query(fake_B))
+        fake_B = self.fake_B_pool.query(fake_B)
         pred_B_B_fake = self.netD_B(fake_B)
-        # self.loss_gp_B, _ = cal_gradient_penalty(self.netD_B, self.real_B, fake_B, self.devices[0])
-        self.loss_gp_B = 0
+        self.loss_gp_B, _ = cal_gradient_penalty(self.netD_B, self.real_B, fake_B, self.devices[0])
+        # self.loss_gp_B = 0
         self.loss_D_B = (self.criterionD_B(pred_B_B_real, True) + 
                          self.criterionD_B(pred_B_B_fake, False) +
                          self.loss_gp_B) 
-        self.loss_D_B.backward()
 
         pred_A_A_real = self.netD_A(self.real_A)
         fake_A = self.fake_A.detach()
-        # pred_A_A_fake = self.netD_A(self.fake_A_pool.query(fake_A))
+        fake_A = self.fake_A_pool.query(fake_A)
         pred_A_A_fake = self.netD_A(fake_A)
-        # self.loss_gp_A, _ = cal_gradient_penalty(self.netD_A, self.real_A, fake_A, self.devices[-1]) 
-        self.loss_gp_A = 0
+        self.loss_gp_A, _ = cal_gradient_penalty(self.netD_A, self.real_A, fake_A, self.devices[-1]) 
+        # self.loss_gp_A = 0
         self.loss_D_A = (self.criterionD_A(pred_A_A_real, True) +
                          self.criterionD_A(pred_A_A_fake, False) +
                          self.loss_gp_A)
-        self.loss_D_A.backward()
 
+        (self.loss_D_A + self.loss_D_B).backward()
         self.optimizer_D.step() 
         # D training done 
  
-        self.lambda_identity *= 0.999
-
+        self.lambda_identity -= self.l_i_decay

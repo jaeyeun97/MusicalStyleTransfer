@@ -1,11 +1,21 @@
+import torch
+import numpy as np
 import torch.nn as nn
 from ..util import option_setter
+from ...util.debug import Print
 
 options = { 
-    'conv_size': 3,
-    'tensor_size': 1025,
-    'width': 257,
-    'layers': 4
+    'ndf': 8,
+    'conv_size': 5,
+    'conv_pad': 4,
+    'norm_layer': nn.BatchNorm2d,
+    'use_bias': False,
+    'shrinking_filter': False,
+    'tensor_width': 1025,
+    'tensor_height': 1025,
+    'duration_ratio': 1,
+    'input_nc': 1,
+    'flatten': False
 }
 
 class ShallowClassifier(nn.Module):
@@ -14,37 +24,51 @@ class ShallowClassifier(nn.Module):
     def __init__(self, **kwargs):
         
         super(ShallowClassifier, self).__init__()
+
         option_setter(self, options, kwargs) 
 
-        self.model = [
-            nn.Conv1d(self.tensor_size, self.width,
-                      kernel_size=self.conv_size),   
-            nn.ELU()
-        ] 
-        for n in range(1, self.layers):
-            self.model += [
-                nn.Conv1d(self.width, self.width,
-                          kernel_size=self.conv_size),   
-                nn.ELU()
-            ]
+        model = [
+            nn.Conv2d(self.input_nc, self.ndf,
+                      kernel_size=self.conv_size, 
+                      padding=self.conv_pad,
+                      stride=2,
+                      bias=self.use_bias),  
+            self.norm_layer(self.ndf),
+            nn.ReLU()
+        ]
 
-        self.model += [ 
-            Flatten(),
-            nn.Linear(self.width * (self.tensor_size - ((self.conv_size - 1) * self.layers)), 2),
-            nn.Tanh(),
-            nn.Linear(2, 2)
+        mult = self.ndf
+        self.n_layers = 4
+        for n in range(1, self.n_layers):
+            next_mult = mult * 2
+            model += [
+                nn.Conv2d(mult, next_mult,
+                          kernel_size=self.conv_size,
+                          padding=self.conv_pad,
+                          stride=2,
+                          bias=self.use_bias), 
+                self.norm_layer(self.ndf),
+                nn.ReLU()
+            ]
+            mult = next_mult
+
+        model += [
+            nn.Conv2d(mult, 1, kernel_size=self.conv_size, padding=self.conv_pad),
         ]
  
-        self.model = nn.Sequential(*self.model)
+        self.model = nn.ModuleList(model) # nn.Sequential(*model)
 
     def forward(self, input):
         """Standard forward."""
-        input = self.model(input)
+        if len(input.size()) < 4:
+            input = input.unsqueeze(1)
+        for model in self.model:
+            input = model(input) 
+        if self.flatten:
+            input = input.view(input.size(0), -1)
+            input = input.mean(dim=1)
         return input
 
-class Flatten(nn.Module):
-    def __init__(self):
-        super(Flatten, self).__init__()
-
-    def forward(self, input):
-        return input.view(1, -1) 
+    def to(self, device):
+        self.device = device
+        return super(ShallowClassifier, self).to(device)

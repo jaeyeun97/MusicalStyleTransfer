@@ -8,6 +8,7 @@ from .networks.util import get_norm_layer, init_weights, get_use_bias
 def getGenerator(device, opt):
     generator = Generator(opt).to(device)
     init_weights(generator, 'normal', opt.init_gain) # nn.init.calculate_gain('relu'))
+    # init_weights(generator, 'kaiming') # nn.init.calculate_gain('relu'))
     return generator
 
 
@@ -41,7 +42,7 @@ class Generator(nn.Module):
 
         if 'res' in encoding_model:
             pass
-        elif '2d' in encoding_model:
+        elif '2d' in encoding_model or 'timbral' in encoding_model:
             args['norm_layer'] = get_norm_layer(2, opt.norm_layer)
         elif '1d' in encoding_model or 'crnn' in encoding_model:
             args['norm_layer'] = get_norm_layer(1, opt.norm_layer)
@@ -56,8 +57,8 @@ class Generator(nn.Module):
             self.net = Conv1dEncoder(**args)
         elif encoding_model == 'crnn':
             self.net = CRNNEncoder(**args)
-        elif encoding_model == 'res1d':
-            self.net = Res1dEncoder(**args)
+        elif encoding_model == 'timbral':
+            self.net = TimbralEncoder(**args)
         else:
             raise NotImplementedError('Encoding Model not implemented') 
 

@@ -37,9 +37,6 @@ class SimpleModel(BaseModel):
         if parser.transpose:
             nc = (parser.nfft // 2) + 1
             parser.set_defaults(ngf=4096, input_nc=nc)   
-        parser.set_defaults(dataset_mode='unaligned')  
-        if is_train:
-            parser.add_argument('--lambda_regression', type=float, default=1.0, help='weight for the regression loss')  # You can define new arguments for this model.
 
         return parser
 

@@ -3,7 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from .util.scheduler import get_scheduler
-from ..util.audio import (denormalize_magnitude, istft, inv_mulaw, pitch_deshift, decalc, mel_to_hz)
+from ..util.audio import (denormalize_magnitude, istft, icqt, inv_mulaw, pitch_deshift, decalc, mel_to_hz)
 
 
 class BaseModel(ABC):
@@ -145,6 +145,14 @@ class BaseModel(ABC):
                 y = denormalize_magnitude(params['max'], params['min'], y)
             y = decalc(y, params['phase'], self.opt.smoothing_factor)
             y = istft(y)
+        elif 'cqt' in self.preprocesses:
+            if 'normalize' in self.preprocesses:
+                if 'max' not in params or 'min' not in params:
+                    raise Exception('No max or min')
+                y = denormalize_magnitude(params['max'], params['min'], y)
+            y = decalc(y, params['phase'], self.opt.smoothing_factor)
+            y = icqt(y, sr=self.opt.sample_rate, bins_per_octave=self.opt.cqt_octave_bins)
+
         if 'mulaw' in self.preprocesses:
             y = inv_mulaw(y, self.opt.mu)
         if 'mel' in self.preprocesses:
@@ -205,16 +213,8 @@ class BaseModel(ABC):
                 net = getattr(self, 'net' + name)
                 if isinstance(net, torch.nn.DataParallel):
                     net = net.module
-                print('loading the model from %s' % load_path)
-                # if you are using PyTorch newer than 0.4 (e.g., built from
-                # GitHub source), you can remove str() on self.device
+                print('loading the model from %s' % load_path) 
                 state_dict = torch.load(load_path, map_location=str(net.device))
-                if hasattr(state_dict, '_metadata'):
-                    del state_dict._metadata
-
-                # patch InstanceNorm checkpoints prior to 0.4
-                for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
-                    self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
                 net.load_state_dict(state_dict)
 
     def print_networks(self, verbose):

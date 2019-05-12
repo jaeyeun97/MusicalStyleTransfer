@@ -81,9 +81,9 @@ class BaseDataset(data.Dataset, ABC):
             y = y[:self.audio_length]
         return y 
 
-    def preprocess(self, y):
+    def preprocess(self, y, **kwargs):
         # Preprocess
-        params = {'original': y}
+        params = {'original': y, **kwargs}
         if 'shift' in self.preprocesses:
             y, params['start'], params['end'], params['shift'] = pitch_shift(y, self.opt.sample_rate)
         if 'mel' in self.preprocesses:
@@ -94,6 +94,14 @@ class BaseDataset(data.Dataset, ABC):
         # STFT
         if 'stft' in self.preprocesses:
             D = stft(y, n_fft=self.opt.nfft)
+            lmag, params['phase'] = calc(D, self.opt.smoothing_factor) 
+            if 'normalize' in self.preprocesses:
+                lmag, params['max'], params['min'] = normalize_magnitude(lmag)
+            return torch.from_numpy(lmag), params
+        elif 'cqt' in self.preprocesses:
+            D = librosa.cqt(y, sr=self.sample_rate,
+                            bins_per_octave=self.opt.cqt_octave_bins,
+                            n_bins=self.opt.tensor_height)
             lmag, params['phase'] = calc(D, self.opt.smoothing_factor) 
             if 'normalize' in self.preprocesses:
                 lmag, params['max'], params['min'] = normalize_magnitude(lmag)

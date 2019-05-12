@@ -89,7 +89,7 @@ class DatasetLoader():
             B_class = find_dataset_using_name(getattr(opt, 'B_dataset'))
             B_dataset = self.get_subset(B_class(opt, 'B'))
             self.B_dataset = self.get_dataloader(B_dataset)
-            self.size = min(len(A_dataset), len(B_dataset))
+            self.size = max(len(A_dataset), len(B_dataset))
             print("Single datasets [{}] and [{}] were created".format(
                 type(A_dataset).__name__,
                 type(B_dataset).__name__))
@@ -105,11 +105,14 @@ class DatasetLoader():
             return dataset
         else:
             l = len(dataset)
-            split = int(0.9 * l)
+            val_split = int(0.8 * l)
+            test_split = int(0.9 * l)
             if self.opt.phase == 'train':
-                return torch.utils.data.Subset(dataset, range(split))
+                return torch.utils.data.Subset(dataset, range(val_split))
+            elif self.opt.phase == 'val':
+                return torch.utils.data.Subset(dataset, range(val_split, test_split))
             elif self.opt.phase == 'test':
-                return torch.utils.data.Subset(dataset, range(split, l))
+                return torch.utils.data.Subset(dataset, range(test_split, l))
             else:
                 return NotImplementedError('neither train or test?')
 

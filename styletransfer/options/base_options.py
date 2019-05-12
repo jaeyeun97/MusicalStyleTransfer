@@ -1,7 +1,8 @@
 import argparse
 import os
-from ..util.util import mkdirs
+import math
 import torch
+from ..util.util import mkdirs
 from ..models import get_option_setter
 from ..data import get_single_option_setter, get_pair_option_setter
 
@@ -31,11 +32,12 @@ class BaseOptions():
         parser.add_argument('--transformer', type=str, default='none', help='specify generator transformer architecture')
         parser.add_argument('--encoder', type=str, default='conv1d', help='specify generator autoencoder architecture')
         parser.add_argument('--conv_size', type=int, default=3, help='conv filter size')
-        parser.add_argument('--conv_pad', type=int, default=2, help='conv padding size')
+        parser.add_argument('--conv_pad', type=int, default=1, help='conv padding size')
 
         parser.add_argument('--ngf', type=int, default=4, help='# of generator filters')
         parser.add_argument('--mgf', type=float, default=0.5, help='generator filter number multiplier')
-        parser.add_argument('--ndf', type=int, default=8, help='# of discriminator filters')
+        parser.add_argument('--ndf', type=int, default=2, help='# of discriminator filters')
+        parser.add_argument('--n_layers', type=int, default=3, help='# of discriminator conv layers')
 
         parser.add_argument('--num_trans_layers', type=int, default=9, help='# of trans layer')
 
@@ -68,6 +70,8 @@ class BaseOptions():
         parser.add_argument('--preprocess', type=str, default='normalize,mel,shift', help='scaling and cropping of images at load time [mel|normalize]')
         parser.add_argument('--sample_rate', type=int, default=16384, help='Sample Rate to resample')
         parser.add_argument('--nfft', type=int, default=2048, help='Number of Frequency bins for STFT')
+        parser.add_argument('--cqt_octave_bins', type=int, default=120, help='Number of Frequency bins for STFT')
+        parser.add_argument('--cqt_n_bins', type=int, default=88, help='Number of Frequency bins for STFT')
         parser.add_argument('--smoothing_factor', type=float, default=1, help='Smoothing for Log-Magnitude')
 
         parser.add_argument('--epoch', type=str, default='latest', help='which epoch to load? set to latest to use latest cached model')
@@ -132,11 +136,23 @@ class BaseOptions():
             print('Current audio length: {}'.format(opt.duration))
             assert square_length % audio_length == 0 
 
+            ratio = square_length // audio_length
             parser.set_defaults(
-                tensor_size=tensor_size,
+                tensor_height=tensor_size,
+                tensor_width=tensor_size // ratio,
                 hop_length=hop_length,
                 audio_length=audio_length,
-                duration_ratio=square_length // audio_length)
+                duration_ratio=ratio)
+
+        elif 'cqt' in opt.preprocess:
+            tensor_size = opt.cqt_n_bins * opt.cqt_octave_bins // 12 
+            audio_length = int(opt.duration * opt.sample_rate)
+            parser.set_defaults(
+                tensor_height=tensor_size,
+                hop_length=512,
+                audio_length=audio_length,
+                tensor_width=math.ceil(audio_length / 512),
+            )
         else:
             parser.set_defaults(audio_length=int(opt.sample_rate * opt.duration))
 

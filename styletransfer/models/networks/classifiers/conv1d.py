@@ -5,7 +5,8 @@ from ..util import option_setter
 from ...util.debug import Print
 
 options = { 
-    'ndf': 8, 
+    'n_layers': 3,
+    'ndf': 2048,
     'conv_size': 5,
     'conv_pad': 4, 
     'pool_size': 3,
@@ -13,7 +14,7 @@ options = {
     'pool_stride': 2,
     'norm_layer': nn.BatchNorm2d,
     'use_bias': False,
-    'tensor_size': 1025
+    'tensor_height': 1025
 }
 
 class Conv1dClassifier(nn.Module):
@@ -27,38 +28,29 @@ class Conv1dClassifier(nn.Module):
         
         self.model = list() 
 
-        self.n_layers = int(np.log2(self.tensor_size - 1)) 
-        first = int(np.log2(self.conv_size - 1))
-        for n in range(first, self.n_layers):
+        mult = self.tensor_height
+        for n in range(self.n_layers):
+            next_mult = min(self.ndf, mult * 2)
             self.model += [
-                nn.Conv1d(self.tensor_size, self.tensor_size,
+                nn.Conv1d(mult, next_mult,
                           kernel_size=self.conv_size,
-                          padding=self.conv_pad,
-                          dilation=2,
                           bias=self.use_bias),  
-                nn.AvgPool1d(self.pool_size,
-                             padding=self.pool_pad,
-                             stride=self.pool_stride),
                 nn.ReLU()
             ]
+            mult = next_mult
 
-        # ts = (self.tensor_size - 1) // (2 ** self.n_layers) + 1
-        self.model += [
-            nn.Conv1d(self.tensor_size, self.tensor_size, kernel_size=self.conv_size, bias=self.use_bias), 
-            Flatten(),
-            nn.Linear(self.tensor_size, 2),
-        ]
+        for module in self.model:
+            if isinstance(module, nn.Conv1d):
+                nn.init.xavier_uniform_(module.weight, gain=nn.init.calculate_gain('relu'))
+                
+        last_conv = nn.Conv1d(mult, 1, 1, bias=self.use_bias)
+        nn.init.xavier_uniform_(last_conv.weight, gain=nn.init.calculate_gain('linear'))
+        self.model.append(last_conv)  
  
         self.model = nn.Sequential(*self.model)
 
     def forward(self, input):
         """Standard forward."""
         input = self.model(input)
-        return input
-
-class Flatten(nn.Module):
-    def __init__(self):
-        super(Flatten, self).__init__()
-
-    def forward(self, input):
-        return input.view(1, -1)
+        input = input.mean(dim=2).squeeze(1)
+        return torch.sigmoid(input)

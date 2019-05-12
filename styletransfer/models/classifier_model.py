@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from adabound import AdaBound
 from .base_model import BaseModel
 from .discriminator import getDiscriminator
 
@@ -8,7 +9,7 @@ class ClassifierModel(BaseModel):
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
         opt, _ = parser.parse_known_args()
-        parser.set_defaults(preprocess=opt.preprocess+',stft')
+        parser.set_defaults(preprocess=opt.preprocess+',stft', flatten=True)
         return parser
 
     def __init__(self, opt):
@@ -17,12 +18,14 @@ class ClassifierModel(BaseModel):
         self.model_names = ['D']
 
         self.netD = getDiscriminator(opt, self.devices[0])
-        self.criterion = nn.CrossEntropyLoss() 
-        self.A_target = torch.LongTensor([0]).to(self.devices[0])
-        self.B_target = torch.LongTensor([1]).to(self.devices[0])
+        # self.criterion = nn.CrossEntropyLoss() 
+        self.A_target = torch.zeros(opt.batch_size).to(self.devices[0])
+        self.B_target = torch.ones(opt.batch_size).to(self.devices[0])
+        self.criterion = nn.MSELoss()
 
         if self.isTrain:
-            self.optimizer = torch.optim.Adam(self.netD.parameters())
+            # self.optimizer = torch.optim.Adam(self.netD.parameters())
+            self.optimizer = AdaBound(self.netD.parameters(), lr=opt.lr)
             self.optimizers = [self.optimizer]
 
     def set_input(self, input):

@@ -38,6 +38,7 @@ class Conv2dClassifier(nn.Module):
                       kernel_size=self.conv_size, 
                       padding=self.conv_pad,
                       bias=self.use_bias),  
+            self.norm_layer(self.ndf),
             nn.ReLU()
         ]
         mult = self.ndf
@@ -51,6 +52,7 @@ class Conv2dClassifier(nn.Module):
                               padding=self.conv_pad,
                               stride=(2, 1),
                               bias=self.use_bias), 
+                    self.norm_layer(mult),
                     nn.ReLU()
                 ]  
         else:
@@ -82,13 +84,6 @@ class Conv2dClassifier(nn.Module):
         model += [
             nn.Conv2d(mult, mult * 2, kernel_size=3),
         ]
-
-        if self.flatten:
-            model += [
-                Flatten(),
-                nn.Linear(mult*2, 2)
-                # nn.Conv2d(mult*2, 2, kernel_size=1)
-            ]
  
         self.model = nn.ModuleList(model) # nn.Sequential(*model)
 
