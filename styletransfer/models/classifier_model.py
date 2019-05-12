@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from adabound import AdaBound
+# from adabound import AdaBound
 from .base_model import BaseModel
 from .discriminator import getDiscriminator
 
@@ -25,8 +25,8 @@ class ClassifierModel(BaseModel):
         self.criterion = nn.MSELoss()
 
         if self.isTrain:
-            # self.optimizer = torch.optim.Adam(self.netD.parameters())
-            self.optimizer = AdaBound(self.netD.parameters(), lr=opt.lr)
+            self.optimizer = torch.optim.Adam(self.netD.parameters(), lr=opt.lr)
+            # self.optimizer = AdaBound(self.netD.parameters(), lr=opt.lr)
             self.optimizers = [self.optimizer]
 
     def set_input(self, input):
