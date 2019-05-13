@@ -4,11 +4,19 @@
 <div id='question' class='container'>
 
 	<div class='row'>
-		<div class='col'>
-			{{ paths[0] }}
+		<div class='col audio'>
+			<h6>Sample A</h6>
+			<audio controls>	
+			  <source src="{{ url_for('.get_results', path=paths[0]) }}" type="audio/wav">
+				Your browser does not support the audio element.
+			</audio>
 		</div>
-		<div class='col'>
-			{{ paths[1] }}
+		<div class='col audio'>
+			<h6>Sample B</h6>
+			<audio controls>	
+			  <source src="{{ url_for('.get_results', path=paths[1]) }}" type="audio/wav">
+				Your browser does not support the audio element.
+			</audio>
 		</div>
 	</div>
 

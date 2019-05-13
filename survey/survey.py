@@ -2,7 +2,7 @@ import os
 import itertools
 from random import shuffle
 from functools import wraps
-from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, send_from_directory
 from . import db
 from .models import Question, Participant, Binary, Likert
 from .forms import ConsentForm, QuestionForm, SectionOneForm
@@ -19,14 +19,14 @@ def after_consent(f):
 
 def get_sample_name(exp, sample_num=0):
     sample_name = '{:03d}'.format(sample_num)
-    return os.path.abspath(os.path.join('results', exp, sample_name))
+    return os.path.join(exp, sample_name)
 
 def get_file_paths(exp_first, exp_second, sample_num):
-    second_A = os.path.join(get_sample_name(exp_second, sample_num), 'fake_B.wav')
+    second_A = os.path.join(get_sample_name(exp_second, sample_num), 'fake_B.0.wav')
     if 'real' in exp_first:
-        first_A = os.path.join(get_sample_name(exp_second, sample_num), 'real_A.wav')
+        first_A = os.path.join(get_sample_name(exp_second, sample_num), 'real_A.0.wav')
     else:
-        first_A = os.path.join(get_sample_name(exp_first, sample_num), 'fake_B.wav')
+        first_A = os.path.join(get_sample_name(exp_first, sample_num), 'fake_B.0.wav')
     return first_A, second_A
 
 def get_new_question(section, exp_first, exp_second, sample_num):
@@ -78,16 +78,18 @@ def section_one():
     session['section'] = 1
     session['questions'] = get_questions(1)
 
+    if Likert.query.filter(Likert.question_id == None).first() is not None:
+        if session['questions']:
+            q_id = session['questions'][0]
+            return redirect(url_for('.render_question', q_id=q_id))
+        return redirect(url_for('.section_two'))
     form = SectionOneForm()
     if form.validate_on_submit():
         chillness = Likert(participant_id=session['participant_id'],
                            question_id=None,
                            answer=form.likert.data)
         db.session.add(chillness)
-        db.session.commit()
-        q_id = session['questions'][0]
-        return redirect(url_for('.render_question', q_id=q_id))
-
+        db.session.commit() 
     return render_template('section1.html', form=form)
 
 @bp.route('/section2')
@@ -132,3 +134,7 @@ def render_question(q_id):
         question = Question.query.filter(Question.id == q_id).first()
         paths = get_file_paths(question.exp_first, question.exp_second, question.sample_num)
         return render_template('question.html', form=form, paths=paths)
+
+@bp.route('/results/<path:path>')
+def get_results(path):
+    return send_from_directory(os.path.abspath('results'), path)
