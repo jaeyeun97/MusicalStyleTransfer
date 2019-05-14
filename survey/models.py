@@ -17,19 +17,7 @@ class Question(db.Model):
     BtoA = Column(Boolean, default=False)
     section = Column(Integer)
     sample_num = Column(Integer)
-    exp_first = Column(String)
-    exp_second = Column(String)
-
-
-class Binary(db.Model):
-    __tablename__ = 'binaries'
-    id = Column(Integer, primary_key=True)
-    participant_id = Column(Integer, ForeignKey('participants.id'))
-    participant = relationship('Participant', backref=backref('binaries'))
-    question_id = Column(Integer, ForeignKey('questions.id'))
-    question = relationship('Question', backref=backref('binaries'))
-    answer = Column(Boolean)  # True: Experiment 1, False: Experiment 2
-    created_at = Column(DateTime)
+    exp = Column(String)
 
 
 class Likert(db.Model):
@@ -39,5 +27,6 @@ class Likert(db.Model):
     participant = relationship('Participant', backref=backref('likerts'))
     question_id = Column(Integer, ForeignKey('questions.id'))
     question = relationship('Question', backref=backref('likerts'))
+    is_content = Column(Boolean) # True: Content Q, False: style Q
     answer = Column(Integer)  # 1 ~ 10
     created_at = Column(DateTime)

@@ -10,7 +10,7 @@
 			  <source src="{{ url_for('.get_results', path=paths[0]) }}" type="audio/wav">
 				Your browser does not support the audio element.
 			</audio>
-		</div>
+		</div>	
 		<div class='col audio'>
 			<h6>Sample B</h6>
 			<audio controls>	
@@ -23,32 +23,37 @@
 	<form method='post'>
 		{{ form.csrf_token }}	
 
-		<h4>1) Which of the two sound more like a guitar?</h4>	
-		<div class='row'>
-			{% for field in form.binary %}
-				<div class='col'>
-					<div class="binary-col input-group">
-						<div class="input-group-prepend">
-							{{ field.label(class="input-group-text") }}
-						</div>
-						<div class="form-control">
-							{{ field() }}
-						</div>
-					</div>		
-				</div>
-			{% endfor %} 
-		</div>
-		
-		<h4>2) How similar do the two clips sound?</h4>
+		{% if section == 1%}
+			<h4>1) How similar does Sample B sound to a guitar?</h4>		
+		{% elif section == 2%}
+			<h4>1) How similar does Sample B sound to a piano?</h4>		
+		{% endif %}
+
 		<div class="input-group">
-			{% for field in form.likert %}
+			{% for field in form.style %}
 				<div class="form-control input-group-text">
 					{{ field() }}
 				</div>
 			{% endfor %} 
 		</div>		
 		<div class='likert-label-row'>
-			{% for field in form.likert %}
+			{% for field in form.style %}
+				<div class='likert-label-col'>
+					{{field.label}}
+				</div> 
+			{% endfor %} 
+		</div>
+		
+		<h4>2) How similar does Sample B sound to Sample A?</h4>
+		<div class="input-group">
+			{% for field in form.content %}
+				<div class="form-control input-group-text">
+					{{ field() }}
+				</div>
+			{% endfor %} 
+		</div>		
+		<div class='likert-label-row'>
+			{% for field in form.content %}
 				<div class='likert-label-col'>
 					{{field.label}}
 				</div> 
