@@ -21,27 +21,31 @@ def get_sample_name(exp, sample_num=0):
     sample_name = '{:03d}'.format(sample_num)
     return os.path.join(exp, sample_name)
 
-def get_file_paths(exp_first, exp_second, sample_num):
-    second_A = os.path.join(get_sample_name(exp_second, sample_num), 'fake_B.0.wav')
+def get_file_paths(exp_first, exp_second, sample_num, btoa):
+    dom_A = 'B' if btoa else 'A'
+    dom_B = 'A' if btoa else 'B'
+    second_A = os.path.join(get_sample_name(exp_second, sample_num), f'fake_{dom_B}.0.wav')
     if 'real' in exp_first:
-        first_A = os.path.join(get_sample_name(exp_second, sample_num), 'real_A.0.wav')
+        first_A = os.path.join(get_sample_name(exp_second, sample_num), f'real_{dom_A}.0.wav')
     else:
-        first_A = os.path.join(get_sample_name(exp_first, sample_num), 'fake_B.0.wav')
+        first_A = os.path.join(get_sample_name(exp_first, sample_num), f'fake_{dom_B}.0.wav')
     return first_A, second_A
 
-def get_new_question(section, exp_first, exp_second, sample_num):
+def get_new_question(section, exp_first, exp_second, sample_num, BtoA):
     return Question(exp_first=exp_first,
                     exp_second=exp_second,
                     sample_num=sample_num,
-                    section=section)
+                    section=section,
+                    BtoA=BtoA)
 
 def add_questions(section, limit, *exps):
     questions = list()
-    for i in range(limit):
-        for exp in exps:
-            questions.append(get_new_question(section, 'real', exp, i))
-        for exp in itertools.combinations(exps, 2):
-            questions.append(get_new_question(section, exp[0], exp[1], i))
+    for BtoA in [False, True]:
+        for i in range(limit):
+            for exp in exps:
+                questions.append(get_new_question(section, 'real', exp, i, BtoA))
+            for exp in itertools.combinations(exps, 2):
+                questions.append(get_new_question(section, exp[0], exp[1], i, BtoA))
     shuffle(questions)
     db.session.add_all(questions)
     db.session.commit()
@@ -69,7 +73,7 @@ def start():
             db.session.add(user)
             db.session.commit()
         session['participant_id'] = user.id
-        return redirect(url_for('.section_one'))
+        return redirect(url_for('.section_two'))
     return render_template('start.html', form=consentForm)
 
 @bp.route('/section1', methods=['GET', 'POST'])
@@ -97,8 +101,12 @@ def section_one():
 def section_two():
     session['section'] = 2
     session['questions'] = get_questions(2)
-    return render_template('section2.html',
-                           next=url_for('.render_question', q_id=session['questions'][0]))
+
+    if session['questions']:
+        return render_template('section2.html',
+                               next=url_for('.render_question', q_id=session['questions'][0]))
+    else:
+        return redirect(url_for('.thank_you'))
 
 @bp.route('/thankyou')
 @after_consent
@@ -132,7 +140,7 @@ def render_question(q_id):
             return redirect(url_for('.render_question', q_id=session['questions'][0]))
     else:    
         question = Question.query.filter(Question.id == q_id).first()
-        paths = get_file_paths(question.exp_first, question.exp_second, question.sample_num)
+        paths = get_file_paths(question.exp_first, question.exp_second, question.sample_num, question.BtoA)
         return render_template('question.html', form=form, paths=paths)
 
 @bp.route('/results/<path:path>')

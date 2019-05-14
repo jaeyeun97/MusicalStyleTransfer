@@ -14,6 +14,7 @@ class Participant(db.Model):
 class Question(db.Model):
     __tablename__ = 'questions'
     id = Column(Integer, primary_key=True)
+    BtoA = Column(Boolean, default=False)
     section = Column(Integer)
     sample_num = Column(Integer)
     exp_first = Column(String)

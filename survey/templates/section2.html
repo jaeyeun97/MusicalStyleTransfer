@@ -1,7 +1,17 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<div class='container'>
+<div class='container'>	
+	<div id='text'>		
+		<h1 class='display-4 text-center'>Section 1</h1>
+		<p>Here you will be presented with 30 pairs of sound clips. We ask you to listen to and compare the two sound clips, and answer the following two questions:</p>
+		<ul>
+			<li>Which of the two sound clips sound like a guitar?</li>
+			<li>How similar do the two clips sound?</li>
+		</ul>
+		<p>For the first question you will be given two choices, and you can choose the one that sounds more chilled to your taste. For the latter, you will be given a Likert scale, from 'Very Different' to 'Very Simliar'; please choose the option that describes the two clips best. You can listen to both clips as many times as you require to make your choice.</p>
+
+	</div>	
 	<a href="{{ next }}"><button type="button" class="btn btn-primary btn-lg btn-main">Start Section 2</button></a>
 </div>
 {% endblock %}
