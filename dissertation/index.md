@@ -1,4 +1,3 @@
-
 ---
 header-includes: 
 - \usepackage{tikz}
@@ -23,7 +22,7 @@ Since the evaluation of a musical style is based on human perception of the audi
 
 # Preparation
 
-The general aim of this project is to perform digital audio processing using Deep Learning methods. Although Neural Networks are introduced in *Part IB Artificial Intelligence* and *Part II Machine Learning and Bayesian Inferences*, many of the contents of the project are beyond the coverage of Tripos courses; therefore, in this section I aim to clarify the starting point and the previous works I relied on to implement the project.
+The general aim of this project is to perform digital audio processing using Deep Learning methods. Although Neural Networks are introduced in *Part IB Artificial Intelligence* and *Part II Machine Learning and Bayesian Inferences*, many of the contents of the project are beyond the coverage of Tripos courses; therefore, in this chapter I aim to clarify the starting point and the previous works I relied on to implement the project.
 
 ## Starting Point
 
@@ -254,7 +253,7 @@ $\mu$ notates the vector space to which the signal is quantized to; with $\mu = 
 
 TimbreTron is a combination of CQT, CycleGAN, and WaveNet that has been shown to be effective for timbre transfer. Instead of images, it uses CQT matrix as an input to the generators for CycleGAN in order to transform it to that of a different instrument. The generated matrix is used as a conditional input to the WaveNet synthesizer, which generates a natural audio sample.
 
-\paragraph{Full Spectrum Discriminator} The discriminator used by the original CycleGAN model, PatchGAN, computes the likelihood probability on 70x70 patches of the image and takes the mean of each patch loss. Since such discrimination process do not make sense when dealing with audio data, the discriminator has been modified to compute the entire frequency spectrum. The details of the discriminator design is not included in the paper, so in the implementation section I will present different discriminators of original design.
+\paragraph{Full Spectrum Discriminator} The discriminator used by the original CycleGAN model, PatchGAN, computes the likelihood probability on 70x70 patches of the image and takes the mean of each patch loss. Since such discrimination process do not make sense when dealing with audio data, the discriminator has been modified to compute the entire frequency spectrum. The details of the discriminator design is not included in the paper, so in the implementation chapter I will present different discriminators of original design.
 
 \paragraph{WaveNet} TimbreTron uses a conditional WaveNet to generate the audio from the CQT matrix. Although not specified in the paper, The CycleGAN model and WaveNet are assumed to be trained separately to yield a theoretically sound model. If so, it is questionable whether they needed to use CycleGAN to transform the CQT data to resemble that of the other instrument, as our objective can be simplified to extracting the pitch data from the CQT representation.
 
@@ -372,6 +371,8 @@ First, I gathered a diverse set of datasets in order to try different combinatio
 
 The preprocessing pipeline processes the sliced data samples into the necessary form needed for different models. Each model sets the default preprocessing options to indicate necessary elements, and the data samples are processed "to spec" before being converted into `PyTorch` tensors. I used `librosa`, a python audio processing package, to convert the data samples into Mel frequency scale and generate STFT or CQT matrices. 
 
+TODO: Length determinations
+
 If the model uses STFT or CQT, the output matrix is separated into magnitude and phase by calculating the absolute value and the angle of the complex value. The magnitude is then $\log$ed and linearly scaled to have a maximum of 1 and minimum of -1. This process, as done by GANSynth and DeepVoice, provides a wider variance and prevents gradient explosion from large input values. Furthermore, to remove any volume differences between the samples when not using time-frequency analyses, I have normalized the volume of all audio samples used for the datasets using `ffmpeg-normalize` prior to any training. 
 
 Quantization and pitch shift, which are needed for UMTN and other WaveNet based models, are part of the preprocessing pipeline as well. Pitch shift is done by `librosa`, on a single random-length interval, chosen within the 25% to 75% mark with respect to the length of the data sample. The amount to be shifted was sampled from uniform distribution between 0 and 1. $\mu$-law function needed for quantization was implemented based on equation \ref{eq:mulaw}.
@@ -390,29 +391,43 @@ The second model was inspired by UMTN; while the UMTN learns pitch data from the
 
 ### Classifiers
 
-I have experimented with three different classifier networks. First is `PatchGAN` which has been introduced by the original CycleGAN paper. The other two are of my original design, for which I will explain the intuition and implementation in the paragraphs below. 
+I have experimented with three different classifier networks, one from the original CycleGAN model, and two of my original design. In the paragraphs below, I will explain the details of the networks and the intuition behind them. All classifiers were optimized using the Adam optimizer and the learning rate was adjusted by model to prevent divergence, as will be presented in the Evaluation chapter.
 
-#### PatchGAN classifier (Baseline)
+#### `shallow` classifier (PatchGAN)
+
+PatchGAN is the classifier from the original CycleGAN model. It classifies the generated image based on overlapping patches of the image, which generates a prediction on how believable each patch is, instead of returning a single number as the output for the entire image. The patch can be thought of as a large convolutional filter that is implemented by using a number of convolutional layers. The `shallow` classifier network is a reconstruction of the PatchGAN classifier, except that the normalization layers from the original model have been omitted since we are not dealing with image data.
+
+The network consists of five convolutional layers. First four layers have filters with kernel size of 4, padding of 1 on each side, and stride of 2, which doubles the size of the receptive area per layer. The last layer contains of the same kernel size and padding but with no strides. The layers combined create a "patch" with a patch of size 64-by-64, which convolves through the input image to generate a prediction for each patch. The number of filters is doubled for the first four layers, and is downsampled into a single filter on the final one.
 
 #### `conv1d`
 
-Failed to converge
+@ulyanov uses the frequency dimension of a time-frequency analyses as the filter input to convolutional neural networks, and claims that such methods have been effective for the non-GAN style transfer they implemented. Since there is a filter for each input and output channel combination, by doing so we effectively generate a fully connected network of filters, which takes the frequencies data as the input. This classifier network was created largely to verify whether it is truly effective to use frequency dimension as the channel input to convolutional networks.
+
+A number of parameters need to be defined to explain this network: `ndf` is the number of filters (i.e. the size of the channel dimension of the first layer), `mdf` the multiplier between the layers of the network, and `n_layers` is the number of convolutional layers the network contains.
+
+The network includes a series of 1D Convolutional layers; the first layer upsamples the input into `ndf` channels, and each layer, up until the penultimate one, has $\texttt{mdf} * c_n$ channels, where $c_n$ is size of the channel dimension of the previous layer. The last layer downsamples the channel input down to one. Given $\texttt{n\_layers} = 4$, and a kernel size of 3, this network has a receptive field of 31.
+
+Multiple values for each parameters were used for training. Namely, 1024 and 2048 were values chosen for `ndf`, 1 and 2 for `mdf`, and 2, 3, and 4 for `n_layers`. This network, however, failed to converge during training with any combination of these values.
+
+TODO: explain that out_channel == num_filter, filters are fully connected. Also language...
 
 #### Timbral classifier
 
-### Encoders
+Lastly, the timbral classifier network extends the `shallow` model to include the entire frequency spectrum inside the receptive area. Depending on the size of the input, it creates layers with filter size of 3 or 4, depending on whether the input size is odd or even. All layers have a stride of 2 on frequency dimension and 1 (no stride) on time dimension. Like the `conv1d` classifier, it generates `ngf` channels on the first layer, and downsamples it down to a single channel on the last layer. This generates a large patch that covers the entire frequency spectrum and has a variable patch size on the time domain. For example, if the given input has a size of 880 on the frequency dimension, it will result in a total receptive length of 23 on the time dimension.
+
+I have hypothesized that `shallow` classifier may not work for time-frequency representations of polytimbral audio samples. When different instruments play simultaneously, they cover different ranges of the frequency spectrum. In such cases, patches generated by the `shallow` network would not be able to discriminate between higher and lower frequency bands and fail to classify. Therefore, the timbral classifier was designed to discriminate based on the full frequency spectrum of the input.
 
 ### CycleGAN
 
-@timbretron introduces a model that uses Griffin-Lim on STFT matrices as the baseline, but fails to present the equivalent for CQT representations. By implementing a CycleGAN model that uses Griffin-Lim reconstruction on both STFT and CQT representations, I hoped to clarify (1) the necessity of WaveNet in the TimbreTron model, and (2) the differences between STFT and CQT CycleGAN models.
+@timbretron introduces a model that uses Griffin-Lim on STFT matrices as the baseline, but fails to present the equivalent for CQT representations. By implementing a CycleGAN model that uses Griffin-Lim reconstruction on both STFT and CQT representations, I hoped to clarify (1) the necessity of WaveNet in the TimbreTron model, and (2) the differences between STFT and CQT CycleGAN models. Classifier networks designed and evaluated above are used as discriminators of the network architecture, and the encoder network is a variation of the original encoder model.
 
-#### Generator Models
+While many encoder models, such as those that use recurrent neural networks (RNN), were implemented but showed quick divergence of the model due to gradient explosion, a common training difficulty for RNNs. The details of RNNs lay outside the scope of this project so will not be dealt any further.
 
+The model was trained with a learning rate of 0.0002, with the diminishing identity loss used for TimbreTron. The original codebase by Zhu et al. had an implementation of Wasserstein GAN with Gradient Penalty, but it failed to perform reliably. Least Squared GAN, which is used by the original CycleGAN paper, was used instead. [@cyclegan]
+ 
+#### The Encoder
 
-#### Discriminators 
-
-For discriminator units, we use the classifiers that have been evaluated above in section \ref{classifiers}.
-
+The encoder consists of three parts: downsampling, transformation, and upsampling. The downsampling layers where implemented using the same techniques that was used for the timbral classifier network. The filter height was set to 4 if the input height was even and 3 if it was odd, and identical measures were implemented for the filter width as well. After three layers of downsampling, which decreases each dimension to eighth of its size, the input tensors are transformed by a series of residual network layers. I have chosen to use 9 transformation layers for the encoder, which is the value the original CycleGAN model found effective for image transfer. Any higher number of transformation layers made the model difficult to run on a single GPU. Lastly, same number of transposed convolutional layers were added for the purpose of upsampling the output of the transformation layers into the original size of the tensor. All layers in the network, except the last layer, use ReLU as the activation function. 
 
 #### Distributed Training System
 
@@ -436,14 +451,15 @@ With the distributed training in place, I was hoping to be able to train TimbreT
 \caption{Architecture of the Universal Music Translation Network \label{fig:umtn}}
 \end{figure}
 
-#### `nv-wavenet`
+The penultimate model is a faithful recreation of the Universal Music Translation Network. At the time of the implementation of the project there was no code implementation that verified the efficacy of the network architecture. Therefore, the implementation presented by this project is based on the details of the network written in the paper.
 
-* upsampling removal
-* embedding
+The temporal encoder is a faithful recreation of the one presented in figure \ref{fig:nsynth}, although the width (the channel dimension) of the encoder was left as a hyper-parameter. The model initially introduced by the authors were trained on 6 8-GPU machines for 6 days, which was not a viable option for this project. Therefore while the original paper uses a channel width a 128 for both the encoder and the WaveNet decoder, for faster training this project uses a width of 64 for both networks. The width of the final layer of the encoder was kept as 64 in accordance with the paper.
 
-* pool length
-* representation width
-* interpolation
+Moreover, the details of the domain confusion network are absent from the referenced paper, other than the fact that it contains three convolutional layers and computes the mean of the output. Through trial-and-error, therefore, filter size of 1 and channel size of 64 were selected.
+
+\paragraph{\texttt{nv-wavenet}} A modified version of WaveNet implemented by Nvidia was used for the decoder for faster inference. Nvidia's implementation includes an optimized WaveNet inference kernel for their GPUs, which drastically increases the speed of inference. The upsampling layer in the implementation was removed, since the architecture includes a separate interpolation layer which extends the encoder input to the length of the audio. Related elements for conditional input processing were modified in coherence with this change.
+
+Moreover, the paper states that they have trained the model with a learning rate of 0.001, as per the default value of the Adam optimizer. Even with a larger channel width the model quickly diverges with the said learning rate, but with a smaller learning rate of 0.0001 the model converged. 
 
 #### Optimization Tweaks
 
@@ -454,11 +470,14 @@ algorithm2e - classifier & encoder training
 STFT -> Resnet2d ->  WaveNet
 				 ->  Classifier 
 
-## Code Structure
-
-
 
 # Evaluation
 
+### Classifier Evaluations
+
+\begin{figure}[h]
+\end{figure}
+
+### 
 
 # Conclusion

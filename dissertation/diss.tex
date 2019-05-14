@@ -84,7 +84,7 @@ The general aim of this project is to perform digital audio processing
 using Deep Learning methods. Although Neural Networks are introduced in
 \emph{Part IB Artificial Intelligence} and \emph{Part II Machine
 Learning and Bayesian Inferences}, many of the contents of the project
-are beyond the coverage of Tripos courses; therefore, in this section I
+are beyond the coverage of Tripos courses; therefore, in this chapter I
 aim to clarify the starting point and the previous works I relied on to
 implement the project.
 
@@ -589,7 +589,7 @@ takes the mean of each patch loss. Since such discrimination process do
 not make sense when dealing with audio data, the discriminator has been
 modified to compute the entire frequency spectrum. The details of the
 discriminator design is not included in the paper, so in the
-implementation section I will present different discriminators of
+implementation chapter I will present different discriminators of
 original design.
 
 \paragraph{WaveNet}
@@ -679,6 +679,9 @@ training process.
     \centering
     \caption{Structure of Domain Adversarial Neural Networks \label{fig:dann}}
 \end{figure}
+
+\hypertarget{interpolation}{%
+\subsubsection{Interpolation}\label{interpolation}}
 
 \hypertarget{domain-confusion}{%
 \subsubsection{Domain Confusion}\label{domain-confusion}}
@@ -843,6 +846,8 @@ samples are processed ``to spec'' before being converted into
 processing package, to convert the data samples into Mel frequency scale
 and generate STFT or CQT matrices.
 
+TODO: Length determinations
+
 If the model uses STFT or CQT, the output matrix is separated into
 magnitude and phase by calculating the absolute value and the angle of
 the complex value. The magnitude is then \(\log\)ed and linearly scaled
@@ -903,20 +908,96 @@ model.
 \hypertarget{classifiers}{%
 \subsection{Classifiers}\label{classifiers}}
 
-I have experimented with three different classifier networks. First is
-\texttt{PatchGAN} which has been introduced by the original CycleGAN
-paper. The other two are of my original design, for which I will explain
-the intuition and implementation in the paragraphs below.
+I have experimented with three different classifier networks, one from
+the original CycleGAN model, and two of my original design. In the
+paragraphs below, I will explain the details of the networks and the
+intuition behind them. All classifiers were optimized using the Adam
+optimizer and the learning rate was adjusted by model to prevent
+divergence, as will be presented in the Evaluation chapter.
 
-\hypertarget{patchgan-classifier-baseline}{%
-\subsubsection{PatchGAN classifier
-(Baseline)}\label{patchgan-classifier-baseline}}
+\hypertarget{shallow-classifier-patchgan}{%
+\subsubsection{\texorpdfstring{\texttt{shallow} classifier
+(PatchGAN)}{shallow classifier (PatchGAN)}}\label{shallow-classifier-patchgan}}
+
+PatchGAN is the classifier from the original CycleGAN model. It
+classifies the generated image based on overlapping patches of the
+image, which generates a prediction on how believable each patch is,
+instead of returning a single number as the output for the entire image.
+The patch can be thought of as a large convolutional filter that is
+implemented by using a number of convolutional layers. The
+\texttt{shallow} classifier network is a reconstruction of the PatchGAN
+classifier, except that the normalization layers from the original model
+have been omitted since we are not dealing with image data.
+
+The network consists of five convolutional layers. First four layers
+have filters with kernel size of 4, padding of 1 on each side, and
+stride of 2, which doubles the size of the receptive area per layer. The
+last layer contains of the same kernel size and padding but with no
+strides. The layers combined create a ``patch'' with a patch of size
+64-by-64, which convolves through the input image to generate a
+prediction for each patch. The number of filters is doubled for the
+first four layers, and is downsampled into a single filter on the final
+one.
 
 \hypertarget{conv1d}{%
 \subsubsection{\texorpdfstring{\texttt{conv1d}}{conv1d}}\label{conv1d}}
 
+@ulyanov uses the frequency dimension of a time-frequency analyses as
+the filter input to convolutional neural networks, and claims that such
+methods have been effective for the non-GAN style transfer they
+implemented. Since there is a filter for each input and output channel
+combination, by doing so we effectively generate a fully connected
+network of filters, which takes the frequencies data as the input. This
+classifier network was created largely to verify whether it is truly
+effective to use frequency dimension as the channel input to
+convolutional networks.
+
+A number of parameters need to be defined to explain this network:
+\texttt{ndf} is the number of filters (i.e.~the size of the channel
+dimension of the first layer), \texttt{mdf} the multiplier between the
+layers of the network, and \texttt{n\_layers} is the number of
+convolutional layers the network contains.
+
+The network includes a series of 1D Convolutional layers; the first
+layer upsamples the input into \texttt{ndf} channels, and each layer, up
+until the penultimate one, has \(\texttt{mdf} * c_n\) channels, where
+\(c_n\) is size of the channel dimension of the previous layer. The last
+layer downsamples the channel input down to one. Given
+\(\texttt{n\_layers} = 4\), and a kernel size of 3, this network has a
+receptive field of 31.
+
+Multiple values for each parameters were used for training. Namely, 1024
+and 2048 were values chosen for \texttt{ndf}, 1 and 2 for \texttt{mdf},
+and 2, 3, and 4 for \texttt{n\_layers}. This network, however, failed to
+converge during training with any combination of these values.
+
+TODO: explain that out\_channel == num\_filter, filters are fully
+connected. Also language\ldots{}
+
 \hypertarget{timbral-classifier}{%
 \subsubsection{Timbral classifier}\label{timbral-classifier}}
+
+Lastly, the timbral classifier network extends the \texttt{shallow}
+model to include the entire frequency spectrum inside the receptive
+area. Depending on the size of the input, it creates layers with filter
+size of 3 or 4, depending on whether the input size is odd or even. All
+layers have a stride of 2 on frequency dimension and 1 (no stride) on
+time dimension. Like the \texttt{conv1d} classifier, it generates
+\texttt{ngf} channels on the first layer, and downsamples it down to a
+single channel on the last layer. This generates a large patch that
+covers the entire frequency spectrum and has a variable patch size on
+the time domain. For example, if the given input has a size of 880 on
+the frequency dimension, it will result in a total receptive length of
+23 on the time dimension.
+
+I have hypothesized that \texttt{shallow} classifier may not work for
+time-frequency representations of polytimbral audio samples. When
+different instruments play simultaneously, they cover different ranges
+of the frequency spectrum. In such cases, patches generated by the
+\texttt{shallow} network would not be able to discriminate between
+higher and lower frequency bands and fail to classify. Therefore, the
+timbral classifier was designed to discriminate based on the full
+frequency spectrum of the input.
 
 \hypertarget{cyclegan-1}{%
 \subsection{CycleGAN}\label{cyclegan-1}}
@@ -926,16 +1007,41 @@ the baseline, but fails to present the equivalent for CQT
 representations. By implementing a CycleGAN model that uses Griffin-Lim
 reconstruction on both STFT and CQT representations, I hoped to clarify
 (1) the necessity of WaveNet in the TimbreTron model, and (2) the
-differences between STFT and CQT CycleGAN models.
+differences between STFT and CQT CycleGAN models. Classifier networks
+designed and evaluated above are used as discriminators of the network
+architecture, and the encoder network is a variation of the original
+encoder model.
 
-\hypertarget{generator-models}{%
-\subsubsection{Generator Models}\label{generator-models}}
+While many encoder models, such as those that use recurrent neural
+networks (RNN), were implemented but showed quick divergence of the
+model due to gradient explosion, a common training difficulty for RNNs.
+The details of RNNs lay outside the scope of this project so will not be
+dealt any further.
 
-\hypertarget{discriminators}{%
-\subsubsection{Discriminators}\label{discriminators}}
+The model was trained with a learning rate of 0.0002, with the
+diminishing identity loss used for TimbreTron. The original codebase by
+Zhu et al.~had an implementation of Wasserstein GAN with Gradient
+Penalty, but it failed to perform reliably. Least Squared GAN, which is
+used by the original CycleGAN paper, was used instead. {[}@cyclegan{]}
 
-For discriminator units, we use the classifiers that have been evaluated
-above in section \ref{classifiers}.
+\hypertarget{the-encoder}{%
+\subsubsection{The Encoder}\label{the-encoder}}
+
+The encoder consists of three parts: downsampling, transformation, and
+upsampling. The downsampling layers where implemented using the same
+techniques that was used for the timbral classifier network. The filter
+height was set to 4 if the input height was even and 3 if it was odd,
+and identical measures were implemented for the filter width as well.
+After three layers of downsampling, which decreases each dimension to
+eighth of its size, the input tensors are transformed by a series of
+residual network layers. I have chosen to use 9 transformation layers
+for the encoder, which is the value the original CycleGAN model found
+effective for image transfer. Any higher number of transformation layers
+made the model difficult to run on a single GPU. Lastly, same number of
+transposed convolutional layers were added for the purpose of upsampling
+the output of the transformation layers into the original size of the
+tensor. All layers in the network, except the last layer, use ReLU as
+the activation function.
 
 \hypertarget{distributed-training-system}{%
 \subsubsection{Distributed Training
@@ -982,7 +1088,49 @@ Network}\label{universal-music-translation-network-1}}
 \caption{Architecture of the Universal Music Translation Network \label{fig:umtn}}
 \end{figure}
 
-I don't know what the problem is here..
+The penultimate model is a faithful recreation of the Universal Music
+Translation Network. At the time of the implementation of the project
+there was no code implementation that verified the efficacy of the
+network architecture. Therefore, the implementation presented by this
+project is based on the details of the network written in the paper.
+
+The temporal encoder is a faithful recreation of the one presented in
+figure \ref{fig:nsynth}, although the width (the channel dimension) of
+the encoder was left as a hyper-parameter. The model initially
+introduced by the authors were trained on 6 8-GPU machines for 6 days,
+which was not a viable option for this project. Therefore while the
+original paper uses a channel width a 128 for both the encoder and the
+WaveNet decoder, for faster training this project uses a width of 64 for
+both networks. The width of the final layer of the encoder was kept as
+64 in accordance with the paper.
+
+Moreover, the details of the domain confusion network are absent from
+the referenced paper, other than the fact that it contains three
+convolutional layers and computes the mean of the output. Through
+trial-and-error, therefore, filter size of 1 and channel size of 64 were
+selected.
+
+\paragraph{\texttt{nv-wavenet}}
+
+A modified version of WaveNet implemented by Nvidia was used for the
+decoder for faster inference. Nvidia's implementation includes an
+optimized WaveNet inference kernel for their GPUs, which drastically
+increases the speed of inference. The upsampling layer in the
+implementation was removed, since the architecture includes a separate
+interpolation layer which extends the encoder input to the length of the
+audio. Related elements for conditional input processing were modified
+in coherence with this change.
+
+Moreover, the paper states that they have trained the model with a
+learning rate of 0.001, as per the default value of the Adam optimizer.
+Even with a larger channel width the model quickly diverges with the
+said learning rate, but with a smaller learning rate of 0.0001 the model
+converges.
+
+\hypertarget{optimization-tweaks}{%
+\subsubsection{Optimization Tweaks}\label{optimization-tweaks}}
+
+algorithm2e - classifier \& encoder training
 
 \hypertarget{original-model}{%
 \subsection{Original Model}\label{original-model}}
@@ -990,11 +1138,17 @@ I don't know what the problem is here..
 STFT -\textgreater{} Resnet2d -\textgreater{} WaveNet -\textgreater{}
 Classifier
 
-\hypertarget{code-structure}{%
-\section{Code Structure}\label{code-structure}}
-
 \hypertarget{evaluation}{%
 \chapter{Evaluation}\label{evaluation}}
+
+\hypertarget{classifier-evaluations}{%
+\subsection{Classifier Evaluations}\label{classifier-evaluations}}
+
+\begin{figure}[h]
+\end{figure}
+
+\hypertarget{section}{%
+\subsection{}\label{section}}
 
 \hypertarget{conclusion}{%
 \chapter{Conclusion}\label{conclusion}}
