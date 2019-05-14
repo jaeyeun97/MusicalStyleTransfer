@@ -17,6 +17,7 @@ options = {
     'transformer': None,
     'tensor_height': 1025,
     'tensor_width': 1025,
+    'tanh': False
 }
 
 
@@ -33,21 +34,30 @@ class Conv2dEncoder(nn.Module):
                                     kernel_size=7,
                                     padding=3,
                                     bias=self.use_bias)),
-            ('norm_init', self.norm_layer(mult)),
+            # ('norm_init', self.norm_layer(mult)),
             ('relu_init', nn.ReLU(True)),
         ]
 
+        conv_sizes = list()
+        height = self.tensor_height
+        width = self.tensor_width
         for i in range(self.n_downsample):
             next_mult = mult * 2
+            kh = 4 if height % 2 == 0 else 3
+            kw = 4 if width % 2 == 0 else 3
+            conv_size = (kh, kw)
             self.model += [
                 ('conv_down_%s' % i, nn.Conv2d(mult, next_mult,
-                                               kernel_size=self.conv_size,
-                                               padding=self.conv_pad,
+                                               kernel_size=conv_size,
+                                               padding=1,
                                                stride=2,
                                                bias=self.use_bias)),
-                ('norm_down_%s' % i, self.norm_layer(next_mult)),
+                # ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.ReLU(True))
             ]
+            conv_sizes.append(conv_size)
+            height = int((height - kh + 2) / 2 + 1)
+            width = int((width - kw + 2) / 2 + 1)
             mult = next_mult
 
         # Transformer
@@ -60,11 +70,11 @@ class Conv2dEncoder(nn.Module):
             next_mult = mult // 2
             self.model += [
                 ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult,
-                                                      kernel_size=self.conv_size,
-                                                      padding=self.conv_pad,
+                                                      kernel_size=conv_sizes.pop(),
+                                                      padding=1,
                                                       stride=2,
                                                       bias=self.use_bias)),
-                ('norm_up_%s' % i, self.norm_layer(next_mult)),
+                # ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult
@@ -75,7 +85,7 @@ class Conv2dEncoder(nn.Module):
                                                    bias=self.use_bias)))
 
         if self.tanh:
-            self.model.append(('tanh', nn.Tanh()))
+            self.model.append(('tanh_final', nn.Tanh()))
 
         for name, module in self.model:
             if 'conv_final' in name: 

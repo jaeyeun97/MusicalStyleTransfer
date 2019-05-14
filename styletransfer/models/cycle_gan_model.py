@@ -39,7 +39,8 @@ class CycleGANModel(BaseModel):
             parser.add_argument('--lambda_A', type=float, default=10.0, help='weight for cycle loss (A -> B -> A)')
             parser.add_argument('--lambda_B', type=float, default=10.0, help='weight for cycle loss (B -> A -> B)')
             parser.add_argument('--lambda_identity', type=float, default=0.5, help='use identity mapping. Setting lambda_identity other than 0 has an effect of scaling the weight of the identity mapping loss. For example, if the weight of the identity loss should be 10 times smaller than the weight of the reconstruction loss, please set lambda_identity = 0.1')
-
+        parser.add_argument('--sigmoid', action='store_true', help='sigmoid')
+        parser.add_argument('--tanh', action='store_true', help='tanh')
         return parser
 
     def __init__(self, opt):
@@ -186,23 +187,23 @@ class CycleGANModel(BaseModel):
         fake_B = self.fake_B.detach()
         fake_B = self.fake_B_pool.query(fake_B)
         pred_B_B_fake = self.netD_B(fake_B)
-        self.loss_gp_B, _ = cal_gradient_penalty(self.netD_B, self.real_B, fake_B, self.devices[0])
-        # self.loss_gp_B = 0
+        # self.loss_gp_B, _ = cal_gradient_penalty(self.netD_B, self.real_B, fake_B, self.devices[0])
+        self.loss_gp_B = 0
         self.loss_D_B = (self.criterionD_B(pred_B_B_real, True) + 
                          self.criterionD_B(pred_B_B_fake, False) +
-                         self.loss_gp_B) 
+                         self.loss_gp_B) * 0.5
+        self.loss_D_B.backward()
 
         pred_A_A_real = self.netD_A(self.real_A)
         fake_A = self.fake_A.detach()
         fake_A = self.fake_A_pool.query(fake_A)
         pred_A_A_fake = self.netD_A(fake_A)
-        self.loss_gp_A, _ = cal_gradient_penalty(self.netD_A, self.real_A, fake_A, self.devices[-1]) 
-        # self.loss_gp_A = 0
+        # self.loss_gp_A, _ = cal_gradient_penalty(self.netD_A, self.real_A, fake_A, self.devices[-1]) 
+        self.loss_gp_A = 0
         self.loss_D_A = (self.criterionD_A(pred_A_A_real, True) +
                          self.criterionD_A(pred_A_A_fake, False) +
-                         self.loss_gp_A)
-
-        (self.loss_D_A + self.loss_D_B).backward()
+                         self.loss_gp_A) * 0.5
+        self.loss_D_A.backward()
         self.optimizer_D.step() 
         # D training done 
  

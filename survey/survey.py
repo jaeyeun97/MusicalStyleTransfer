@@ -154,4 +154,4 @@ def render_question(q_id):
 
 @bp.route('/results/<path:path>')
 def get_results(path):
-    return send_from_directory(os.path.abspath('results'), path)
+    return send_from_directory(os.path.abspath('results'), path, mimetype='audio/wav')

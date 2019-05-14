@@ -38,10 +38,13 @@ def normalize_magnitude(lmag):
     return lmag, mmax, mmin
 
 def denormalize_magnitude(mmax, mmin, lmag):
+    results = list()
     for i in range(lmag.shape[0]):
-        mmax = float(mmax[i])
-        mmin = float(mmin[i])
-        return ((mmax - mmin) * (lmag[i, :] + 1) / 2) + mmin
+        ma = float(mmax[i])
+        mi = float(mmin[i])
+        results.append(((ma - mi) * (lmag[i, :] + 1) / 2) + mi)
+    return np.stack(results)
+
 
 def normalize_phase(agl):
     return agl / np.pi
