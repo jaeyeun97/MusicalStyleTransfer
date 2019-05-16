@@ -67,10 +67,10 @@ class TimbralClassifier(nn.Module):
             input = input.unsqueeze(1)
         for model in self.model:
             input = model(input)
+        if self.sigmoid:
+            input = torch.sigmoid(input)
         if self.flatten:
             input = input.squeeze(1)
-            input = input.squeeze(1)
-            if self.sigmoid:
-                input = torch.sigmoid(input)
+            input = input.squeeze(1) 
             input = input.mean(dim=1)
         return input # torch.sigmoid(input)

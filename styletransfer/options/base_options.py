@@ -152,7 +152,7 @@ class BaseOptions():
                 tensor_height=tensor_size,
                 hop_length=512,
                 audio_length=audio_length,
-                tensor_width=math.ceil(audio_length / 512),
+                tensor_width=int(audio_length / 512) + 1,
             )
         else:
             parser.set_defaults(audio_length=int(opt.sample_rate * opt.duration))

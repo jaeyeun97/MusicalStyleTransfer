@@ -30,7 +30,6 @@ class TimbralEncoder(nn.Module):
             ('conv_init', nn.Conv2d(1, mult,
                                     kernel_size=4,
                                     bias=self.use_bias)),
-            # ('norm_init', self.norm_layer(mult)),
             ('relu_init', nn.ReLU(True)),
         ]
 
@@ -39,13 +38,13 @@ class TimbralEncoder(nn.Module):
         for i in range(self.n_downsample):
             next_mult = mult * 2
             conv_size = 4 if height % 2 == 0 else 3
+            height = int((height - conv_size) / 2 + 1)
             conv_sizes.append(conv_size)
             self.model += [
                 ('conv_down_%s' % i, nn.Conv2d(mult, next_mult,
                                                kernel_size=conv_size,
                                                stride=(2, 1),
                                                bias=self.use_bias)),
-                # ('norm_down_%s' % i, self.norm_layer(next_mult)),
                 ('relu_down_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult
@@ -60,20 +59,19 @@ class TimbralEncoder(nn.Module):
             next_mult = mult // 2
             self.model += [
                 ('conv_up_%s' % i, nn.ConvTranspose2d(mult, next_mult,
-                                                      kernel_size=conv_size.pop(),
+                                                      kernel_size=conv_sizes.pop(),
                                                       stride=(2, 1),
                                                       bias=self.use_bias)),
-                # ('norm_up_%s' % i, self.norm_layer(next_mult)),
                 ('relu_up_%s' % i, nn.ReLU(True))
             ]
             mult = next_mult
 
-        self.model.append(('conv_final', nn.Conv2d(mult, 1,
-                                                   kernel_size=4,
-                                                   bias=self.use_bias)))
+        self.model.append(('conv_final', nn.ConvTranspose2d(mult, 1,
+                                                            kernel_size=4,
+                                                            bias=self.use_bias)))
 
         if self.tanh:
-            self.model.append(('tanh', nn.Tanh()))
+            self.model.append(('tanh_final', nn.Tanh()))
 
         for name, module in self.model:
             if 'conv_final' in name:

@@ -22,10 +22,12 @@ class OriginalModel(BaseModel):
         """
         preprocess = 'normalize,mulaw,cqt'
         parser.set_defaults(preprocess=preprocess, flatten=True)
-        parser.add_argument('--wavenet_layers', type=int, default=30, help='wavenet layers')
-        parser.add_argument('--wavenet_blocks', type=int, default=15, help='wavenet layers')
+        parser.add_argument('--wavenet_layers', type=int, default=40, help='wavenet layers')
+        parser.add_argument('--wavenet_blocks', type=int, default=10, help='wavenet layers')
         parser.add_argument('--width', type=int, default=128, help='width')
         parser.add_argument('--dc_lambda', type=float, default=0.01, help='dc lambda') 
+        parser.add_argument('--tanh', action='store_true', help='tanh')
+        parser.add_argument('--sigmoid', action='store_true', help='sigmoid')
         return parser
 
     def __init__(self, opt):
@@ -39,27 +41,20 @@ class OriginalModel(BaseModel):
         self.model_names = ['E', 'C', 'D_A', 'D_B']
 
         # use get generator
-        self.netE = getGenerator(opt, self.devices[0])
+        self.netE = getGenerator(self.devices[0], opt)
         self.netC = getDiscriminator(opt, self.devices[0])
-
-        if 'stft' in self.preprocess:
-            stride = 2 * ((opt.nfft // 8) - 1)
-            window =  opt.nfft // opt.duration_ratio
-        elif 'cqt' in self.preprocess:
-            stride = opt.hop_length
-            window = opt.hop_length
 
         self.netD_A = WaveNet(opt.mu+1, opt.wavenet_layers, opt.wavenet_blocks, 
                               opt.width, 256, 256,
-                              opt.tensor_height, window, stride).to(self.devices[-1]) # opt.pool_length, opt.pool_length
+                              opt.tensor_height, 1, 1).to(self.devices[-1]) # opt.pool_length, opt.pool_length
         self.netD_B = WaveNet(opt.mu+1, opt.wavenet_layers, opt.wavenet_blocks,
                               opt.width, 256, 256,
-                              opt.tensor_height, window, stride).to(self.devices[-1]) # opt.pool_length, opt.pool_length
+                              opt.tensor_height, 1, 1).to(self.devices[-1]) # opt.pool_length, opt.pool_length
         self.softmax = nn.LogSoftmax(dim=1) # (1, 256, audio_len) -> pick 256
         
         if self.isTrain:
-            self.A_target = torch.LongTensor([0] * opt.batch_size).to(self.devices[0])
-            self.B_target = torch.LongTensor([1] * opt.batch_size).to(self.devices[0])
+            self.A_target = torch.zeros(opt.batch_size).to(self.devices[0])
+            self.B_target = torch.ones(opt.batch_size).to(self.devices[0])
             self.criterionDC = nn.MSELoss(reduction='mean')
             self.criterionDecode = nn.CrossEntropyLoss(reduction='mean')
             self.optimizer_C = AdaBound(self.netC.parameters(), lr=opt.lr, final_lr=0.1)
@@ -99,18 +94,21 @@ class OriginalModel(BaseModel):
     def train(self): 
         self.optimizer_C.zero_grad() 
         encoded_A = self.netE(self.aug_A) # Input range: (-1, 1) Output: R^64
+        encoded_A = nn.functional.interpolate(encoded_A, size=self.opt.audio_length).to(self.devices[-1])
         pred_C_A = self.netC(encoded_A)
-        self.loss_C_A_right = self.criterionDC(pred_C_A, self.A_target)
+        self.loss_C_A_right = self.opt.dc_lambda * self.criterionDC(pred_C_A, self.A_target)
         self.loss_C_A_right.backward()
 
         encoded_B = self.netE(self.aug_B) 
+        encoded_B = nn.functional.interpolate(encoded_B, size=self.opt.audio_length).to(self.devices[-1])
         pred_C_B = self.netC(encoded_B)
-        self.loss_C_B_right = self.criterionDC(pred_C_B, self.B_target)
+        self.loss_C_B_right = self.opt.dc_lambda * self.criterionDC(pred_C_B, self.B_target)
         self.loss_C_B_right.backward()
         self.optimizer_C.step()
   
         self.optimizer_D.zero_grad() 
         encoded_A = self.netE(self.aug_A) # Input range: (-1, 1) Output: R^64
+        encoded_A = nn.functional.interpolate(encoded_A, size=self.opt.audio_length).to(self.devices[-1])
         pred_C_A = self.netC(encoded_A) 
         self.loss_C_A_wrong = self.criterionDC(pred_C_A, self.A_target)
         real_A = self.get_indices(self.real_A).to(self.devices[-1])
@@ -120,6 +118,7 @@ class OriginalModel(BaseModel):
         loss.backward()
         
         encoded_B = self.netE(self.aug_B)
+        encoded_B = nn.functional.interpolate(encoded_B, size=self.opt.audio_length).to(self.devices[-1])
         pred_C_B = self.netC(encoded_B) 
         self.loss_C_B_wrong = self.criterionDC(pred_C_B, self.B_target)
         real_B = self.get_indices(self.real_B).to(self.devices[-1]) 

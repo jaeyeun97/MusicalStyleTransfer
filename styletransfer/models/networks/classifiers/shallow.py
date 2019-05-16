@@ -15,7 +15,8 @@ options = {
     'tensor_height': 1025,
     'duration_ratio': 1,
     'input_nc': 1,
-    'flatten': False
+    'flatten': False,
+    'sigmoid': False
 }
 
 class ShallowClassifier(nn.Module):
@@ -26,6 +27,9 @@ class ShallowClassifier(nn.Module):
         super(ShallowClassifier, self).__init__()
 
         option_setter(self, options, kwargs) 
+
+        self.conv_size = 4
+        self.conv_pad = 1
 
         model = [
             nn.Conv2d(self.input_nc, self.ndf,
@@ -47,13 +51,12 @@ class ShallowClassifier(nn.Module):
                           padding=self.conv_pad,
                           stride=2,
                           bias=self.use_bias), 
-                self.norm_layer(self.ndf),
                 nn.ReLU()
             ]
             mult = next_mult
 
         model += [
-            nn.Conv2d(mult, 1, kernel_size=self.conv_size, padding=self.conv_pad),
+            nn.Conv2d(mult, 1, kernel_size=self.conv_size)
         ]
  
         self.model = nn.ModuleList(model) # nn.Sequential(*model)
@@ -65,6 +68,8 @@ class ShallowClassifier(nn.Module):
         for model in self.model:
             input = model(input) 
         if self.flatten:
+            if self.sigmoid:
+                input = torch.sigmoid(input)
             input = input.view(input.size(0), -1)
             input = input.mean(dim=1)
         return input
