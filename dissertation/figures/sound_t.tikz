@@ -1,0 +1,43 @@
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Image [id:dp16577132846668752] 
+\draw (468,98) node  {\includegraphics[width=52.5pt,height=52.5pt]{figures/sound2.jpg}};
+%Image [id:dp34715026484818634] 
+\draw (468,205) node  {\includegraphics[width=52.5pt,height=52.5pt]{figures/sound2.jpg}};
+%Image [id:dp3813763911329031] 
+\draw (468,153) node  {\includegraphics[width=52.5pt,height=52.5pt]{figures/sound2.jpg}};
+%Shape: Rectangle [id:dp729470205901418] 
+\draw   (421,68) -- (510,68) -- (510,234.8) -- (421,234.8) -- cycle ;
+
+%Image [id:dp09837278164236607] 
+\draw (175,93) node  {\includegraphics[width=52.5pt,height=52.5pt]{figures/sound1.png}};
+%Shape: Rectangle [id:dp09315564536975507] 
+\draw   (131,68) -- (220,68) -- (220,234.8) -- (131,234.8) -- cycle ;
+%Image [id:dp017792154189993914] 
+\draw (175,148) node  {\includegraphics[width=52.5pt,height=52.5pt]{figures/sound1.png}};
+%Image [id:dp6584214460988338] 
+\draw (175,205) node  {\includegraphics[width=52.5pt,height=52.5pt]{figures/sound1.png}};
+
+%Shape: Rectangle [id:dp6990777351157427] 
+\draw   (290,129) -- (360,129) -- (360,169) -- (290,169) -- cycle ;
+%Straight Lines [id:da6246083492056131] 
+\draw    (200,100) -- (289.25,149.04) ;
+\draw [shift={(291,150)}, rotate = 208.79] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da9066487654305275] 
+\draw    (360,150) -- (449.25,199.04) ;
+\draw [shift={(451,200)}, rotate = 208.79] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+
+% Text Node
+\draw (325,149) node  [align=left] {$\displaystyle T$};
+% Text Node
+\draw (175,52) node  [align=left] {$\displaystyle P$};
+% Text Node
+\draw (465,52) node  [align=left] {$\displaystyle G$};
+% Text Node
+\draw (326,113) node  [align=left] {$\displaystyle g\ =\ p\ -\ t_{p} \ +\ t_{g}$};
+
+
+\end{tikzpicture}
