@@ -28,5 +28,5 @@ class Likert(db.Model):
     question_id = Column(Integer, ForeignKey('questions.id'))
     question = relationship('Question', backref=backref('likerts'))
     is_content = Column(Boolean) # True: Content Q, False: style Q
-    answer = Column(Integer)  # 1 ~ 10
+    answer = Column(Integer)  # 1 ~ 5
     created_at = Column(DateTime)

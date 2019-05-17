@@ -1,7 +1,7 @@
 import IPython
 from . import create_app, db
 from .survey import add_questions
-from .models import Participant, Likert
+from .models import Participant, Likert, Question
 
 app = create_app()
 
@@ -30,9 +30,32 @@ def aggregate_results(section_num):
 def get_participants():
     ps = Participant.query.all()
     print('Length: {}'.format(len(ps))) 
-    return [p.name for p in ps]
+    print([p.name for p in ps])
+    return ps
        
+def export(file_name):
+    musicians = ['Jake Moscrop', 'Victoria Clarkson', 'Keir Lewis', 'Trojan Nakade', 'Kaamya Varagur', 'William Collins', 'William Debnam', 'Amanda McHugh']
+     
+    with open(file_name, 'w') as f:
+        f.write('participant_id,is_musician,section,question_id,sample_num,qtype,answer\n')
+        answers = Likert.query.all()
+        for answer in answers:
+            question = answer.question
+            section = question.section
+            is_musician = False
+            if answer.participant.name in musicians:
+                is_musician = True
+            qtype = 'content' if answer.is_content else 'style'
+            f.write('{participant_id},{is_musician},{section},{question_id},{sample_num},{qtype},{answer}\n'.format(
+                participant_id=answer.participant_id,
+                is_musician=is_musician,
+                section=section,
+                question_id=question.id,
+                sample_num=question.sample_num,
+                qtype=qtype,
+                answer=answer.answer
+            ))
 
 with app.app_context():
-    print(get_participants())
+    ps = get_participants()
     IPython.embed()
