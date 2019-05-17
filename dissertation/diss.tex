@@ -56,6 +56,91 @@
 
 \begin{document}
 
+\pagestyle{empty}
+
+\rightline{\LARGE \textbf{Charles Jae Yeun Yoon}}
+
+\vspace*{60mm}
+\begin{center}
+\Huge
+\textbf{Musical Style Transfer using Neural Networks} \\[5mm]
+Computer Science Tripos -- Part II \\[5mm]
+King's College \\[5mm]
+\today  % today's date
+\end{center}
+
+\newpage
+
+\section*{Declaration}
+
+I, Charles Jae Yeun Yoon of King's College, being a candidate for Part
+II of the Computer Science Tripos, hereby declare that this dissertation
+and the work described in it are my own work, unaided except as may be
+specified below, and that the dissertation does not contain material
+that has already been used to any substantial extent for a comparable
+purpose.
+
+\bigskip
+\leftline{Signed}
+
+\begin{figure}
+    \includegraphics{/home/jaeyeun/Documents/sign.png}
+\end{figure}
+
+\medskip
+\leftline{Date \today}
+
+\newpage
+
+\chapter*{Proforma}
+
+\begin{tabular}{ll}
+Candidate Number:   & \bf                     \\
+Project Title:      & \bf Musical Style Transfer using Neural Networks \\
+Examination:        & \bf Computer Science Tripos -- Part II, June 2019 \\
+Word Count:         & \bf 11587 \footnotemark[1] \\ 
+Project Originator: & Prof. Alan Blackwell                      \\
+Supervisor:         & Dr. Andrea Franceschini                    \\ 
+\end{tabular}
+
+\footnotetext[1]{This word count was computed
+by \texttt{texcount diss.tex}
+}
+\stepcounter{footnote}
+
+\section*{Original Aims of the Project}
+
+\section*{Work Completed}
+
+All that has been completed appears in this dissertation.
+
+\section*{Special Difficulties}
+
+No special difficulty has occurred during the duration of this project.
+
+\tableofcontents
+
+\listoffigures
+
+\newpage
+
+\section*{Acknowledgements}
+
+The author of this dissertation would like to thank:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{MellowBeatSeeker}, for offering his compilation of music as a
+  dataset for this project,
+\item
+  Prof.~Alan Blackwell and the Rainbow Laboratory, for providing the
+  necessary hardware for this project,
+\item
+  Matthew Else, for offering additional hardware resources for this
+  project.
+\end{itemize}
+
 \hypertarget{introduction}{%
 \chapter{Introduction}\label{introduction}}
 
@@ -65,14 +150,14 @@ MIDI controller. These instruments are essentially a collection of
 pre-recorded samples of each pitch, which are played back to the user
 given the input of the controller. These controllers, which usually have
 a piano-like interface, takes pitch and modulation information from the
-user, and relays these information to the software instrument. The
+user, and relays this information to the software instrument. The
 virtual instrument, when given input, generates the sound of the
 instrument it is modelled after with audio processing techniques to
 control certain elements that are not present in the MIDI command
 sequence. We can, therefore, think of these instruments as a certain
 quality of sound, which when given a MIDI input, generates music.
 
-Identically, we can consider any sequence of musical sound, as an
+Identically, we can consider any sequence of musical sound as an
 addition of a set of qualities, such as pitch, timbre, and rhythm, that
 make that sequence unique from other sounds. The aim of this project is
 to find a computational mechanism to recognize such qualities, and
@@ -86,10 +171,9 @@ however hard it may be to define the quality that they recognize. It is
 difficult, however, to use traditional computational algorithms to
 perform such tasks, even given ample set of domain knowledge relating to
 audio signal processing. Neural Networks, over the past decade have
-shown to be effective in such areas, however, allowing complex image
-recognition and transformation to be possible. Therefore, I intend to
-implement a neural network model that performs a similar task with audio
-signals.
+shown to be effective in such areas, allowing complex image recognition
+and transformation to be possible. Therefore, I have implemented a
+neural network model that performs a similar task with audio signals.
 
 \paragraph{Classes of audio features}
 
@@ -100,9 +184,17 @@ classes of such features of sound, e.g.~the quality ``sound of a piano''
 is a timbre. Some of these class of audio characteristics, like genre,
 are harder to define. However, it may be hard to define what classical
 music is, but humans can recognize and classify classify classical music
-from the rest. We will be looking at two different classes of qualities
-that are at different points in the spectrum of definability; namely,
-timbre and ``chillness''.\\
+from the rest. Likewise, any curated set of music compiled with a
+certain theme can also be considered an audio feature. We will be
+looking at two different classes of qualities that are at different
+points in the spectrum of definability; namely, timbre and
+``chillness''. ``Chillness'' is a difficult concept to define, like the
+other audio qualities above; however, a plethora of playlists describe
+their compilation to be ``chill'', and a number of people agree and
+search for this quality. Since there is a Korean YouTube channel
+\texttt{MellowBeatSeeker} that streams ``Chill Study Beats,'' which is
+streamed by more than a thousand people regularly, we will use their
+data as the standard to chillness.\\
 
 \paragraph{Intuition}
 
@@ -110,12 +202,13 @@ Let us say that we have a set of piano recordings, \(P\), and a set of
 guitar recordings, \(G\). \(P\) has a common characteristic \(t_p\) and
 \(G\), \(t_g\), where \(t_p\) and \(t_g\) are of the same class, Timbre.
 We now define a transformer function \(T: P \rightarrow G\), which
-transforms piano music into guitar music.
+transforms piano music into guitar music. This is illustrated in Figure
+\ref{fig:t}.
 
 \begin{figure}
     \includegraphics{./figures/sound_t.tikz}
     \centering
-    \caption{The audio style transformer $T$}
+    \caption{The audio style transformer $T$} \label{fig:t}
 \end{figure}
 
 The objective of \(T\) is to discriminate \(t_p\) and \(t_g\), and when
@@ -141,24 +234,17 @@ content and style. Contents are the qualities that we do not want to
 modify, such as pitch. Styles are the other qualities that is not the
 content of audio, which we want to modify.
 
-\hypertarget{project-goals}{%
-\section{Project Goals}\label{project-goals}}
-
-The goal of this project is to model the transformer \(T\) with a Neural
-Network. A number of previous work have been done on this subject, so in
-chapter \ref{preparation} those works will be reviewed along with a
-number of other concepts that contributed to the foundations of this
-project.
-
 \hypertarget{preparation}{%
 \chapter{Preparation}\label{preparation}}
 
-Although Neural Networks are introduced in \emph{Part IB Artificial
-Intelligence} and \emph{Part II Machine Learning and Bayesian
-Inferences}, many of the contents of the project are beyond the coverage
-of Tripos courses; therefore, in this chapter I aim to clarify the
-starting point and the previous works I relied on to implement the
-project.
+A number of previous work have been done on the subject of audio style
+transfer; however, in order to better understand those works, a number
+of concepts in machine learning need to be reviewed. Although Neural
+Networks are introduced in \emph{Part IB Artificial Intelligence} and
+\emph{Part II Machine Learning and Bayesian Inferences}, many of the
+contents of the project are beyond the coverage of Tripos courses;
+therefore, in this chapter I aim to clarify the starting point and the
+previous works I relied on to implement the project.
 
 \hypertarget{starting-point}{%
 \section{Starting Point}\label{starting-point}}
@@ -221,35 +307,42 @@ thought of the function \(h: X^n \times Z \rightarrow Y\) where \(Z\) is
 the set of samples from the noise distribution.
 
 In any case, the function \(h\) can be represented by a collection of
-weights applied to each feature, \(\vec{w}\), to make this clear, we
+weights applied to each feature, \(\vec{w}\); to make this clear, we
 notate \(h\) as \(h_{\vec{w}}\). Our task then is to find the
 appropriate weights that computes \(h\) well given the input
 distribution. For this project, we do so by using multilayer neural
 networks.
 
 \begin{figure}[h]
-    \includegraphics[width=0.5\textwidth]{./figures/simple_neural_network.png}
-\centering
-\caption{}
+    \begin{subfigure}{.5\textwidth}
+        \includegraphics[width=\textwidth]{./figures/perceptron.tikz}
+        \centering
+        \caption{A single perceptron} \label{fig:perceptron}
+    \end{subfigure}
+    \begin{subfigure}{.5\textwidth}
+        \includegraphics[width=\textwidth]{./figures/simple_neural_network.png}
+        \centering
+        \caption{A fully connected Neural Network}
+    \end{subfigure}
 \end{figure}
 
 \hypertarget{neural-networks}{%
 \subsection{Neural Networks}\label{neural-networks}}
 
 First we define a single node of a neural network, called a perceptron.
-A perceptron is a simple linear operation usually depicted as Figure \_
-. Given the input \(\vec{x}\), weights \(\vec{w}\), and a bias input of
-\(\vec{b}\) (which is usually randomly initialized), it outputs a single
-scalar value \(\vec{w}^\intercal x + \vec{b}\). A single layer of a
-neural network is a set of these perceptrons, which results in a
-vectorized output. The layer of perceptrons can be represented as the
-weight matrix \(W\) where \(W = (w_0 ... w_n)^\intercal\), where \(n\)
-is the number of layer, so that the output vector
-\(\vec{y} = W \vec{x}\) where \(y_i = w_i^\intercal \vec{x}\). A neural
-network is a series of these layers applied sequentially. The process of
-computing each layer to get an output is called feedforward, and such
-networks are either called feedforward neural networks or fully
-connected networks.
+A perceptron is a simple linear operation usually depicted as Figure
+\ref{fig:perceptron}. Given the input \(\vec{x}\), weights \(\vec{w}\),
+and a bias input of \(\vec{b}\) (which is usually randomly initialized),
+it outputs a single scalar value \(\vec{w}^\intercal x + \vec{b}\). A
+single layer of a neural network is a set of these perceptrons, which
+results in a vectorized output. The layer of perceptrons can be
+represented as the weight matrix \(W\) where
+\(W = (\vec{w_0} ... \vec{w_n})^\intercal\), where \(n\) is the number
+of layers, so that the output vector \(\vec{y} = W \vec{x}\) where
+\(y_i = \vec{w_i}^\intercal \vec{x}\). A neural network is a series of
+these layers applied sequentially. The process of computing each layer
+to get an output is called feedforward, and such networks are either
+called feedforward neural networks or fully connected networks.
 
 \paragraph{Activation Functions}
 
@@ -353,10 +446,11 @@ In Information Theory, the cross entropy between two probability
 distributions \(p\) and \(q\) is the amount of information (quantified
 as average number of bits) needed to recover the true distribution \(p\)
 if the information is encoded in distribution \(q\). It is defined as
-\(H(p, q) = \mathbf{E}_p[- \log q]\), which for discrete number of
-examples with support \(\chi\) is \(- \sum_{x \in \chi} p(x) log q(x)\).
-In machine learning, \(q\) is the posterior distribution suggested by
-the hypothesis, and therefore can be expressed as
+\(H(p, q) = \mathbb{E}_p[- \log q]\), which for discrete number of
+examples with support \(\chi\) is
+\(- \sum_{x \in \chi} p(x) \log q(x)\). For machine learning
+applications, \(q\) is the posterior distribution suggested by the
+hypothesis, and therefore can be expressed as
 \(q(\vec{x} \mid \vec{w})\). Given that the output of the hypothesis is
 a valid class probability (which adds up to 1), minimizing the NLL Loss
 is equivalent to minimizing the cross entropy. For multi-class
@@ -378,7 +472,7 @@ equation:
 \end{equation}
 
 Other mechanisms for iteratively updating weights for loss minimizations
-do exists. The Adam optimizer, for example, is a popular choice for
+exist. The Adam optimizer, for example, is a popular choice for
 optimizing deep neural networks. The authors of Adam claim that:
 
 \begin{quote}
@@ -387,7 +481,7 @@ efficient, has little memory requirements, is invariant to diagonal
 rescaling of the gradients, and is well suited for problems that are
 large in terms of data and/or parameters. The method is also appropriate
 for non-stationary objectives and problems with very noisy and/or sparse
-gradients. {[}@adam{]}
+gradients. {[}20{]}
 \end{quote}
 
 These characteristics make it a popular choice for training complex
@@ -527,9 +621,9 @@ of the dataset is called an \emph{epoch}.
 Networks}\label{convolutional-neural-networks}}
 
 \begin{figure}[h]
-    \includegraphics[width=\textwidth]{./figures/conv.tikz}
+    \includegraphics[width=0.8\textwidth]{./figures/conv.tikz}
     \centering
-    \caption{Example of a 2D Convolution function, with (a) as input, (b) as the filter, and (c) as the output.} \label{fig:conv}
+    \caption[Example of a 2D Convolution function]{Example of a 2D Convolution function, with (a) as input, (b) as the filter, and (c) as the output.} \label{fig:conv}
 \end{figure}
 
 A convolutional neural network is a form of neural network which has
@@ -581,7 +675,7 @@ elements within the filter window.
 \begin{figure}[h]
     \includegraphics[width=0.5\textwidth]{./figures/resnet.png}
     \centering
-    \caption{https://towardsdatascience.com/an-overview-of-resnet-and-its-variants-5281e2f56035}
+    \caption{A dataflow representation of a single layer of Residual Neural Network}
 \end{figure}
 
 Residual Neural Networks (ResNets) are constructs that utilize
@@ -594,7 +688,7 @@ connection, the network uses the activations of the input until the
 weights of the convolutional layer learns to mute the input and return
 sufficiently significant results. ResNets allow for training deeper
 neural networks, and they are used frequently for many network models
-that are reviewed below. {[}@resnet{]}
+that are reviewed below. {[}15{]}
 
 \hypertarget{style-transfer-using-neural-networks}{%
 \section{Style Transfer using Neural
@@ -633,7 +727,7 @@ where \(N_l\) is the number of filters in a layer, \(M_l\) the size of
 the feature map of a layer, and \(w_l\) the weighting factor.
 
 Such methods of style transfer for audio has been investigated by
-Ulyanov and Vadim Lebedev {[}@ulyanov{]}. Since they lack a multi-class
+Ulyanov and Vadim Lebedev {[}30{]}. Since they lack a multi-class
 classifier for audio representations that perform as well as VGG19, they
 used a single convolutional layer to generate the representation needed.
 While some of their results may sound believable, their results lack
@@ -649,7 +743,7 @@ image style transfer without any pre-trained network. By using
 generative adversarial networks (GANs), these models learns not only the
 mapping between the two domain of images but also the loss function and
 therefore allow a general-purpose solution to image style transfer,
-without designing a domain-specific loss function. {[}@pix2pix{]}
+without designing a domain-specific loss function. {[}17{]}
 
 \hypertarget{generative-adversarial-networks}{%
 \subsection{Generative Adversarial
@@ -684,12 +778,12 @@ Given these characteristics, we can define the value function
 
 where \(G\) is trained to minimize \(V\) and \(D\) to maximize \(V\).
 
-@goodfellow\_gan proved that the global optimum of the value function
-above is when \(p_g = p_{data}\), given that the two multilayer neural
-networks \(G\) and \(D\) have enough capacity. In practice, however,
-different rate of training between \(G\) and \(D\) may cause unstable
-training. Early in the training, when \(G\) fails to generate convincing
-samples, \(D\) can reject samples with high confidence. This causes
+{[}11{]} proved that the global optimum of the value function above is
+when \(p_g = p_{data}\), given that the two multilayer neural networks
+\(G\) and \(D\) have enough capacity. In practice, however, different
+rate of training between \(G\) and \(D\) may cause unstable training.
+Early in the training, when \(G\) fails to generate convincing samples,
+\(D\) can reject samples with high confidence. This causes
 \(\log (1 - D(G(z)))\) to saturate and not provide gradient large enough
 to train \(G\). To mitigate this problem we can train to maximize
 \(\log D(G(z))\) instead. On the other hand, if \(G\) trains much faster
@@ -705,9 +799,9 @@ both \(G\) and \(D\), as we will see in \texttt{pix2pix}.
 \subsection{\texorpdfstring{\texttt{pix2pix}}{pix2pix}}\label{pix2pix}}
 
 \begin{figure}[h]
-    \includegraphics[width=\textwidth]{figures/pix2pix.tikz}
-\centering
-\caption{\texttt{pix2pix} model dataflow. Each $\mathcal{L}$ is a loss value calculated by computing the mean squared error between the discriminator output and the correct label. \label{fig:pix2pix}}
+    \includegraphics[width=.7\textwidth]{figures/pix2pix.tikz}
+    \centering
+    \caption[\texttt{pix2pix} model dataflow]{\texttt{pix2pix} model dataflow. Each $\mathcal{L}$ is a loss value calculated by computing the mean squared error between the discriminator output and the correct label. \label{fig:pix2pix}}
 \end{figure}
 
 \texttt{pix2pix} use conditional adversarial networks to create a
@@ -737,8 +831,8 @@ closer look into CycleGAN, which does not require a paired dataset.
 
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{figures/cyclegan.tikz}
-\centering
-\caption{Dataflow of CycleGAN architecture. $G_{A \rightarrow B} = G$ and $G_{B \rightarrow A} = F$ from equations \ref{eq:cyclegan_1} and \ref{eq:cyclegan_2}. \label{fig:cyclegan}}
+    \centering
+    \caption[Dataflow of CycleGAN architecture]{Dataflow of CycleGAN architecture. $G_{A \rightarrow B} = G$ and $G_{B \rightarrow A} = F$ from Equations \ref{eq:cyclegan_1} and \ref{eq:cyclegan_2}. \label{fig:cyclegan}}
 \end{figure}
 
 CycleGAN has been introduced to make style transfer possible without a
@@ -892,7 +986,7 @@ which gives a constant frequency to resolution
 \(Q = \frac{\Delta_k}{\omega_k} = 2^{\frac{1}{b} -1}\). Resulting matrix
 reflect human perception of sound; when \(b\) is set to 12, the
 frequency cutoffs match the spacing between each semitone in an equally
-tempered scale.
+tempered scale. {[}16{]}
 
 \subparagraph{Griffin-Lim}
 
@@ -908,8 +1002,8 @@ cutoffs) and has explicit parameters for starting and ending
 frequencies, we can ensure that all frequency ranges used by modern
 music. It also has a higher resolution on lower frequencies, which
 allows for a better representation of instruments in the lower
-frequencies. {[}@timbretron{]} Given that higher frequencies are less
-frequent in most songs, CQT seems to be the appropriate representation.
+frequencies. {[}16{]} Given that higher frequencies are less frequent in
+most songs, CQT seems to be the appropriate representation.
 
 \paragraph{Raw audio vs Time-Frequency Analyses}
 
@@ -918,9 +1012,9 @@ auto-tagging tasks between raw audio and intermediate representations.
 While the performance of the classifiers using intermediate
 representations work better, they have also shown that neural networks
 using raw audio can also autonomously learn the features to a
-comparative degree.{[}@endtoend{]} WaveNet, which we will cover later in
-this section, uses raw audio as an input, and learns timbral qualities,
-such as human voice.{[}@wavenet{]}
+comparative degree.{[}4{]} WaveNet, which we will cover later in this
+section, uses raw audio as an input, and learns timbral qualities, such
+as human voice.{[}24{]}
 
 \paragraph{Mel Frequency Scale}
 
@@ -942,14 +1036,14 @@ referred as Mel-STFT matrices from here on.
 \begin{figure}[!h]
     \includegraphics[width=0.7\textwidth]{./figures/wavenet.png}
     \centering
-    \caption{A variant of WaveNet Architecture, implemented by Nvidia} \label{fig:wavenet}
+    \caption[Diagram of WaveNet]{Diagram of a variant of WaveNet Architecture, implemented by Nvidia} \label{fig:wavenet}
 \end{figure}
 
 Figure \ref{fig:wavenet} shows the architecture of WaveNet, introduced
-by Oord et al., which learns to generate raw audio. {[}@wavenet{]}
-WaveNet generates new sample points that are conditional to the outputs
-of the previous time step, i.e.~the each element of the output waveform
-of length \(T\), \(\mathbf{x} = \{x_0, ..., x_T\}\), is generated by the
+by Oord et al., which learns to generate raw audio. {[}24{]} WaveNet
+generates new sample points that are conditional to the outputs of the
+previous time step, i.e.~the each element of the output waveform of
+length \(T\), \(\mathbf{x} = \{x_0, ..., x_T\}\), is generated by the
 product of the probability distribution that is conditional to all
 previous time step:
 
@@ -1010,8 +1104,8 @@ figure \ref{fig:wavenet}. By multiplying the results given by the two
 activation functions, the sigmoid function acts as gate to limit the
 effect of the result generated by the \(\tanh\) activation. Such ideas
 have been borrowed from LSTM, a type of recurrent neural networks, and
-have been shown effective by PixelCNN. {[}@pixelcnn{]} @wavenet found
-that using gated activation unit increase the performance of WaveNet
+have been shown effective by PixelCNN. {[}25{]} {[}24{]} found that
+using gated activation unit increase the performance of WaveNet
 significantly.
 
 \paragraph{Conditioning}
@@ -1030,7 +1124,7 @@ TimbreTron and Universal Music Translation Networks.
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{figures/timbretron.tikz}
     \centering
-    \caption{TimbreTron model architecture. CQT matrices are notated $CQT$ and the raw audio $PCM$ to distinguish the type of data generated.} \label{fig:timbretron}
+    \caption[TimbreTron model architecture]{TimbreTron model architecture. CQT matrices are notated $CQT$ and the raw audio $PCM$ to distinguish the type of data generated.} \label{fig:timbretron}
 \end{figure}
 
 TimbreTron is a combination of CQT, CycleGAN, and WaveNet that has been
@@ -1048,8 +1142,8 @@ takes the mean of each patch loss. Since such discrimination process do
 not make sense when dealing with audio data, the discriminator has been
 modified to compute the entire frequency spectrum. The details of the
 discriminator design is not included in the paper, so in the
-implementation chapter I will present different discriminators of
-original design.
+implementation chapter I will present different full-spectrum
+discriminators of original design.
 
 \paragraph{WaveNet}
 
@@ -1069,16 +1163,16 @@ introduced by Gulrajani et al.~The resulting value function given
 posterior distribution \(p_g\) from the generator and random sample
 \(p_z\) is:
 
-\begin{multline}
+\begin{equation}
     V(G, D) = \underbrace{
         \mathbb{E}_{x \sim p_{g}(\mathbf{x})} [D(x)] - \mathbb{E}_{x \sim p_{data}(\mathbf{x})} [D(x)]
-        }_\textrm{Wasserstein GAN value function} \\ +
+        }_\textrm{Wasserstein GAN value function} +
         \underbrace{
             \mathbb{E}_{x \sim p_z(\mathbf{x})} [(\| \nabla_x D(x) \|_2 - 1)^2]
         }_\textrm{Gradient Penalty} 
-\end{multline}
+\end{equation}
 
-which has been shown by @gp .
+which has been shown by {[}13{]}.
 
 By using gradient penalty the authors of TimbreTron claim that they were
 able mitigate the unstable training behaviour shown by the model caused
@@ -1098,9 +1192,9 @@ the legitimate style transfer process as the training continues.
 Network}\label{universal-music-translation-network}}
 
 \begin{figure}[h]
-    \includegraphics[width=\textwidth]{figures/facebook_umtn.eps}
+    \includegraphics[width=0.8\textwidth]{figures/facebook_umtn.eps}
     \centering
-    \caption{Universal Music Translation Network Diagram, as shared by Mor et al. \label{fig:facebook_umtn}}
+    \caption[Universal Music Translation Network Diagram]{Universal Music Translation Network Diagram, as shared by Mor et al. \label{fig:facebook_umtn}}
 \end{figure}
 
 The Universal Music Translation Network (UMTN) by Mor et al.~is another
@@ -1113,7 +1207,7 @@ method has been effective for timbre transfer.
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{./figures/nsynth.png}.
     \centering
-    \caption{https://magenta.tensorflow.org/nsynth \label{fig:nsynth}}
+    \caption[NSynth WaveNet AutoEnocder]{NSynth WaveNet AutoEncoder by Engel et al.} \label{fig:nsynth}
 \end{figure}
 
 \hypertarget{the-temporal-encoder}{%
@@ -1144,7 +1238,7 @@ altered by short variations which are most likely to be generated by the
 lesser harmonics that define the timbre of the audio sample.
 
 \begin{figure}[h]
-    \includegraphics[width=\textwidth]{figures/dann.eps}
+    \includegraphics[width=0.8\textwidth]{figures/dann.eps}
     \centering
     \caption{Structure of Domain Adversarial Neural Networks \label{fig:dann}}
 \end{figure}
@@ -1158,11 +1252,11 @@ output of the temporal decoder as the input and tries to predict its
 source domain. By training to maximise the loss function instead, as
 shown effective by Domain Adversarial Training of Neural Networks by
 Ganin et al., we train the encoder to output the pitch data regardless
-of the domain specific features (i.e.~timbre). {[}@dann{]} @umtn does
-not mention how they have implemented their domain confusion but cites
-the @dann instead. Therefore I have assumed here that they have used the
+of the domain specific features (i.e.~timbre). {[}8{]} {[}22{]} does not
+mention how they have implemented their domain confusion but cites
+{[}8{]} instead. Therefore I have assumed here that they have used the
 domain classifier as shown in figure \ref{fig:dann}, as that was the
-original design of @dann. Here the sign of the gradient of the
+original design of {[}8{]}. Here the sign of the gradient of the
 classification loss \(\mathcal{L}_d\) is flipped during back-propagation
 instead of training on negative loss in order to prevent the network
 from learning the sign flip.
@@ -1206,8 +1300,8 @@ we have the reconstruction loss:
 where \(\mathcal{L}_{decoder}\), \(\mathcal{L}_{dc}\) are Cross Entropy
 loss functions. The negativity of the domain confusion loss was
 initially implemented as a gradient reversal layer; however, as will be
-discussed in paragraph \ref{loss-function-modification}, the loss
-function was modified for the actual implementation.
+discussed in section \ref{loss-function-modification}, the loss function
+was modified for the actual implementation.
 
 \hypertarget{implementation}{%
 \chapter{Implementation}\label{implementation}}
@@ -1216,15 +1310,14 @@ The networks shared above is the current state of art in audio
 processing using neural networks. In this section I will implement
 network architectures inspired by these networks. I have used
 \texttt{PyTorch} to implement all models and data processing, and
-\texttt{librosa} to preprocess the audio samples. {[}@pytorch,
-@librosa{]} All hyper-parameters and preprocessing options are passed in
-through command-line options to allow for more flexible and faster
-experiment iterations. I have used code written by Zhu et al.
-{[}@cyclegan, @pix2pix{]} for CycleGAN image style transfer as the
-boilerplate of the project, but has been heavily modified to accommodate
-for flexible dataset combinations, diverse neural network models, and
-distributed model training (i.e.~training a single model across multiple
-GPUs).
+\texttt{librosa} to preprocess the audio samples. {[}21,26{]} All
+hyper-parameters and preprocessing options are passed in through
+command-line options to allow for more flexible and faster experiment
+iterations. I have used code written by Zhu et al. {[}17,32{]} for
+CycleGAN image style transfer as the boilerplate of the project, but has
+been heavily modified to accommodate for flexible dataset combinations,
+diverse neural network models, and distributed model training
+(i.e.~training a single model across multiple GPUs).
 
 \hypertarget{datasets}{%
 \section{Datasets}\label{datasets}}
@@ -1283,11 +1376,11 @@ styles of instruments.
 The Free Music Archive has a set of license-free music, classified by
 genre. Defferrard et al.~compiled the songs from the archive into 30
 second clips along their metadata information organized into a csv file.
-{[}@fma{]}
+{[}3{]}
 
 \paragraph{Youtube}
 
-Thanks to \texttt{MellowBeatSeaker}, a Korean YouTube channel that
+With thanks to \texttt{MellowBeatSeeker}, a Korean YouTube channel that
 streams ``Chill Lo-Fi Study Beats'', I could gather 60 hours of curated
 chill music. These files were processed using \texttt{librosa} to be cut
 into non-silent intervals.
@@ -1298,14 +1391,14 @@ Maestro is a dataset of piano music compiled by the Google Magenta
 Project. It includes 172 hours worth of MIDI and wav files. They were
 gathered by using Yamaha Disklavier, which can record MIDI data from
 acoustic piano keys. Only the audio data has been used for this project.
-{[}@maestro{]}
+{[}14{]}
 
 \paragraph{GuitarSet}
 
 GuitarSet is compiled by Xi et al.~at NYU Music and Audio Research Lab
 using hexaphonic pickups and microphones on acoustic guitars. The
 dataset contains pairs of soloist and accompanist recordings, which are
-mixed using \texttt{numpy} when the dataset is loaded. {[}@guitarset{]}
+mixed using \texttt{numpy} when the dataset is loaded. {[}31{]}
 
 \hypertarget{preprocess}{%
 \subsection{Preprocess}\label{preprocess}}
@@ -1357,9 +1450,9 @@ restore the audio for the purpose of this project.
 In this section I introduce two neural network models inspired by
 TimbreTron and UMTN, along with an implementation of UMTN. TimbreTron
 could not be implemented because the network model was too large to fit
-into my system; moreover, @timbretron does not include many details
-(such as the generator architecture) which is essential to the
-implementation of the network.
+into my system; moreover, {[}16{]} does not include many details (such
+as the generator architecture) which is essential to the implementation
+of the network.
 
 First of the two new models is the CycleGAN model that uses the
 Griffin-Lim algorithm as the reconstruction mechanism. I tried to
@@ -1378,7 +1471,11 @@ model.
 \hypertarget{classifiers}{%
 \subsection{Classifiers}\label{classifiers}}
 
-TODO: figure here to visualise the classifiers
+\begin{figure}
+    \includegraphics[width=\textwidth]{figures/classifiers.tikz}
+    \centering
+    \caption{Visualization of the Classifiers}
+\end{figure}
 
 I have experimented with three different classifier networks, one from
 the original CycleGAN model, and two of my original design. In the
@@ -1414,7 +1511,7 @@ one.
 \hypertarget{conv1d}{%
 \subsubsection{\texorpdfstring{\texttt{conv1d}}{conv1d}}\label{conv1d}}
 
-@ulyanov uses the frequency dimension of a time-frequency analyses as
+{[}30{]} uses the frequency dimension of a time-frequency analyses as
 the filter input to convolutional neural networks, and claims that such
 methods have been effective for the non-GAN style transfer they
 implemented. Since there is a filter for each input and output channel
@@ -1473,7 +1570,7 @@ discriminate based on the full frequency spectrum of the input.
 \hypertarget{cyclegan-1}{%
 \subsection{CycleGAN}\label{cyclegan-1}}
 
-@timbretron introduces a model that uses Griffin-Lim on STFT matrices as
+Timbretron introduces a model that uses Griffin-Lim on STFT matrices as
 the baseline, but fails to present the equivalent for CQT
 representations. By implementing a CycleGAN model that uses Griffin-Lim
 reconstruction on both STFT and CQT representations, I hoped to clarify
@@ -1493,7 +1590,7 @@ The model was trained with a learning rate of 0.0002, with the
 diminishing identity loss used for TimbreTron. The original codebase by
 Zhu et al.~had an implementation of Wasserstein GAN with Gradient
 Penalty, but it failed to perform reliably. Least Squared GAN, which is
-used by the original CycleGAN paper, was used instead. {[}@cyclegan{]}
+used by the original CycleGAN paper, was used instead. {[}32{]}
 
 \hypertarget{the-encoder}{%
 \subsubsection{The Encoder}\label{the-encoder}}
@@ -1521,7 +1618,7 @@ System}\label{distributed-training-system}}
 \begin{figure}[h]
     \includegraphics[width=\textwidth]{./figures/cyclegan_gpu.tikz}
     \centering
-    \caption{A modification of figure \ref{fig:cyclegan} to show how the model is split between the two GPUs. The two yellow points show the point at which the tensor has to be transferred; this way we can minimize the necessity of transferring the output vector.} \label{fig:cyclegan_gpu}
+    \caption[Distributed CycleGAN Diagram]{A modification of figure \ref{fig:cyclegan} to show how the model is split between the two GPUs. The two yellow points show the point at which the tensor has to be transferred; this way we can minimize the necessity of transferring the output vector.} \label{fig:cyclegan_gpu}
 \end{figure}
 
 Some generator models made the entire network architecture too large to
@@ -1558,8 +1655,6 @@ Network}\label{universal-music-translation-network-1}}
 \centering 
 \caption{Implemented architecture of the Universal Music Translation Network \label{fig:umtn}}
 \end{figure}
-
-TODO: change the figure to have the pool and interpolation layers
 
 The penultimate model of this project on is a recreation of the
 Universal Music Translation Network. At the time of the implementation
@@ -1644,17 +1739,21 @@ evaluation.
 \subsection{Spectral Translation
 Model}\label{spectral-translation-model}}
 
-TODO: a figure for the new model
+\begin{figure}
+    \includegraphics{figures/spectral.tikz}
+    \centering
+    \caption{Diagram of the Spectral Translation Model}
+\end{figure}
 
 I have designed another model which borrows the same domain-adversarial
 network design from UMTN, but uses the generator and discriminators
 designed for CycleGAN models. Deep Voice and earlier conditional WaveNet
-models used Mel-STFT inputs to WaveNet to create voice transfer.
-{[}@deepvoice{]} Similarly, here I use encoder and classifier networks
-designed for such spectral representation in order to condition the
-WaveNet decoder. Unlike UMTN, there is no pooling layer for this model;
-however the output of the encoder is interpolated by the nearest
-neighbor algorithm like the original model.
+models used Mel-STFT inputs to WaveNet to create voice transfer. {[}1{]}
+Similarly, here I use encoder and classifier networks designed for such
+spectral representation in order to condition the WaveNet decoder.
+Unlike UMTN, there is no pooling layer for this model; however the
+output of the encoder is interpolated by the nearest neighbor algorithm
+like the original model.
 
 \hypertarget{evaluation-preparation}{%
 \subsection{Evaluation Preparation}\label{evaluation-preparation}}
@@ -1677,7 +1776,7 @@ by a limited number of people executing simple operations.
 All models implemented were trained with two sets of datasets. The first
 was a pairing of the Maestro piano dataset and GuitarSet, and the second
 was a pairing between samples of Pop and Rock from the FMA dataset,
-paired with the curated playlist by MellowBeatSeaker. The objective of
+paired with the curated playlist by MellowBeatSeeker. The objective of
 these dataset pairing was to define two different domains of different
 musical style. The first pair made a clear distinction in domain by
 timbre. The second pair, on the other hand, was an attempt to capture a
@@ -1844,7 +1943,7 @@ While the model loss converged when trained with \texttt{piano2guitar}
 dataset, it diverged with the \texttt{chillify} dataset, even with
 different values of \(\lambda_{dc}\) to incentivize stronger
 classification and pitch recognition. This was expected, however. The
-temporal encoder, as shown by @nsynth, could recognize lower level audio
+temporal encoder, as shown by {[}7{]}, could recognize lower level audio
 style such as note qualities and timbre, but could not recognize higher
 order styles such as genre. With such an input, the classifier would not
 have been able to classify the two domains apart due to lack of capacity
@@ -1927,7 +2026,7 @@ noted that the contents did not sound similar while 111 did; for section
 that they were.
 
 \begin{figure}[!h]
-    \includegraphics[width=.5\textwidth]{./figures/decoder.png}
+    \includegraphics[width=.7\textwidth]{./figures/decoder.png}
     \centering
     \caption{Loss function behaviour of the two decoders over time} \label{fig:decoder}
 \end{figure}
@@ -1968,10 +2067,15 @@ on pianos, because of the time the hammer takes to get back to its
 original position. Therefore, the decoder has very little information in
 both content and style to recreate a realistic sound sample.
 
-\hypertarget{spectral-translator-model}{%
-\section{Spectral Translator Model}\label{spectral-translator-model}}
+\hypertarget{spectral-translation-model-1}{%
+\section{Spectral Translation
+Model}\label{spectral-translation-model-1}}
 
-Figure: loss function of the spectral translator model
+\begin{figure}[h]
+    \includegraphics[width=.7\textwidth]{figures/spectral_loss.png}
+    \centering
+    \caption{Spectral Translation Model Loss Behaviour}
+\end{figure}
 
 The spectral translator model was designed to evaluate whether the ill
 training behaviour of the CycleGAN model was due to the capacity of the
@@ -1988,7 +2092,289 @@ WaveNet response. Since we have shown the effectiveness of the
 classifier network, this strongly alludes to the lack of capacity in the
 design of the generator network.
 
-\hypertarget{conclusion-1000-words}{%
-\chapter{Conclusion {[}1000 words{]}}\label{conclusion-1000-words}}
+\hypertarget{conclusion}{%
+\chapter{Conclusion}\label{conclusion}}
+
+\hypertarget{summary-of-works}{%
+\section{Summary of Works}\label{summary-of-works}}
+
+During this project, a number of neural network constructs, from
+Generative Adversarial Networks to WaveNet, Timbretron, and the
+Universal Music Translation Network were reviewed in order to create a
+model that can transform audio samples by recognizing audio feature.
+
+To approach such goal in a more methodological way, Multiple classifier
+models that can recognize the audio features mentioned above were
+designed and implemented based upon previous works, and evaluated their
+performance with thorough testing of parameters and relative
+significance testing.
+
+With the successful implementation of a neural network model that can
+classify audio features, I have used techniques and methods from the
+reviewed previous works, such as CycleGAN network architecture, to
+either reimplement an existing model, or design a new network structure
+that modify the style of input audios signals. Each model was designed
+to mitigate a set of limitations of the project, such as hardware
+constraints or the quality of the dataset. Moreover, each model was
+designed either to verify a claim that a previous work has made, or
+overcome the lack of information given in the descriptions of those
+works.
+
+Furthermore, in implementing a successful neural network model, I have
+conducted a human perception experiment to evaluate the efficacy of the
+model, and analysed the results to examine the performance and
+limitations of the neural network model. For models that failed to
+output the desired output, I have analysed the behaviour of the model
+and the reason for failure.
+
+\hypertarget{future-works}{%
+\section{Future Works}\label{future-works}}
+
+As shown by Section \ref{spectral-translation-model-1}, the most likely
+reason for the failure of the CycleGAN and Spectral Translation Model is
+the generator model. With a better designed generator model that
+effectively transform audio features in a time-frequency analysis, the
+network architecture proposed in this project could work much more
+effectively and produce usable results. Therefore, a research on
+transformer networks for time-frequency representations would allow for
+more effective audio processing using neural networks, although it was
+not within the scope of this project.
+
+Generally, more research on the area of audio processing using machine
+learning can allow for better tools for musicians to express their
+creativity. A software instrument in the current music production
+process require a lot of storage space with a limited expressibility in
+sound, because it depends on pre-recorded pieces of samples. With neural
+networks that learn audio features, a more efficient and effective sound
+generation that encapsulates subtle audio qualities can take place.
+Timbre could itself be an area for unsupervised learning algorithms,
+which would allow for compositions and modifications of instrument
+qualities that is not possible with traditional audio mixing.
+
+During the research for previous works for this project, I noticed a
+lack of interest for sound in the machine learning industry, and found
+that most audio processing techniques using neural networks were
+confined to that of human voice. While this is an important area of
+research, especially for more natural human computer interaction, this
+suggested that researches that may allow us to use the computational
+methodologies that we have to better understand properties of sound and
+music were getting ignored. By conducting this project, therefore, I
+hoped to shine some light to many possible areas of computer science
+research not only in audio, but in music.
+
+\chapter*{Bibliography}
+
+\hypertarget{refs}{}
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fArikCCDGKLMRSS17}{}%
+{[}1{]} Sercan Ömer Arik, Mike Chrzanowski, Adam Coates, Greg Diamos,
+Andrew Gibiansky, Yongguo Kang, Xian Li, John Miller, Jonathan Raiman,
+Shubho Sengupta, and Mohammad Shoeybi. 2017. Deep Voice: Real-time
+Neural Text-to-Speech. \emph{CoRR} abs/1702.0, (2017). Retrieved from
+\url{http://arxiv.org/abs/1702.07825}
+
+\leavevmode\hypertarget{ref-doi:10.1121ux2f1.400476}{}%
+{[}2{]} Judith C Brown. 1991. Calculation of a constant Q spectral
+transform. \emph{The Journal of the Acoustical Society of America} 89, 1
+(1991), 425--434. DOI:\url{https://doi.org/10.1121/1.400476}
+
+\leavevmode\hypertarget{ref-fma_dataset}{}%
+{[}3{]} Michaël Defferrard, Kirell Benzi, Pierre Vandergheynst, and
+Xavier Bresson. 2017. FMA: A dataset for music analysis. In \emph{18th
+international society for music information retrieval conference}.
+Retrieved from \url{https://arxiv.org/abs/1612.01840}
+
+\leavevmode\hypertarget{ref-6854950}{}%
+{[}4{]} S Dieleman and B Schrauwen. 2014. End-to-end learning for music
+audio. In \emph{2014 ieee international conference on acoustics, speech
+and signal processing (icassp)}, 6964--6968.
+DOI:\url{https://doi.org/10.1109/ICASSP.2014.6854950}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fabs-1802-04208}{}%
+{[}5{]} Chris Donahue, Julian McAuley, and Miller Puckette. 2018.
+Synthesizing Audio with Generative Adversarial Networks. \emph{CoRR}
+abs/1802.0, (2018). Retrieved from \url{http://arxiv.org/abs/1802.04208}
+
+\leavevmode\hypertarget{ref-engel2018gansynth}{}%
+{[}6{]} Jesse Engel, Kumar Krishna Agrawal, Shuo Chen, Ishaan Gulrajani,
+Chris Donahue, and Adam Roberts. 2019. \{GANS\}ynth: Adversarial Neural
+Audio Synthesis. In \emph{International conference on learning
+representations}. Retrieved from
+\url{https://openreview.net/forum?id=H1xQVn09FX}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fEngelRRDESN17}{}%
+{[}7{]} Jesse Engel, Cinjon Resnick, Adam Roberts, Sander Dieleman,
+Douglas Eck, Karen Simonyan, and Mohammad Norouzi. 2017. Neural Audio
+Synthesis of Musical Notes with WaveNet Autoencoders. \emph{CoRR}
+abs/1704.0, (2017). Retrieved from \url{http://arxiv.org/abs/1704.01279}
+
+\leavevmode\hypertarget{ref-Ganin:2016:DTN:2946645.2946704}{}%
+{[}8{]} Yaroslav Ganin, Evgeniya Ustinova, Hana Ajakan, Pascal Germain,
+Hugo Larochelle, François Laviolette, Mario Marchand, and Victor
+Lempitsky. 2016. Domain-adversarial Training of Neural Networks.
+\emph{J. Mach. Learn. Res.} 17, 1 (2016), 2030--2096. Retrieved from
+\url{http://dl.acm.org/citation.cfm?id=2946645.2946704}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fGatysEB15a}{}%
+{[}9{]} Leon A Gatys, Alexander S Ecker, and Matthias Bethge. 2015. A
+Neural Algorithm of Artistic Style. \emph{CoRR} abs/1508.0, (2015).
+Retrieved from \url{http://arxiv.org/abs/1508.06576}
+
+\leavevmode\hypertarget{ref-Goodfellow-et-al-2016}{}%
+{[}10{]} Ian Goodfellow, Yoshua Bengio, and Aaron Courville. 2016.
+\emph{Deep Learning}. MIT Press.
+
+\leavevmode\hypertarget{ref-NIPS2014_5423}{}%
+{[}11{]} Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David
+Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. 2014.
+Generative Adversarial Nets. In \emph{Advances in neural information
+processing systems 27}, Z Ghahramani, M Welling, C Cortes, N D Lawrence
+and K Q Weinberger (eds.). Curran Associates, Inc., 2672--2680.
+Retrieved from
+\url{http://papers.nips.cc/paper/5423-generative-adversarial-nets.pdf}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fabs-1710-11385}{}%
+{[}12{]} Eric Grinstein, Ngoc Q K Duong, Alexey Ozerov, and Patrick
+Pérez. 2017. Audio style transfer. \emph{CoRR} abs/1710.1, (2017).
+Retrieved from \url{http://arxiv.org/abs/1710.11385}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fGulrajaniAADC17}{}%
+{[}13{]} Ishaan Gulrajani, Faruk Ahmed,
+Mart\(\backslash\)'\(\backslash\)in Arjovsky, Vincent Dumoulin, and
+Aaron C Courville. 2017. Improved Training of Wasserstein GANs.
+\emph{CoRR} abs/1704.0, (2017). Retrieved from
+\url{http://arxiv.org/abs/1704.00028}
+
+\leavevmode\hypertarget{ref-hawthorne2018enabling}{}%
+{[}14{]} Curtis Hawthorne, Andriy Stasyuk, Adam Roberts, Ian Simon,
+Cheng-Zhi Anna Huang, Sander Dieleman, Erich Elsen, Jesse Engel, and
+Douglas Eck. 2019. Enabling factorized piano music modeling and
+generation with the MAESTRO dataset. In \emph{International conference
+on learning representations}. Retrieved from
+\url{https://openreview.net/forum?id=r1lYRjC9F7}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fHeZRS15}{}%
+{[}15{]} Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2015.
+Deep Residual Learning for Image Recognition. \emph{CoRR} abs/1512.0,
+(2015). Retrieved from \url{http://arxiv.org/abs/1512.03385}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fabs-1811-09620}{}%
+{[}16{]} Sicong Huang, Qiyang Li, Cem Anil, Xuchan Bao, Sageev Oore, and
+Roger B Grosse. 2018. TimbreTron: \{A\} WaveNet(CycleGAN(CQT(Audio)))
+Pipeline for Musical Timbre Transfer. \emph{CoRR} abs/1811.0, (2018).
+Retrieved from \url{http://arxiv.org/abs/1811.09620}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fIsolaZZE16}{}%
+{[}17{]} Phillip Isola, Jun-Yan Zhu, Tinghui Zhou, and Alexei A Efros.
+2016. Image-to-Image Translation with Conditional Adversarial Networks.
+\emph{CoRR} abs/1611.0, (2016). Retrieved from
+\url{http://arxiv.org/abs/1611.07004}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fabs-1802-08435}{}%
+{[}18{]} Nal Kalchbrenner, Erich Elsen, Karen Simonyan, Seb Noury,
+Norman Casagrande, Edward Lockhart, Florian Stimberg, Aäron van den
+Oord, Sander Dieleman, and Koray Kavukcuoglu. 2018. Efficient Neural
+Audio Synthesis. \emph{CoRR} abs/1802.0, (2018). Retrieved from
+\url{http://arxiv.org/abs/1802.08435}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fabs-1710-10196}{}%
+{[}19{]} Tero Karras, Timo Aila, Samuli Laine, and Jaakko Lehtinen.
+2017. Progressive Growing of GANs for Improved Quality, Stability, and
+Variation. \emph{CoRR} abs/1710.1, (2017). Retrieved from
+\url{http://arxiv.org/abs/1710.10196}
+
+\leavevmode\hypertarget{ref-Kingma2015AdamAM}{}%
+{[}20{]} Diederik P Kingma and Jimmy Ba. 2015. Adam: A Method for
+Stochastic Optimization. \emph{CoRR} abs/1412.6980, (2015).
+
+\leavevmode\hypertarget{ref-brian_mcfee_2018_1252297}{}%
+{[}21{]} Brian McFee, Matt McVicar, Stefan Balke, Carl Thomé, Colin
+Raffel, Dana Lee, Oriol Nieto, Eric Battenberg, Dan Ellis, Ryuichi
+Yamamoto, Josh Moore, Rachel Bittner, Keunwoo Choi, Pius Friesch,
+Fabian-Robert Stöter, Vincent Lostanlen, Siddhartha Kumar, Simon
+Waloschek, Seth Kranzler, Rimvydas Naktinis, Douglas Repetto, Curtis
+``Fjord'' Hawthorne, CJ Carr, Waldir Pimenta, Petr Viktorin, Paul
+Brossier, João Felipe Santos, Jackie Wu, Erik Peterson, and Adrian
+Holovaty. 2018. Librosa/librosa: 0.6.1.
+DOI:\url{https://doi.org/10.5281/zenodo.1252297}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fabs-1805-07848}{}%
+{[}22{]} Noam Mor, Lior Wolf, Adam Polyak, and Yaniv Taigman. 2018. A
+Universal Music Translation Network. \emph{CoRR} abs/1805.0, (2018).
+Retrieved from \url{http://arxiv.org/abs/1805.07848}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fNikulinN16}{}%
+{[}23{]} Yaroslav Nikulin and Roman Novak. 2016. Exploring the Neural
+Algorithm of Artistic Style. \emph{CoRR} abs/1602.0, (2016). Retrieved
+from \url{http://arxiv.org/abs/1602.07188}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fOordDZSVGKSK16}{}%
+{[}24{]} Aäron van den Oord, Sander Dieleman, Heiga Zen, Karen Simonyan,
+Oriol Vinyals, Alex Graves, Nal Kalchbrenner, Andrew W Senior, and Koray
+Kavukcuoglu. 2016. WaveNet: A Generative Model for Raw Audio.
+\emph{CoRR} abs/1609.0, (2016). Retrieved from
+\url{http://arxiv.org/abs/1609.03499}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fOordKVEGK16}{}%
+{[}25{]} Aäron van den Oord, Nal Kalchbrenner, Oriol Vinyals, Lasse
+Espeholt, Alex Graves, and Koray Kavukcuoglu. 2016. Conditional image
+generation with pixelcnn decoders. \emph{CoRR} abs/1606.05328, (2016).
+Retrieved from \url{http://arxiv.org/abs/1606.05328}
+
+\leavevmode\hypertarget{ref-paszke2017automatic}{}%
+{[}26{]} Adam Paszke, Sam Gross, Soumith Chintala, Gregory Chanan,
+Edward Yang, Zachary DeVito, Zeming Lin, Alban Desmaison, Luca Antiga,
+and Adam Lerer. 2017. Automatic differentiation in pytorch. (2017).
+
+\leavevmode\hypertarget{ref-Subakan2018}{}%
+{[}27{]} Y. Cem Subakan and Paris Smaragdis. 2018. Generative
+Adversarial Source Separation. In \emph{ICASSP, ieee international
+conference on acoustics, speech and signal processing - proceedings}.
+DOI:\url{https://doi.org/10.1109/ICASSP.2018.8461671}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fTaigmanPW16}{}%
+{[}28{]} Yaniv Taigman, Adam Polyak, and Lior Wolf. 2016. Unsupervised
+Cross-Domain Image Generation. \emph{CoRR} abs/1611.0, (2016). Retrieved
+from \url{http://arxiv.org/abs/1611.02200}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fabs-1805-02410}{}%
+{[}29{]} Naoya Takahashi, Nabarun Goswami, and Yuki Mitsufuji. 2018.
+MMDenseLSTM: An efficient combination of convolutional and recurrent
+neural networks for audio source separation. \emph{CoRR} abs/1805.0,
+(2018). Retrieved from \url{http://arxiv.org/abs/1805.02410}
+
+\leavevmode\hypertarget{ref-Ulyanov2016}{}%
+{[}30{]} Dmitry Ulyanov and Vadim Lebedev. 2016. Audio texture synthesis
+and style transfer. Retrieved from
+\url{https://dmitryulyanov.github.io/audio-texture-synthesis-and-style-transfer/}
+
+\leavevmode\hypertarget{ref-Xi2018}{}%
+{[}31{]} Qingyang Xi, Rachel M. Bittner, Johan Pauwels, Xuzhou Ye, and
+Juan P. Bello. 2018. GuitarSet. (September 2018).
+DOI:\url{https://doi.org/10.5281/ZENODO.1422265}
+
+\leavevmode\hypertarget{ref-DBLP:journalsux2fcorrux2fZhuPIE17}{}%
+{[}32{]} Jun-Yan Zhu, Taesung Park, Phillip Isola, and Alexei A Efros.
+2017. Unpaired Image-to-Image Translation using Cycle-Consistent
+Adversarial Networks. \emph{CoRR} abs/1703.1, (2017). Retrieved from
+\url{http://arxiv.org/abs/1703.10593}
+
+\leavevmode\hypertarget{ref-fcn_figure}{}%
+{[}33{]} Machine Learning Approaches for Cancer Detection - Scientific
+Figure on ResearchGate.
+
+\appendix
+
+\hypertarget{consent-form}{%
+\chapter{Consent Form}\label{consent-form}}
+
+\hypertarget{questionnaire}{%
+\chapter{Questionnaire}\label{questionnaire}}
+
+\hypertarget{histogram-of-answers-of-each-questions}{%
+\chapter{Histogram of Answers of each
+Questions}\label{histogram-of-answers-of-each-questions}}
+
+\hypertarget{project-proposal}{%
+\chapter{Project Proposal}\label{project-proposal}}
 
 \end{document}

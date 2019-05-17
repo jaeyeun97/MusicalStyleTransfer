@@ -1,0 +1,260 @@
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da3919126947546523] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (62,159.4) -- (50,202.79) ;
+
+
+%Shape: Parallelogram [id:dp8784176392494212] 
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ] (62,159.4) -- (211,159.4) -- (179.31,192.42) -- (30.31,192.42) -- cycle ;
+%Straight Lines [id:da2919860036677713] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (132.69,159.98) -- (100,193) ;
+
+
+%Straight Lines [id:da2109547389574553] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (170.69,159.98) -- (138,193) ;
+
+
+%Straight Lines [id:da39021636515780544] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (96.69,159.98) -- (64,193) ;
+
+
+
+%Straight Lines [id:da16405528602573627] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (48,174.4) -- (196,175.4) ;
+
+
+
+%Straight Lines [id:da7829496940351439] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (50,52.79) -- (62,78.4) ;
+
+
+%Shape: Parallelogram [id:dp4079795656819982] 
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ] (50,52.79) -- (199,52.79) -- (185,64.79) -- (36,64.79) -- cycle ;
+%Straight Lines [id:da9095782121585787] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (121,53) -- (106,65) ;
+
+
+%Straight Lines [id:da12037297097033939] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (159,53) -- (144,65) ;
+
+
+%Straight Lines [id:da35455266112224426] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (85,53) -- (70,65) ;
+
+
+
+%Shape: Cube [id:dp030303640776637275] 
+\draw   (280.14,79.8) -- (275,74.66) -- (275,15.6) -- (334.86,15.6) -- (340,20.74) -- (340,79.8) -- cycle ; \draw   (275,15.6) -- (280.14,20.74) -- (280.14,79.8) ; \draw   (280.14,20.74) -- (340,20.74) ;
+%Shape: Cube [id:dp3803102771801896] 
+\draw   (388,79.8) -- (365,56.8) -- (365,15.6) -- (407,15.6) -- (430,38.6) -- (430,79.8) -- cycle ; \draw   (365,15.6) -- (388,38.6) -- (388,79.8) ; \draw   (388,38.6) -- (430,38.6) ;
+%Shape: Cube [id:dp600660374474175] 
+\draw   (484,79.6) -- (445,40.6) -- (445,15.4) -- (471,15.4) -- (510,54.4) -- (510,79.6) -- cycle ; \draw   (445,15.4) -- (484,54.4) -- (484,79.6) ; \draw   (484,54.4) -- (510,54.4) ;
+%Straight Lines [id:da7061933885144931] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (340,20.74) -- (388,38.6) ;
+
+
+%Straight Lines [id:da9223439437819116] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (340,79.8) -- (388,79.8) ;
+
+
+%Straight Lines [id:da39482912764919575] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (430,38.6) -- (484,54.4) ;
+
+
+%Straight Lines [id:da13171820931095368] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (430,79.8) -- (484,79.6) ;
+
+
+%Shape: Cube [id:dp604417560350816] 
+\draw   (562.85,79.6) -- (559,75.75) -- (559,50.8) -- (584.15,50.8) -- (588,54.65) -- (588,79.6) -- cycle ; \draw   (559,50.8) -- (562.85,54.65) -- (562.85,79.6) ; \draw   (562.85,54.65) -- (588,54.65) ;
+%Straight Lines [id:da3870371130086041] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (471,15.4) -- (559,50.8) ;
+
+
+%Straight Lines [id:da27051582483493264] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (510,54.4) -- (562.85,54.65) ;
+
+
+%Shape: Cube [id:dp21446635400404213] 
+\draw   (260.14,215.8) -- (255,210.66) -- (255,151.6) -- (314.86,151.6) -- (320,156.74) -- (320,215.8) -- cycle ; \draw   (255,151.6) -- (260.14,156.74) -- (260.14,215.8) ; \draw   (260.14,156.74) -- (320,156.74) ;
+%Shape: Cube [id:dp04868229976943628] 
+\draw   (384.14,207.8) -- (352.18,175.85) -- (352.18,155.2) -- (412.05,155.2) -- (444,187.15) -- (444,207.8) -- cycle ; \draw   (352.18,155.2) -- (384.14,187.15) -- (384.14,207.8) ; \draw   (384.14,187.15) -- (444,187.15) ;
+%Shape: Cube [id:dp7764329998918145] 
+\draw   (480.14,208.8) -- (434.14,162.8) -- (434.14,156.2) -- (494,156.2) -- (540,202.2) -- (540,208.8) -- cycle ; \draw   (434.14,156.2) -- (480.14,202.2) -- (480.14,208.8) ; \draw   (480.14,202.2) -- (540,202.2) ;
+%Shape: Cube [id:dp3221353177693578] 
+\draw   (560,187.8) -- (556,183.8) -- (556,176.2) -- (617,176.2) -- (621,180.2) -- (621,187.8) -- cycle ; \draw   (556,176.2) -- (560,180.2) -- (560,187.8) ; \draw   (560,180.2) -- (621,180.2) ;
+%Straight Lines [id:da5393893548155395] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (320,156.74) -- (384.14,187.15) ;
+
+
+%Straight Lines [id:da34919280063353475] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (320,215.8) -- (384.14,207.8) ;
+
+
+%Straight Lines [id:da3893513624724423] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (444,187.15) -- (480.14,202.2) ;
+
+
+%Straight Lines [id:da6182396760467015] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (444,207.8) -- (480.14,208.8) ;
+
+
+%Straight Lines [id:da6186689865818558] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (494,156.2) -- (556,176.2) ;
+
+
+%Straight Lines [id:da045573621124841646] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (540,202.2) -- (560,180.2) ;
+
+
+
+%Shape: Parallelogram [id:dp6917087240247082] 
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ] (62,139.4) -- (211,139.4) -- (179.31,172.42) -- (30.31,172.42) -- cycle ;
+%Straight Lines [id:da8905128315574038] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (132.69,139.98) -- (100,173) ;
+
+
+%Straight Lines [id:da8066496385359512] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (170.69,139.98) -- (138,173) ;
+
+
+%Straight Lines [id:da1553586771436919] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (96.69,139.98) -- (64,173) ;
+
+
+
+%Straight Lines [id:da16508278391785325] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (48,154.4) -- (196,155.4) ;
+
+
+
+%Shape: Parallelogram [id:dp8683977661011513] 
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ] (62,120.4) -- (211,120.4) -- (179.31,153.42) -- (30.31,153.42) -- cycle ;
+%Straight Lines [id:da6441238516502787] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (132.69,120.98) -- (100,154) ;
+
+
+%Straight Lines [id:da27595951969744514] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (170.69,120.98) -- (138,154) ;
+
+
+%Straight Lines [id:da7403748481469921] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (96.69,120.98) -- (64,154) ;
+
+
+
+%Straight Lines [id:da8507547541067966] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (48,135.4) -- (196,136.4) ;
+
+
+
+%Shape: Parallelogram [id:dp020585871250516252] 
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ] (62,99.4) -- (211,99.4) -- (179.31,132.42) -- (30.31,132.42) -- cycle ;
+%Straight Lines [id:da6256403375014121] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (132.69,99.98) -- (100,133) ;
+
+
+%Straight Lines [id:da17547470774901086] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (170.69,99.98) -- (138,133) ;
+
+
+%Straight Lines [id:da13965889020431055] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (96.69,99.98) -- (64,133) ;
+
+
+
+%Straight Lines [id:da005222684931196264] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (48,114.4) -- (196,115.4) ;
+
+
+
+%Shape: Parallelogram [id:dp9703137593105391] 
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ] (62,78.4) -- (211,78.4) -- (179.31,111.42) -- (30.31,111.42) -- cycle ;
+%Straight Lines [id:da3304064853153821] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (132.69,78.98) -- (100,112) ;
+
+
+%Straight Lines [id:da9419106681937681] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (170.69,78.98) -- (138,112) ;
+
+
+%Straight Lines [id:da3572326892886035] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (96.69,78.98) -- (64,112) ;
+
+
+
+%Straight Lines [id:da5755019742472487] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (48,93.4) -- (196,94.4) ;
+
+
+
+%Shape: Parallelogram [id:dp42577628840020854] 
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ] (50,202.79) -- (199,202.79) -- (185,214.79) -- (36,214.79) -- cycle ;
+%Straight Lines [id:da02955078140984102] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (121,203) -- (106,215) ;
+
+
+%Straight Lines [id:da7588092876511179] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (159,203) -- (144,215) ;
+
+
+%Straight Lines [id:da7433238605079471] 
+\draw [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]   (85,203) -- (70,215) ;
+
+
+
+%Straight Lines [id:da0312506740929257] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (36,64.79) -- (30.31,111.42) ;
+
+
+%Straight Lines [id:da9255217312762121] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (199,52.79) -- (211,78.4) ;
+
+
+%Straight Lines [id:da7209925891228812] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (185,64.79) -- (179.31,111.42) ;
+
+
+%Straight Lines [id:da19894918454913113] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (211,159.4) -- (199,202.79) ;
+
+
+%Straight Lines [id:da8968859187341194] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (211,78.4) -- (211,159.4) ;
+
+
+%Straight Lines [id:da8556610208507236] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (179,110.4) -- (179,191.4) ;
+
+
+%Straight Lines [id:da3735780688255239] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (30,110.4) -- (30,191.4) ;
+
+
+%Straight Lines [id:da370129812137151] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (30.31,192.42) -- (36,214.79) ;
+
+
+%Straight Lines [id:da07067411059315676] 
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (179.31,192.42) -- (185,214.79) ;
+
+
+
+% Text Node
+\draw (364,235) node [scale=0.8] [align=left] {downsample on frequency domain};
+% Text Node
+\draw (549,234) node [scale=0.8] [align=left] {downsample channel};
+% Text Node
+\draw (358,98) node [scale=0.8] [align=left] {downsample on time and frequency domain};
+% Text Node
+\draw (549,98) node [scale=0.8] [align=left] {downsample channel};
+% Text Node
+\draw (115,233) node  [align=left] {conv1d};
+% Text Node
+\draw (415,123) node  [align=left] {shallow};
+% Text Node
+\draw (418,260) node  [align=left] {timbral};
+
+
+\end{tikzpicture}

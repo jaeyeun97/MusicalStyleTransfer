@@ -1,0 +1,63 @@
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Rectangle [id:dp4462824287223488] 
+\draw   (200,74) -- (292,74) -- (292,127.4) -- (200,127.4) -- cycle ;
+%Shape: Rectangle [id:dp37319651581371205] 
+\draw   (410,74) -- (502,74) -- (502,127.4) -- (410,127.4) -- cycle ;
+
+%Shape: Rectangle [id:dp31869849999000377] 
+\draw   (302,174) -- (394,174) -- (394,227.4) -- (302,227.4) -- cycle ;
+
+%Straight Lines [id:da009055628309500019] 
+\draw    (292,103.2) -- (406,103.2) ;
+\draw [shift={(408,103.2)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da529666620289899] 
+\draw    (350,103.2) -- (350,121.2) ;
+\draw [shift={(350,123.2)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Shape: Rectangle [id:dp5582345714039987] 
+\draw   (307,125) -- (393,125) -- (393,148.2) -- (307,148.2) -- cycle ;
+
+%Shape: Rectangle [id:dp10749805249722355] 
+\draw   (125,81) -- (173,81) -- (173,121) -- (125,121) -- cycle ;
+
+%Straight Lines [id:da7475379659366961] 
+\draw    (349,148.2) -- (349,166.2) ;
+\draw [shift={(349,168.2)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da5507793966819954] 
+\draw    (150,187) -- (150,125) ;
+\draw [shift={(150,123)}, rotate = 450] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da12718468470773536] 
+\draw    (181,201) -- (289,201) ;
+\draw [shift={(291,201)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da7461989566503391] 
+\draw    (173,102) -- (191,102) ;
+\draw [shift={(193,102)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+%Straight Lines [id:da11732801755174194] 
+\draw    (394,200) -- (442,200) ;
+\draw [shift={(444,200)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+
+% Text Node
+\draw (246,100.7) node  [align=left] {Generator};
+% Text Node
+\draw (456,100.7) node  [align=left] {Discriminator};
+% Text Node
+\draw (348,200.7) node  [align=left] {WaveNet};
+% Text Node
+\draw (350,136) node  [align=left] {interpolation};
+% Text Node
+\draw (149,101) node  [align=left] {CQT};
+% Text Node
+\draw (150,200) node  [align=left] {Audio};
+% Text Node
+\draw (472,199) node  [align=left] {Audio};
+
+
+\end{tikzpicture}

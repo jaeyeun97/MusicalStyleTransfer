@@ -14,7 +14,91 @@ geometry:
 - margin=2cm
 papersize: a4
 fontsize: 12pt
+bibliography: diss.bib
+csl: apa.csl
+nocite: |
+	@*
 ---
+
+\pagestyle{empty}
+
+\rightline{\LARGE \textbf{Charles Jae Yeun Yoon}}
+
+\vspace*{60mm}
+\begin{center}
+\Huge
+\textbf{Musical Style Transfer using Neural Networks} \\[5mm]
+Computer Science Tripos -- Part II \\[5mm]
+King's College \\[5mm]
+\today  % today's date
+\end{center}
+
+\newpage
+
+\section*{Declaration}
+
+I, Charles Jae Yeun Yoon of King's College, being a candidate for Part II of the Computer Science Tripos, hereby declare that this dissertation and the work described in it are my own work, unaided except as may be specified below, and that the dissertation does not contain material that has already been used to any substantial extent for a comparable purpose.
+
+\bigskip
+\leftline{Signed}
+
+\begin{figure}
+	\includegraphics{/home/jaeyeun/Documents/sign.png}
+\end{figure}
+
+\medskip
+\leftline{Date \today}
+
+\newpage
+
+\chapter*{Proforma}
+
+\begin{tabular}{ll}
+Candidate Number:   & \bf 303488330                    \\
+Project Title:      & \bf Musical Style Transfer using Neural Networks \\
+Examination:        & \bf Computer Science Tripos -- Part II, June 2019 \\
+Word Count:         & \bf 11587 \footnotemark[1] \\ 
+Project Originator: & Prof. Alan Blackwell                      \\
+Supervisor:         & Dr. Andrea Franceschini                    \\ 
+\end{tabular}
+
+\footnotetext[1]{This word count was computed
+by \texttt{texcount diss.tex}
+}
+\stepcounter{footnote}
+
+\section*{Original Aims of the Project}
+
+The Original Aims of the project was to:
+
+1. compile a dataset of musical audio samples;
+2. implement an effective audio feature classifier;
+3. test the classifier with scientific methods and verify its performance;
+4. design and implement neural network architectures that perform musical style transfer;
+5. and conduct a human evaluation experiment to evaluate the neural network.
+
+\section*{Work Completed}
+
+All five of the original aims of the project have been completed with successful results. Four datasets of different musical characteristics were used, where as one of the datasets were compiled by the dissertation author, with permission from the artists and curator. Three models of classifiers were implemented, where two of them showed successful behaviour during testing. Three different neural network architectures were implemented, where one of the models showed successful statistical behaviour over a dataset pair between piano and guitar samples. Human perception experiment was conducted successfully with the audio style transfer from guitar samples to piano samples especially doing well. 
+
+\section*{Special Difficulties}
+
+No special difficulty has occurred during the duration of this project.
+\tableofcontents
+
+\listoffigures
+
+\newpage
+
+\section*{Acknowledgements}
+
+The author of this dissertation would like to thank:
+
+* `MellowBeatSeeker`, for offering his playlist of music to be used for a dataset of this project,
+* Prof. Alan Blackwell and the Rainbow Laboratory, for providing the necessary hardware for this project,
+* Matthew Else, for offering additional hardware resources for this project.
+
+
 
 # Introduction 
 
@@ -36,18 +120,13 @@ Identically, we can consider any sequence of musical sound as an addition of a s
 
 The objective of $T$ is to discriminate $t_p$ and $t_g$, and when given a sample $p \in P$, modify $t_p$ into $t_g$ from $p$. Our first goal is to model this transformer $T$ using a neural network.
 
-For the case of "chillness", the transformation is not as straightforward, and there are multiple ways to models "chillness". First, we have to decide if "chillness" is a measure in continuous scale, or a characteristic that an audio sample can either possesses or not. Since, it is difficult to acquire a dataset labelled with a "chillness" measure, we assume the latter. Then, we have to decide whether the quality of being "not chill" is a separate quality of its own. If so, we can model the transformation function as we have for timbre. If not, we would model a transformation function $R: C^\complement \rightarrow C$, where $C$ is the set of chill music. Previous literature makes the first approach more available, hence we define chillness characteristic $t_c$ and its complement $t_{\lnot c}$, and approach it in a similar way to timbre.
+For the case of "chillness", the transformation is not as straightforward, and there are multiple ways to models "chillness". First, we have to decide if "chillness" is a measure in continuous scale, or a characteristic that an audio sample can either possesses or not. Since, it is difficult to acquire a dataset labelled with a "chillness" measure, we assume the latter. Then, we have to decide whether the quality of being "not chill" is a separate quality of its own. If so, we can model the transformation function as we have for timbre. If not, we would model a transformation function $R: C^\complement \rightarrow C$, where $C$ is the set of chill music. Previous literature makes the first approach more available, hence we define chillness characteristic $t_c$ and its complement $t_{\lnot c}$, and approach it in a similar way to timbre. 
 
 From here on, we divide the qualities of sound into two categories: content and style. Contents are the qualities that we do not want to modify, such as pitch. Styles are the other qualities that is not the content of audio, which we want to modify.
 
-## Project Goals
-
-The goal of this project is to model the transformer $T$ in figure \ref{fig:t} with a Neural Network. A number of previous work have been done on this subject, so in chapter \ref{preparation} those works will be reviewed along with a number of other concepts that contributed to the foundations of this project.
-
-
 # Preparation
 
- Although Neural Networks are introduced in *Part IB Artificial Intelligence* and *Part II Machine Learning and Bayesian Inferences*, many of the contents of the project are beyond the coverage of Tripos courses; therefore, in this chapter I aim to clarify the starting point and the previous works I relied on to implement the project.
+A number of previous work have been done on the subject of audio style transfer; however, in order to better understand those works, a number of concepts in machine learning need to be reviewed. Although Neural Networks are introduced in *Part IB Artificial Intelligence* and *Part II Machine Learning and Bayesian Inferences*, many of the contents of the project are beyond the coverage of Tripos courses; therefore, in this chapter I aim to clarify the starting point and the previous works I relied on to implement the project.
 
 ## Starting Point
 
@@ -70,14 +149,21 @@ However, it is evident that we cannot observe all factors that contribute to the
 In any case, the function $h$ can be represented by a collection of weights applied to each feature, $\vec{w}$; to make this clear, we notate $h$ as $h_{\vec{w}}$. Our task then is to find the appropriate weights that computes $h$ well given the input distribution. For this project, we do so by using multilayer neural networks.
 
 \begin{figure}[h]
-	\includegraphics[width=0.5\textwidth]{./figures/simple_neural_network.png}
-\centering
-\caption{}
+	\begin{subfigure}{.5\textwidth}
+		\includegraphics[width=\textwidth]{./figures/perceptron.tikz}
+		\centering
+		\caption{A single perceptron} \label{fig:perceptron}
+	\end{subfigure}
+	\begin{subfigure}{.5\textwidth}
+		\includegraphics[width=\textwidth]{./figures/simple_neural_network.png}
+		\centering
+		\caption{A fully connected Neural Network}
+	\end{subfigure}
 \end{figure}
 
 ### Neural Networks 
 
-First we define a single node of a neural network, called a perceptron. A perceptron is a simple linear operation usually depicted as Figure _ . Given the input $\vec{x}$, weights $\vec{w}$, and a bias input of $\vec{b}$ (which is usually randomly initialized), it outputs a single scalar value $\vec{w}^\intercal x + \vec{b}$. A single layer of a neural network is a set of these perceptrons, which results in a vectorized output. The layer of perceptrons can be represented as the weight matrix $W$ where $W = (w_0 ... w_n)^\intercal$, where $n$ is the number of layer, so that the output vector $\vec{y} = W \vec{x}$ where $y_i = w_i^\intercal \vec{x}$. A neural network is a series of these layers applied sequentially. The process of computing each layer to get an output is called feedforward, and such networks are either called feedforward neural networks or fully connected networks.
+First we define a single node of a neural network, called a perceptron. A perceptron is a simple linear operation usually depicted as Figure \ref{fig:perceptron}. Given the input $\vec{x}$, weights $\vec{w}$, and a bias input of $\vec{b}$ (which is usually randomly initialized), it outputs a single scalar value $\vec{w}^\intercal x + \vec{b}$. A single layer of a neural network is a set of these perceptrons, which results in a vectorized output. The layer of perceptrons can be represented as the weight matrix $W$ where $W = (\vec{w_0} ... \vec{w_n})^\intercal$, where $n$ is the number of layers, so that the output vector $\vec{y} = W \vec{x}$ where $y_i = \vec{w_i}^\intercal \vec{x}$. A neural network is a series of these layers applied sequentially. The process of computing each layer to get an output is called feedforward, and such networks are either called feedforward neural networks or fully connected networks.
 
 \paragraph{Activation Functions} Since the output of each perceptron is linear the output of the neural network described above can only model a linear function on $\vec{x}$. To be able to model non-linear function, we apply an activation function to the output of each perceptron. Sigmoid, Rectified Linear Unit (ReLU), and $\tanh$ are the popular choices for this purpose. For more information on the class of function a neural network can approximate, refer to the Universal Approximation Theorem. 
 
@@ -89,14 +175,14 @@ First we define a single node of a neural network, called a perceptron. A percep
 	\end{cases}	
 \end{align}
 
-The sigmoid function, shown by equation \ref{eq:sigmoid} has a range of (0, 1), which make it ideal for binary classification. Similarly, $\tanh$ is used to restrict the output to (-1, 1). ReLU is a common activation function chosen for deeper neural networks, since its derivative is simple, which helps the calculation of gradients, as will be discussed in Section \ref{back-propagation} below. 
+The sigmoid function, shown by Equation \ref{eq:sigmoid} has a range of (0, 1), which make it ideal for binary classification. Similarly, $\tanh$ is used to restrict the output to (-1, 1). ReLU is a common activation function chosen for deeper neural networks, since its derivative is simple, which helps the calculation of gradients, as will be discussed in Section \ref{back-propagation} below. 
 
 
 ### Loss Functions
 
 As stated before, our objective is to find the appropriate set of weights that can successfully model the output distribution. In order to do so we "fit" the network outputs to the observed outputs, or adjust the weights to maximize the probability of getting the observed output given the observations. To do so effectively, we need a heuristic which evaluates the efficacy of the weights, which is usually calculated as some calculation of distance between the current outputs and the observed outputs. We call these heuristic functions *loss functions*, and I will introduce few popular loss functions.
 
-\paragraph{Mean Squared Error (MSE)} The mean squared error loss function, as shown by equation \ref{eq:mse}, is a straightforward loss function that uses the squared difference, which is always greater than 0 and has a minima of 0 when $\vec{y}_i = h_{\vec{w}}(X_i)$ for all $i$ and thus fits the criteria of a heuristic function. It is widely used as the loss function for many regression and classification tasks. However, the MSE loss function heavily weighs the outliers, which makes it unsuitable for some models.
+\paragraph{Mean Squared Error (MSE)} The mean squared error loss function, as shown by Equation \ref{eq:mse}, is a straightforward loss function that uses the squared difference, which is always greater than 0 and has a minima of 0 when $\vec{y}_i = h_{\vec{w}}(X_i)$ for all $i$ and thus fits the criteria of a heuristic function. It is widely used as the loss function for many regression and classification tasks. However, the MSE loss function heavily weighs the outliers, which makes it unsuitable for some models.
 
 \begin{equation}
 	\mathcal{L}_{MSE}(\vec{w} \mid X, \vec{y}) = \frac{1}{N} \sum_{i = 0}^{N} (\vec{y}_i - h_{\vec{w}}(X_i))^2 \label{eq:mse}
@@ -109,7 +195,7 @@ As stated before, our objective is to find the appropriate set of weights that c
 	&= \prod_{i = 0}^{n} P(\vec{y}_i |  X_i, \vec{w}) \label{eq:nllprod}
 \end{align}
 
-where $X$ is the entire feature observation, $\vec{y}$ the output observations, $\vec{w}$ the weights, and $n$ the length of the dataset. Note that we get equation \ref{eq:nllprod} from assuming that each entry in the dataset is independent from each other. We cannot use the likelihood as the loss function, however, since (1) we want a function that we can minimize, and (2) the product of probability of all dataset is difficult to compute and is most likely to underflow. Since our objective is to get the weight $\vec{w} = \displaystyle \argmax_{\vec{w}} \mathcal{L}_{likelihood}(\vec{w} \mid X, \vec{y})$, we use the fact that
+where $X$ is the entire feature observation, $\vec{y}$ the output observations, $\vec{w}$ the weights, and $n$ the length of the dataset. Note that we get Equation \ref{eq:nllprod} from assuming that each entry in the dataset is independent from each other. We cannot use the likelihood as the loss function, however, since (1) we want a function that we can minimize, and (2) the product of probability of all dataset is difficult to compute and is most likely to underflow. Since our objective is to get the weight $\vec{w} = \displaystyle \argmax_{\vec{w}} \mathcal{L}_{likelihood}(\vec{w} \mid X, \vec{y})$, we use the fact that
 
 \begin{align}
 	\argmax_{\vec{w}} \prod_{i = 0}^{n} P(\vec{y}_i |  X_i, \vec{w}) 
@@ -126,7 +212,7 @@ which holds since the maximum of a function is the maximum of its logarithm. To 
 
 The NLL solves both of the problem that the likelihood function had earlier, and now can be used as a loss function. Equation \ref{eq:nll2} is equivalent to \ref{eq:nll1} since the prediction made given $X$ and $\vec{w}$ is $h_{\vec{w}}(X_i)$. In other words, our objective when minimizing the NLL Loss is maximizing the probability that $\vec{y}_i = h_{\vec{w}}(X_i)$.
 
-\paragraph{Cross Entropy Loss} In Information Theory, the cross entropy between two probability distributions $p$ and $q$ is the amount of information (quantified as average number of bits) needed to recover the true distribution $p$ if the information is encoded in distribution $q$. It is defined as $H(p, q) = \mathbf{E}_p[- \log q]$, which for discrete number of examples with support $\chi$ is $- \sum_{x \in \chi} p(x) log q(x)$. In machine learning, $q$ is the posterior distribution suggested by the hypothesis, and therefore can be expressed as $q(\vec{x} \mid \vec{w})$. Given that the output of the hypothesis is a valid class probability (which adds up to 1), minimizing the NLL Loss is equivalent to minimizing the cross entropy. For multi-class classification, which generates a vectorized output, we use the `softmax` function to restrict the output to valid probability space. Cross Entropy Loss from here on will refer to the composition of `softmax` and NLL Loss.
+\paragraph{Cross Entropy Loss} In Information Theory, the cross entropy between two probability distributions $p$ and $q$ is the amount of information (quantified as average number of bits) needed to recover the true distribution $p$ if the information is encoded in distribution $q$. It is defined as $H(p, q) = \mathbb{E}_p[- \log q]$, which for discrete number of examples with support $\chi$ is $- \sum_{x \in \chi} p(x) \log q(x)$. For machine learning applications, $q$ is the posterior distribution suggested by the hypothesis, and therefore can be expressed as $q(\vec{x} \mid \vec{w})$. Given that the output of the hypothesis is a valid class probability (which adds up to 1), minimizing the NLL Loss is equivalent to minimizing the cross entropy. For multi-class classification, which generates a vectorized output, we use the `softmax` function to restrict the output to valid probability space. Cross Entropy Loss from here on will refer to the composition of `softmax` and NLL Loss.
 
 
 ### Optimization
@@ -137,9 +223,9 @@ Given the loss function, we need a mechanism to optimize the weight so that the 
 	\vec{w}_{i_{t+1}} = \vec{w}_{i_{t}} + \lambda \frac{\partial \mathcal{L}(\vec{w})}{\partial \vec{w}_i} \label{eq:opt}
 \end{equation}
 
-Other mechanisms for iteratively updating weights for loss minimizations do exists. The Adam optimizer, for example, is a popular choice for optimizing deep neural networks. The authors of Adam claim that:
+Other mechanisms for iteratively updating weights for loss minimizations exist. The Adam optimizer, for example, is a popular choice for optimizing deep neural networks. The authors of Adam claim that:
 
-> The method is straightforward to implement, is computationally efficient, has little memory requirements, is invariant to diagonal rescaling of the gradients, and is well suited for problems that are large in terms of data and/or parameters. The method is also appropriate for non-stationary objectives and problems with very noisy and/or sparse gradients. [@adam]
+> The method is straightforward to implement, is computationally efficient, has little memory requirements, is invariant to diagonal rescaling of the gradients, and is well suited for problems that are large in terms of data and/or parameters. The method is also appropriate for non-stationary objectives and problems with very noisy and/or sparse gradients. [@Kingma2015AdamAM]
 
 These characteristics make it a popular choice for training complex networks. We will also be using the Adam optimizer for this project.
 
@@ -232,12 +318,12 @@ In summary, the training procedure consists of computing the feedforward process
 ### Convolutional Neural Networks
 
 \begin{figure}[h]
-	\includegraphics[width=\textwidth]{./figures/conv.tikz}
+	\includegraphics[width=0.8\textwidth]{./figures/conv.tikz}
 	\centering
-	\caption{Example of a 2D Convolution function, with (a) as input, (b) as the filter, and (c) as the output.} \label{fig:conv}
+	\caption[Example of a 2D Convolution function]{Example of a 2D Convolution function, with (a) as input, (b) as the filter, and (c) as the output.} \label{fig:conv}
 \end{figure}
 
-A convolutional neural network is a form of neural network which has been proven to be effective in larger input data, such as images. It is similar to fully connected networks seen in section \ref{neural-networks}, in that it processes the input data using learnable weights and can have activation layers after. However, the weights of a convolutional neural network is organized as a filter, which serves as a window that moves through the input data to generate an output. In figure \ref{fig:conv}, (b) shows the weights organized as a window for a 2D convolutional neural network. In this figure the filter (b) moves through the input (a) and generates an output, which is the sum of all products between the input values within the window and the weights of the filter. This computation results in calculating the convolution function (or generally, a cross-correlation function), between the input and the filter, hence the name of the network.
+A convolutional neural network is a form of neural network which has been proven to be effective in larger input data, such as images. It is similar to fully connected networks seen in Section \ref{neural-networks}, in that it processes the input data using learnable weights and can have activation layers after. However, the weights of a convolutional neural network is organized as a filter, which serves as a window that moves through the input data to generate an output. In Figure \ref{fig:conv}, (b) shows the weights organized as a window for a 2D convolutional neural network. In this figure the filter (b) moves through the input (a) and generates an output, which is the sum of all products between the input values within the window and the weights of the filter. This computation results in calculating the convolution function (or generally, a cross-correlation function), between the input and the filter, hence the name of the network.
 
 This arrangement of the network result in local connectivity of the outputs to the inputs; i.e. the outputs are dependent on only a subset of the input. The extent of this connectivity is called the receptive field, which is the filter size in a single layered convolutional neural networks.
 
@@ -250,10 +336,10 @@ To control the receptive field and the size of the output, we may add padding on
 \begin{figure}[h]
 	\includegraphics[width=0.5\textwidth]{./figures/resnet.png}
 	\centering
-	\caption{https://towardsdatascience.com/an-overview-of-resnet-and-its-variants-5281e2f56035}
+	\caption{A dataflow representation of a single layer of Residual Neural Network}
 \end{figure}
 
-Residual Neural Networks (ResNets) are constructs that utilize convolutional layers with skip connections, where the initial input is added to the output of the convolutional layer. This solves the diminishing gradient problem, where in a deeper neural network the gradient value may become very small during back-propagation  and underflow, which prevents the model from training. By adding the skip connection, the network uses the activations of the input until the weights of the convolutional layer learns to mute the input and return sufficiently significant results. ResNets allow for training deeper neural networks, and they are used frequently for many network models that are reviewed below. [@resnet]
+Residual Neural Networks (ResNets) are constructs that utilize convolutional layers with skip connections, where the initial input is added to the output of the convolutional layer. This solves the diminishing gradient problem, where in a deeper neural network the gradient value may become very small during back-propagation  and underflow, which prevents the model from training. By adding the skip connection, the network uses the activations of the input until the weights of the convolutional layer learns to mute the input and return sufficiently significant results. ResNets allow for training deeper neural networks, and they are used frequently for many network models that are reviewed below. [@DBLP:journals/corr/HeZRS15]
 
 ## Style Transfer using Neural Networks
 
@@ -273,11 +359,11 @@ To calculate the style loss of the system, Gatys et al. defines the style repres
 
 where $N_l$ is the number of filters in a layer, $M_l$ the size of the feature map of a layer, and $w_l$ the weighting factor.
 
-Such methods of style transfer for audio has been investigated by Ulyanov and Vadim Lebedev [@ulyanov]. Since they lack a multi-class classifier for audio representations that perform as well as VGG19, they used a single convolutional layer to generate the representation needed. While some of their results may sound believable, their results lack theoretical reasoning, contrary to their image style transfer counterpart. Therefore, other mechanisms using Generative Adversarial Networks have been investigated.
+Such methods of style transfer for audio has been investigated by Ulyanov and Vadim Lebedev [@Ulyanov2016]. Since they lack a multi-class classifier for audio representations that perform as well as VGG19, they used a single convolutional layer to generate the representation needed. While some of their results may sound believable, their results lack theoretical reasoning, contrary to their image style transfer counterpart. Therefore, other mechanisms using Generative Adversarial Networks have been investigated.
 
 ## GAN Style Transfers
 
-Isola et al. introduced CycleGAN and `pix2pix`, which performs image style transfer without any pre-trained network. By using generative adversarial networks (GANs), these models learns not only the mapping between the two domain of images but also the loss function and therefore allow a general-purpose solution to image style transfer, without designing a domain-specific loss function. [@pix2pix]
+Isola et al. introduced CycleGAN and `pix2pix`, which performs image style transfer without any pre-trained network. By using generative adversarial networks (GANs), these models learns not only the mapping between the two domain of images but also the loss function and therefore allow a general-purpose solution to image style transfer, without designing a domain-specific loss function. [@DBLP:journals/corr/IsolaZZE16]
 
 ### Generative Adversarial Networks
 
@@ -293,35 +379,35 @@ The discriminator is trained to maximize $\log D(x)$ for $x \sim p_{data}(x)$ an
 
 where $G$ is trained to minimize $V$ and $D$ to maximize $V$.
 
-@goodfellow_gan proved that the global optimum of the value function above is when $p_g = p_{data}$, given that the two multilayer neural networks $G$ and $D$ have enough capacity. In practice, however, different rate of training between $G$ and $D$ may cause unstable training. Early in the training, when $G$ fails to generate convincing samples, $D$ can reject samples with high confidence. This causes $\log (1 - D(G(z)))$ to saturate and not provide gradient large enough to train $G$. To mitigate this problem we can train to maximize $\log D(G(z))$ instead. On the other hand, if $G$ trains much faster than $D$, $G$ may collapse too much of $p_g$ to model $p_{data}$. To mitigate this issue, we can update weights for $D$ multiple times for each update of $G$ weights.
+@NIPS2014_5423 proved that the global optimum of the value function above is when $p_g = p_{data}$, given that the two multilayer neural networks $G$ and $D$ have enough capacity. In practice, however, different rate of training between $G$ and $D$ may cause unstable training. Early in the training, when $G$ fails to generate convincing samples, $D$ can reject samples with high confidence. This causes $\log (1 - D(G(z)))$ to saturate and not provide gradient large enough to train $G$. To mitigate this problem we can train to maximize $\log D(G(z))$ instead. On the other hand, if $G$ trains much faster than $D$, $G$ may collapse too much of $p_g$ to model $p_{data}$. To mitigate this issue, we can update weights for $D$ multiple times for each update of $G$ weights.
 
 We can create a conditional adversarial network that models $p(\mathbf{x} \mid c)$, by adding the condition $c$ as an input to both $G$ and $D$, as we will see in `pix2pix`.
 
 ### `pix2pix`
 
 \begin{figure}[h]
-	\includegraphics[width=\textwidth]{figures/pix2pix.tikz}
-\centering
-\caption{\texttt{pix2pix} model dataflow. Each $\mathcal{L}$ is a loss value calculated by computing the mean squared error between the discriminator output and the correct label. \label{fig:pix2pix}}
+	\includegraphics[width=.7\textwidth]{figures/pix2pix.tikz}
+	\centering
+	\caption[\texttt{pix2pix} model dataflow]{\texttt{pix2pix} model dataflow. Each $\mathcal{L}$ is a loss value calculated by computing the mean squared error between the discriminator output and the correct label. \label{fig:pix2pix}}
 \end{figure}
 
-`pix2pix` use conditional adversarial networks to create a general-purpose image style transfer mechanism, given a one-to-one paired dataset. Each pair of data observation has a vector sampled from a domain $X$ (i.e. a photograph), and a range $Y$ (i.e. a painting). We define a generator function $G(\vec(x), \theta_G)$ much alike to the Generative Adversarial Network shown above, but have it model a mapping from $X$ to $Y$. We also define the data distribution of $X$ as $p_{data}(X)$ and that of $Y$ as $p_{data}(Y)$. With the given definition, we modify the GAN value function defined in equation \ref{eq:gan} to:
+`pix2pix` use conditional adversarial networks to create a general-purpose image style transfer mechanism, given a one-to-one paired dataset. Each pair of data observation has a vector sampled from a domain $X$ (i.e. a photograph), and a range $Y$ (i.e. a painting). We define a generator function $G(\vec(x), \theta_G)$ much alike to the Generative Adversarial Network shown above, but have it model a mapping from $X$ to $Y$. We also define the data distribution of $X$ as $p_{data}(X)$ and that of $Y$ as $p_{data}(Y)$. With the given definition, we modify the GAN value function defined in Equation \ref{eq:gan} to:
 
 \begin{multline}
 	V(G, D) = \mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{X}), \mathbf{y} \sim p_{data}(\mathbf{Y})}[\log D(x, y)] \\ +  \mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{X}), \mathbf{z} \sim p_{z}(\mathbf{z})}[\log (1 - D(x, G(x, z)))] \label{eq:pix2pix}
 \end{multline}
 
-The implementation would look like figure \ref{fig:pix2pix}, where each $\mathcal{L}$ is a loss value calculated by computing the mean squared error between the discriminator output and the correct label.  To use `pix2pix` for music style transfer, however, it is necessary to have a set of paired data, which is hard to acquire. Therefore, I took a closer look into CycleGAN, which does not require a paired dataset.
+The implementation would look like Figure \ref{fig:pix2pix}, where each $\mathcal{L}$ is a loss value calculated by computing the mean squared error between the discriminator output and the correct label.  To use `pix2pix` for music style transfer, however, it is necessary to have a set of paired data, which is hard to acquire. Therefore, I took a closer look into CycleGAN, which does not require a paired dataset.
 
 ### CycleGAN
 
 \begin{figure}[h]
 	\includegraphics[width=\textwidth]{figures/cyclegan.tikz}
-\centering
-\caption{Dataflow of CycleGAN architecture. $G_{A \rightarrow B} = G$ and $G_{B \rightarrow A} = F$ from equations \ref{eq:cyclegan_1} and \ref{eq:cyclegan_2}. \label{fig:cyclegan}}
+	\centering
+	\caption[Dataflow of CycleGAN architecture]{Dataflow of CycleGAN architecture. $G_{A \rightarrow B} = G$ and $G_{B \rightarrow A} = F$ from Equations \ref{eq:cyclegan_1} and \ref{eq:cyclegan_2}. \label{fig:cyclegan}}
 \end{figure}
 
-CycleGAN has been introduced to make style transfer possible without a paired dataset. It does so by training a pair of generators and discriminators, arranged as shown on figure \ref{fig:cyclegan}. We define the following:
+CycleGAN has been introduced to make style transfer possible without a paired dataset. It does so by training a pair of generators and discriminators, arranged as shown on Figure \ref{fig:cyclegan}. We define the following:
 
 * two dataset domain $A$ and $B$, and their data distribution $p_{data}(\mathbf{A})$ and $p_{data}(\mathbf{B})$
 * Prior distribution for the noise variable $z \in Z$, $p_z$
@@ -388,13 +474,13 @@ We can choose either to use the raw audio directly as the input to our neural ne
 where $x[n]$ is the input signal and $w[n]$ the window function at the n^th^ window. The process can be thought of as computing the discrete Fourier transform on $x[n]w[n - m]$.
 
 
-\paragraph{Constant-Q Transform} Constant-Q Transform is another time-frequency transform which unlike STFT does not use a fixed frequency window, but uses a exponentially spaced frequency bands. Frequency cutoffs are defined as $\omega_k = 2^{\frac{k}{b}} \omega_0$ for $k \in \{ 1, ..., k_{max}\}$, where $\omega_0$ is the starting frequency, $k_{max}$ the number of frequency bands to compute (i.e. the height of the resulting matrix), and $b$ is the scaling factor. Each frequency band $\Delta_k = \omega_k - \omega_{k-1} = \omega_k 2^{\frac{1}{b} - 1}$, which gives a constant frequency to resolution $Q = \frac{\Delta_k}{\omega_k}  = 2^{\frac{1}{b} -1}$. Resulting matrix reflect human perception of sound; when $b$ is set to 12, the frequency cutoffs match the spacing between each semitone in an equally tempered scale. 
+\paragraph{Constant-Q Transform} Constant-Q Transform is another time-frequency transform which unlike STFT does not use a fixed frequency window, but uses a exponentially spaced frequency bands. Frequency cutoffs are defined as $\omega_k = 2^{\frac{k}{b}} \omega_0$ for $k \in \{ 1, ..., k_{max}\}$, where $\omega_0$ is the starting frequency, $k_{max}$ the number of frequency bands to compute (i.e. the height of the resulting matrix), and $b$ is the scaling factor. Each frequency band $\Delta_k = \omega_k - \omega_{k-1} = \omega_k 2^{\frac{1}{b} - 1}$, which gives a constant frequency to resolution $Q = \frac{\Delta_k}{\omega_k}  = 2^{\frac{1}{b} -1}$. Resulting matrix reflect human perception of sound; when $b$ is set to 12, the frequency cutoffs match the spacing between each semitone in an equally tempered scale. [@DBLP:journals/corr/abs-1811-09620]
 
-\subparagraph{Griffin-Lim} We can recover the original audio from the STFT matrix using Griffin-Lim algorithm. The details of the Griffin-Lim algorithm is beyond the scope of this project; however, we will later use an implementation to recover an audio sample from the neural networks.
+\subparagraph{Griffin-Lim} We can recover the original audio from the STFT matrix using Griffin-Lim algorithm. The details of the Griffin-Lim algorithm is beyond the scope of this project; however, we will later use an implementation to recover an audio sample from the neural networks. 
 
-\paragraph{STFT vs CQT} Since CQT uses a logarithmic scale of frequency (due to the exponential cutoffs) and has explicit parameters for starting and ending frequencies, we can ensure that all frequency ranges used by modern music. It also has a higher resolution on lower frequencies, which allows for a better representation of instruments in the lower frequencies. [@timbretron] Given that higher frequencies are less frequent in most songs, CQT seems to be the appropriate representation. 
+\paragraph{STFT vs CQT} Since CQT uses a logarithmic scale of frequency (due to the exponential cutoffs) and has explicit parameters for starting and ending frequencies, we can ensure that all frequency ranges used by modern music. It also has a higher resolution on lower frequencies, which allows for a better representation of instruments in the lower frequencies. [@DBLP:journals/corr/abs-1811-09620] Given that higher frequencies are less frequent in most songs, CQT seems to be the appropriate representation. 
 
-\paragraph{Raw audio vs Time-Frequency Analyses} Dieleman et al. compared performances of audio classification and auto-tagging tasks between raw audio and intermediate representations. While the performance of the classifiers using intermediate representations work better, they have also shown that neural networks using raw audio can also autonomously learn the features to a comparative degree.[@endtoend] WaveNet, which we will cover later in this section, uses raw audio as an input, and learns timbral qualities, such as human voice.[@wavenet]
+\paragraph{Raw audio vs Time-Frequency Analyses} Dieleman et al. compared performances of audio classification and auto-tagging tasks between raw audio and intermediate representations. While the performance of the classifiers using intermediate representations work better, they have also shown that neural networks using raw audio can also autonomously learn the features to a comparative degree.[@6854950] WaveNet, which we will cover later in this section, uses raw audio as an input, and learns timbral qualities, such as human voice.[@DBLP:journals/corr/OordDZSVGKSK16]
 
 \paragraph{Mel Frequency Scale} To mitigate the resolution limit in lower frequencies for STFT matrices, we scale the frequencies of the raw audio to a logarithmic scale before computing the STFT matrix. We use the follow equation to do so--given frequency $f$:
 
@@ -410,10 +496,10 @@ STFT matrices that are generated from Mel transformed scales will be referred as
 \begin{figure}[!h]
 	\includegraphics[width=0.7\textwidth]{./figures/wavenet.png}
 	\centering
-	\caption{A variant of WaveNet Architecture, implemented by Nvidia} \label{fig:wavenet}
+	\caption[Diagram of WaveNet]{Diagram of a variant of WaveNet Architecture, implemented by Nvidia} \label{fig:wavenet}
 \end{figure}
 
-Figure \ref{fig:wavenet} shows the architecture of WaveNet, introduced by Oord et al., which learns to generate raw audio. [@wavenet] WaveNet generates new sample points that are conditional to the outputs of the previous time step, i.e. the each element of the output waveform of length $T$,  $\mathbf{x} = \{x_0, ..., x_T\}$, is generated by the product of the probability distribution that is conditional to all previous time step:
+Figure \ref{fig:wavenet} shows the architecture of WaveNet, introduced by Oord et al., which learns to generate raw audio. [@DBLP:journals/corr/OordDZSVGKSK16] WaveNet generates new sample points that are conditional to the outputs of the previous time step, i.e. the each element of the output waveform of length $T$,  $\mathbf{x} = \{x_0, ..., x_T\}$, is generated by the product of the probability distribution that is conditional to all previous time step:
 
 \begin{equation}
 	p(\mathbf{x}) = \prod_{t=0}^{T} p(x_t | x_0, ..., x_{t-1})
@@ -439,7 +525,7 @@ $\mu$ notates the vector space to which the signal is quantized to; with $\mu = 
 
 \paragraph{Training and Inference} During training, the causal convolutional networks trains like any other convolutional network with the entire sample waveform as the input of the network. However, during inference we generate each sample point individually, through an iterative process of feeding the output of the network back into the network to get the next sample point. Such inference mechanism allow us to model the conditional probability $p(x_t | x_0, ..., x_{t-1})$ as discussed above.
 
-\paragraph{Gated Activation} WaveNet uses two activation function $\tanh$ and sigmoid as shown in figure \ref{fig:wavenet}. By multiplying the results given by the two activation functions, the sigmoid function acts as gate to limit the effect of the result generated by the $\tanh$ activation. Such ideas have been borrowed from LSTM, a type of recurrent neural networks, and have been shown effective by PixelCNN. [@pixelcnn] @wavenet found that using gated activation unit increase the performance of WaveNet significantly.
+\paragraph{Gated Activation} WaveNet uses two activation function $\tanh$ and sigmoid as shown in Figure \ref{fig:wavenet}. By multiplying the results given by the two activation functions, the sigmoid function acts as gate to limit the effect of the result generated by the $\tanh$ activation. Such ideas have been borrowed from LSTM, a type of recurrent neural networks, and have been shown effective by PixelCNN. [@DBLP:journals/corr/OordKVEGK16] @DBLP:journals/corr/OordDZSVGKSK16 found that using gated activation unit increase the performance of WaveNet significantly.
 
 \paragraph{Conditioning} Alike conditional adversarial networks, we can generate a WaveNet model that is conditional on an external input, i.e. model the $p(x_t | x_0, ..., x_{t-1}, c)$ given a conditional input $c$. Deep Voice uses such conditional model, using voice content as conditional input to generate a Text-to-Speech engine. We will use the conditional model to input pitch data, as we will see in the section below for TimbreTron and Universal Music Translation Networks.
 
@@ -448,39 +534,39 @@ $\mu$ notates the vector space to which the signal is quantized to; with $\mu = 
 \begin{figure}[h]
 	\includegraphics[width=\textwidth]{figures/timbretron.tikz}
 	\centering
-	\caption{TimbreTron model architecture. CQT matrices are notated $CQT$ and the raw audio $PCM$ to distinguish the type of data generated.} \label{fig:timbretron}
+	\caption[TimbreTron model architecture]{TimbreTron model architecture. CQT matrices are notated $CQT$ and the raw audio $PCM$ to distinguish the type of data generated.} \label{fig:timbretron}
 \end{figure}
 
 TimbreTron is a combination of CQT, CycleGAN, and WaveNet that has been shown to be effective for timbre transfer. Instead of images, it uses CQT matrix as an input to the generators for CycleGAN in order to transform it to that of a different instrument. The generated matrix is used as a conditional input to the WaveNet synthesizer, which generates a natural audio sample.
 
-\paragraph{Full Spectrum Discriminator} The discriminator used by the original CycleGAN model, PatchGAN, computes the likelihood probability on 70x70 patches of the image and takes the mean of each patch loss. Since such discrimination process do not make sense when dealing with audio data, the discriminator has been modified to compute the entire frequency spectrum. The details of the discriminator design is not included in the paper, so in the implementation chapter I will present different discriminators of original design.
+\paragraph{Full Spectrum Discriminator} The discriminator used by the original CycleGAN model, PatchGAN, computes the likelihood probability on 70x70 patches of the image and takes the mean of each patch loss. Since such discrimination process do not make sense when dealing with audio data, the discriminator has been modified to compute the entire frequency spectrum. The details of the discriminator design is not included in the paper, so in the implementation chapter I will present different full-spectrum discriminators of original design.
 
 \paragraph{WaveNet} TimbreTron uses a conditional WaveNet to generate the audio from the CQT matrix. Although not specified in the paper, The CycleGAN model and WaveNet are assumed to be trained separately to yield a theoretically sound model. If so, it is questionable whether they needed to use CycleGAN to transform the CQT data to resemble that of the other instrument, as our objective can be simplified to extracting the pitch data from the CQT representation.
 
 \paragraph{Gradient Penalty} TimbreTron uses the GAN value function introduced by the Wasserstein GAN model, along with gradient penalty as the Lipschitz constraint introduced by Gulrajani et al. The resulting value function given posterior distribution $p_g$ from the generator and random sample $p_z$ is:
 
-\begin{multline}
+\begin{equation}
 	V(G, D) = \underbrace{
 		\mathbb{E}_{x \sim p_{g}(\mathbf{x})} [D(x)] - \mathbb{E}_{x \sim p_{data}(\mathbf{x})} [D(x)]
-		}_\textrm{Wasserstein GAN value function} \\ +
+		}_\textrm{Wasserstein GAN value function} +
 		\underbrace{
 			\mathbb{E}_{x \sim p_z(\mathbf{x})} [(\| \nabla_x D(x) \|_2 - 1)^2]
 		}_\textrm{Gradient Penalty}	
-\end{multline}
+\end{equation}
 
-which has been shown by @gp .
+which has been shown by @DBLP:journals/corr/GulrajaniAADC17.
 
 By using gradient penalty the authors of TimbreTron claim that they were able mitigate the unstable training behaviour shown by the model caused by the fast training speed of the discriminator.
 
-\paragraph{Diminishing Identity Loss} To make sure the generators preserves the pitch content within the matrix during the initial part of the training process, TimbreTron introduces the identity loss (as reviewed in section \ref{identity-loss}). However, they decided to decrease the weighting of the identity loss throughout the training process since it can hinder the legitimate style transfer process as the training continues.
+\paragraph{Diminishing Identity Loss} To make sure the generators preserves the pitch content within the matrix during the initial part of the training process, TimbreTron introduces the identity loss (as reviewed in Section \ref{identity-loss}). However, they decided to decrease the weighting of the identity loss throughout the training process since it can hinder the legitimate style transfer process as the training continues.
 
 ### Universal Music Translation Network
 
 
 \begin{figure}[h]
-	\includegraphics[width=\textwidth]{figures/facebook_umtn.eps}
+	\includegraphics[width=0.8\textwidth]{figures/facebook_umtn.eps}
     \centering
-	\caption{Universal Music Translation Network Diagram, as shared by Mor et al. \label{fig:facebook_umtn}}
+	\caption[Universal Music Translation Network Diagram]{Universal Music Translation Network Diagram, as shared by Mor et al. \label{fig:facebook_umtn}}
 \end{figure}
 
 The Universal Music Translation Network (UMTN) by Mor et al. is another method for timbre transfer which uses the temporal encoder introduced by Engel et al. for Google Magenta project. UMTN extracts the pitch data from the source data using said encoder, and provides it as the conditional input to the WaveNet module. The paper states that such method has been effective for timbre transfer.
@@ -488,12 +574,12 @@ The Universal Music Translation Network (UMTN) by Mor et al. is another method f
 \begin{figure}[h]
 	\includegraphics[width=\textwidth]{./figures/nsynth.png}.
 	\centering
-	\caption{https://magenta.tensorflow.org/nsynth \label{fig:nsynth}}
+	\caption[NSynth WaveNet AutoEnocder]{NSynth WaveNet AutoEncoder by Engel et al.} \label{fig:nsynth}
 \end{figure}
 
 #### The Temporal Encoder
 
-Engel et al. introduced an encoder network design which when combined with a conditional WaveNet decoder acts as an autoencoder, as shown in figure \ref{fig:nsynth}. The encoder is a chain of convolutional layers with increasing dilation and residual connections much like WaveNet, but with ReLU activations. The paper showed that the resulting vector $Z$ can encode temporal features. For UMTN, we aim to use this Temporal Encoder to extract pitch from the input audio. 
+Engel et al. introduced an encoder network design which when combined with a conditional WaveNet decoder acts as an autoencoder, as shown in Figure \ref{fig:nsynth}. The encoder is a chain of convolutional layers with increasing dilation and residual connections much like WaveNet, but with ReLU activations. The paper showed that the resulting vector $Z$ can encode temporal features. For UMTN, we aim to use this Temporal Encoder to extract pitch from the input audio. 
 
 One integral design decision made for UMTN is that the encoder is shared by all inputs to the network model, while they train a WaveNet decoder for each instrument domain. This domain-independent encoder allows timbre transfer for audio input of an instrument not seen during the training process.
 
@@ -502,14 +588,14 @@ One integral design decision made for UMTN is that the encoder is shared by all 
 The output of the temporal encoder is downsampled by a pooling layer, and is interpolated again to match the length of the audio sample. This was done so in order to better capture the pitch data, without being altered by short variations which are most likely to be generated by the lesser harmonics that define the timbre of the audio sample.
 
 \begin{figure}[h]
-	\includegraphics[width=\textwidth]{figures/dann.eps}
+	\includegraphics[width=0.8\textwidth]{figures/dann.eps}
     \centering
 	\caption{Structure of Domain Adversarial Neural Networks \label{fig:dann}}
 \end{figure}
 
 #### Domain Confusion
 
-To further aid the domain independence of the output of the temporal encoder, the model includes a domain confusion network. It takes the output of the temporal decoder as the input and tries to predict its source domain. By training to maximise the loss function instead, as shown effective by Domain Adversarial Training of Neural Networks by Ganin et al., we train the encoder to output the pitch data regardless of the domain specific features (i.e. timbre). [@dann] @umtn does not mention how they have implemented their domain confusion but cites the @dann instead. Therefore I have assumed here that they have used the domain classifier as shown in figure \ref{fig:dann}, as that was the original design of @dann. Here the sign of the gradient of the classification loss $\mathcal{L}_d$ is flipped during back-propagation instead of training on negative loss in order to prevent the network from learning the sign flip.
+To further aid the domain independence of the output of the temporal encoder, the model includes a domain confusion network. It takes the output of the temporal decoder as the input and tries to predict its source domain. By training to maximise the loss function instead, as shown effective by Domain Adversarial Training of Neural Networks by Ganin et al., we train the encoder to output the pitch data regardless of the domain specific features (i.e. timbre). [@Ganin:2016:DTN:2946645.2946704] @DBLP:journals/corr/abs-1805-07848 does not mention how they have implemented their domain confusion but cites @Ganin:2016:DTN:2946645.2946704 instead. Therefore I have assumed here that they have used the domain classifier as shown in Figure \ref{fig:dann}, as that was the original design of @Ganin:2016:DTN:2946645.2946704. Here the sign of the gradient of the classification loss $\mathcal{L}_d$ is flipped during back-propagation instead of training on negative loss in order to prevent the network from learning the sign flip.
 
 #### Pitch Shift
 
@@ -532,12 +618,12 @@ we have the reconstruction loss:
 	[\mathcal{L}_{decoder}(D_i(E(O(x, r), s), t))  - \lambda \mathcal{L}_{dc}(C(E(O(x, r), s), u))] \label{eq:umtn}
 \end{multline}
 
-where $\mathcal{L}_{decoder}$, $\mathcal{L}_{dc}$ are Cross Entropy loss functions. The negativity of the domain confusion loss was initially implemented as a gradient reversal layer; however, as will be discussed in paragraph \ref{loss-function-modification}, the loss function was modified for the actual implementation.
+where $\mathcal{L}_{decoder}$, $\mathcal{L}_{dc}$ are Cross Entropy loss functions. The negativity of the domain confusion loss was initially implemented as a gradient reversal layer; however, as will be discussed in Section \ref{loss-function-modification}, the loss function was modified for the actual implementation.
 
 
 # Implementation
 
-The networks shared above is the current state of art in audio processing using neural networks. In this section I will implement network architectures inspired by these networks. I have used `PyTorch` to implement all models and data processing, and `librosa` to preprocess the audio samples. [@pytorch, @librosa] All hyper-parameters and preprocessing options are passed in through command-line options to allow for more flexible and faster experiment iterations. I have used code written by Zhu et al. [@cyclegan, @pix2pix] for CycleGAN image style transfer as the boilerplate of the project, but has been heavily modified to accommodate for flexible dataset combinations, diverse neural network models, and distributed model training (i.e. training a single model across multiple GPUs).
+The networks shared above is the current state of art in audio processing using neural networks. In this section I will implement network architectures inspired by these networks. I have used `PyTorch` to implement all models and data processing, and `librosa` to preprocess the audio samples. [@paszke2017automatic; @brian_mcfee_2018_1252297] All hyper-parameters and preprocessing options are passed in through command-line options to allow for more flexible and faster experiment iterations. I have used code written by Zhu et al. [@DBLP:journals/corr/ZhuPIE17; @DBLP:journals/corr/IsolaZZE16] for CycleGAN image style transfer as the boilerplate of the project, but has been heavily modified to accommodate for flexible dataset combinations, diverse neural network models, and distributed model training (i.e. training a single model across multiple GPUs).
 
 ## Datasets 
 
@@ -561,13 +647,13 @@ It is important to note that the batch of data generated by the loader is always
 
 First, I gathered a diverse set of datasets in order to try different combinations of audio style transfer; I tried to gather a dataset of recorded music as opposed to MIDI generated data, in order to encapsulate real world examples of music which contain different playing styles of instruments.
 
-\paragraph{Free Music Archive} The Free Music Archive has a set of license-free music, classified by genre. Defferrard et al. compiled the songs from the archive into 30 second clips along their metadata information organized into a csv file. [@fma]
+\paragraph{Free Music Archive} The Free Music Archive has a set of license-free music, classified by genre. Defferrard et al. compiled the songs from the archive into 30 second clips along their metadata information organized into a csv file. [@fma_dataset]
 
 \paragraph{Youtube} With thanks to `MellowBeatSeeker`, a Korean YouTube channel that streams "Chill Lo-Fi Study Beats", I could gather 60 hours of curated chill music. These files were processed using `librosa` to be cut into non-silent intervals.
 
-\paragraph{Maestro} Maestro is a dataset of piano music compiled by the Google Magenta Project. It includes 172 hours worth of MIDI and wav files. They were gathered by using Yamaha Disklavier, which can record MIDI data from acoustic piano keys. Only the audio data has been used for this project. [@maestro]
+\paragraph{Maestro} Maestro is a dataset of piano music compiled by the Google Magenta Project. It includes 172 hours worth of MIDI and wav files. They were gathered by using Yamaha Disklavier, which can record MIDI data from acoustic piano keys. Only the audio data has been used for this project. [@hawthorne2018enabling]
 
-\paragraph{GuitarSet} GuitarSet is compiled by Xi et al. at NYU Music and Audio Research Lab using hexaphonic pickups and microphones on acoustic guitars. The dataset contains pairs of soloist and accompanist recordings, which are mixed using `numpy` when the dataset is loaded. [@guitarset]
+\paragraph{GuitarSet} GuitarSet is compiled by Xi et al. at NYU Music and Audio Research Lab using hexaphonic pickups and microphones on acoustic guitars. The dataset contains pairs of soloist and accompanist recordings, which are mixed using `numpy` when the dataset is loaded. [@Xi2018]
 
 ### Preprocess 
 
@@ -575,7 +661,7 @@ The preprocessing pipeline processes the sliced data samples into the necessary 
 
 If the model uses STFT or CQT, the output matrix is separated into magnitude and phase by calculating the absolute value and the angle of the complex value. The magnitude is then $\log$ed and linearly scaled to have a maximum of 1 and minimum of -1. This process, as done by GANSynth and DeepVoice, provides a wider variance and prevents gradient explosion from large input values. Furthermore, to remove any volume differences between the samples when not using time-frequency analyses, I have normalized the volume of all audio samples used for the datasets using `ffmpeg-normalize` prior to any training. 
 
-Quantization and pitch shift, which are needed for UMTN and other WaveNet based models, are part of the preprocessing pipeline as well. Pitch shift is done by `librosa`, on a single random-length interval, chosen within the 25% to 75% mark with respect to the length of the data sample. The amount to be shifted was sampled from uniform distribution between 0 and 1. $\mu$-law function needed for quantization was implemented based on equation \ref{eq:mulaw}.
+Quantization and pitch shift, which are needed for UMTN and other WaveNet based models, are part of the preprocessing pipeline as well. Pitch shift is done by `librosa`, on a single random-length interval, chosen within the 25% to 75% mark with respect to the length of the data sample. The amount to be shifted was sampled from uniform distribution between 0 and 1. $\mu$-law function needed for quantization was implemented based on Equation \ref{eq:mulaw}.
 
 #### Postprocess 
 
@@ -583,7 +669,7 @@ The parameters that are needed to recover the original matrix are given to the n
 
 ## Network Models
 
-In this section I introduce two neural network models inspired by TimbreTron and UMTN, along with an implementation of UMTN. TimbreTron could not be implemented because the network model was too large to fit into my system; moreover, @timbretron does not include many details (such as the generator architecture) which is essential to the implementation of the network.
+In this section I introduce two neural network models inspired by TimbreTron and UMTN, along with an implementation of UMTN. TimbreTron could not be implemented because the network model was too large to fit into my system; moreover, @DBLP:journals/corr/abs-1811-09620 does not include many details (such as the generator architecture) which is essential to the implementation of the network.
 
 First of the two new models is the CycleGAN model that uses the Griffin-Lim algorithm as the reconstruction mechanism. I tried to implement different generator and classifier networks to use with the time-frequency representations. Unlike generator networks, classifier networks can be evaluated independently in order to test the capacity of the network; hence I have written a separate model to evaluates these networks.
 
@@ -591,7 +677,11 @@ The second model was inspired by UMTN; while the UMTN learns pitch data from the
 
 ### Classifiers
 
-TODO: figure here to visualise the classifiers 
+\begin{figure}
+	\includegraphics[width=\textwidth]{figures/classifiers.tikz}
+	\centering
+	\caption{Visualization of the Classifiers}
+\end{figure}
 
 I have experimented with three different classifier networks, one from the original CycleGAN model, and two of my original design. In the paragraphs below, I will explain the details of the networks and the intuition behind them. All classifiers were optimized using the Adam optimizer and the learning rate was adjusted by model to prevent divergence, as will be presented in the Evaluation chapter.
 
@@ -603,7 +693,7 @@ The network consists of five convolutional layers. First four layers have filter
 
 #### `conv1d`
 
-@ulyanov uses the frequency dimension of a time-frequency analyses as the filter input to convolutional neural networks, and claims that such methods have been effective for the non-GAN style transfer they implemented. Since there is a filter for each input and output channel combination, by doing so we effectively generate a fully connected network of filters, which takes the frequencies data as the input. This classifier network was created largely to verify whether it is truly effective to use frequency dimension as the channel input to convolutional networks.
+@Ulyanov2016 uses the frequency dimension of a time-frequency analyses as the filter input to convolutional neural networks, and claims that such methods have been effective for the non-GAN style transfer they implemented. Since there is a filter for each input and output channel combination, by doing so we effectively generate a fully connected network of filters, which takes the frequencies data as the input. This classifier network was created largely to verify whether it is truly effective to use frequency dimension as the channel input to convolutional networks.
 
 A number of parameters need to be defined to explain this network: `ndf` is the number of filters (i.e. the size of the channel dimension of the first layer), `mdf` the multiplier between the layers of the network, and `n_layers` is the number of convolutional layers the network contains.
 
@@ -619,11 +709,11 @@ Authors of Timbretron claimed that `shallow` classifier did not work for time-fr
 
 ### CycleGAN
 
-@timbretron introduces a model that uses Griffin-Lim on STFT matrices as the baseline, but fails to present the equivalent for CQT representations. By implementing a CycleGAN model that uses Griffin-Lim reconstruction on both STFT and CQT representations, I hoped to clarify (1) the necessity of WaveNet in the TimbreTron model, and (2) the differences between STFT and CQT CycleGAN models. Classifier networks designed and evaluated above are used as discriminators of the network architecture, and the encoder network is a variation of the original encoder model.
+Timbretron introduces a model that uses Griffin-Lim on STFT matrices as the baseline, but fails to present the equivalent for CQT representations. By implementing a CycleGAN model that uses Griffin-Lim reconstruction on both STFT and CQT representations, I hoped to clarify (1) the necessity of WaveNet in the TimbreTron model, and (2) the differences between STFT and CQT CycleGAN models. Classifier networks designed and evaluated above are used as discriminators of the network architecture, and the encoder network is a variation of the original encoder model.
 
 While many encoder models, such as those that use recurrent neural networks (RNN), were implemented but showed quick divergence of the model due to gradient explosion, a common training difficulty for RNNs. The details of RNNs lay outside the scope of this project so will not be dealt any further.
 
-The model was trained with a learning rate of 0.0002, with the diminishing identity loss used for TimbreTron. The original codebase by Zhu et al. had an implementation of Wasserstein GAN with Gradient Penalty, but it failed to perform reliably. Least Squared GAN, which is used by the original CycleGAN paper, was used instead. [@cyclegan]
+The model was trained with a learning rate of 0.0002, with the diminishing identity loss used for TimbreTron. The original codebase by Zhu et al. had an implementation of Wasserstein GAN with Gradient Penalty, but it failed to perform reliably. Least Squared GAN, which is used by the original CycleGAN paper, was used instead. [@DBLP:journals/corr/ZhuPIE17]
  
 #### The Encoder
 
@@ -634,10 +724,10 @@ The encoder consists of three parts: downsampling, transformation, and upsamplin
 \begin{figure}[h]
 	\includegraphics[width=\textwidth]{./figures/cyclegan_gpu.tikz}
 	\centering
-	\caption{A modification of figure \ref{fig:cyclegan} to show how the model is split between the two GPUs. The two yellow points show the point at which the tensor has to be transferred; this way we can minimize the necessity of transferring the output vector.} \label{fig:cyclegan_gpu}
+	\caption[Distributed CycleGAN Diagram]{A modification of Figure \ref{fig:cyclegan} to show how the model is split between the two GPUs. The two yellow points show the point at which the tensor has to be transferred; this way we can minimize the necessity of transferring the output vector.} \label{fig:cyclegan_gpu}
 \end{figure}
 
-Some generator models made the entire network architecture too large to fit in the memory of a single GPU. The original model implemented by Zhu et al., however, only had multi-GPU training capacities using dataset distribution. Therefore, the code structure was modified to store a generator and a discriminator pair on each GPU, and the relevant device management code was modified. With distributed modelling techniques, the transfer of tensors between the GPU can become a major bottleneck within the system; therefore, the modified codebase relies on individual model implementation to design ways to transfer minimal information between the devices. For the CycleGAN module, this was done as seen in figure \ref{fig:cyclegan_gpu}, which needs only two transfer between the devices for a single iteration. `PyTorch` handles the transfer of gradients between devices during back-propagation so there was no worry of losing gradient information.
+Some generator models made the entire network architecture too large to fit in the memory of a single GPU. The original model implemented by Zhu et al., however, only had multi-GPU training capacities using dataset distribution. Therefore, the code structure was modified to store a generator and a discriminator pair on each GPU, and the relevant device management code was modified. With distributed modelling techniques, the transfer of tensors between the GPU can become a major bottleneck within the system; therefore, the modified codebase relies on individual model implementation to design ways to transfer minimal information between the devices. For the CycleGAN module, this was done as seen in Figure \ref{fig:cyclegan_gpu}, which needs only two transfer between the devices for a single iteration. `PyTorch` handles the transfer of gradients between devices during back-propagation so there was no worry of losing gradient information.
 
 ### TimbreTron
 
@@ -651,17 +741,15 @@ With the distributed training in place, I was hoping to be able to train TimbreT
 \caption{Implemented architecture of the Universal Music Translation Network \label{fig:umtn}}
 \end{figure}
 
-TODO: change the figure to have the pool and interpolation layers
-
 The penultimate model of this project on is a recreation of the Universal Music Translation Network. At the time of the implementation of the project there was no code implementation that verified the efficacy of the network architecture. Therefore, the implementation presented by this project is based on the details of the network written in the paper.
 
-The temporal encoder is a faithful recreation of the one presented in figure \ref{fig:nsynth}, although the width (the channel dimension) of the encoder was left as a hyper-parameter. The model initially introduced by the authors were trained on 6 8-GPU machines for 6 days, which was not a viable option for this project. Therefore while the original paper uses a channel width a 128 for both the encoder and the WaveNet decoder, for faster training this project uses a width of 64 for both networks. The width of the final layer of the encoder was kept as 64 in accordance with the paper. The results of the encoder was pooled with a filter and stride size of 512, instead of 400 which was used by the original model, because the sample rate of the audio samples was increased from 8000 to 8192Hz.
+The temporal encoder is a faithful recreation of the one presented in Figure \ref{fig:nsynth}, although the width (the channel dimension) of the encoder was left as a hyper-parameter. The model initially introduced by the authors were trained on 6 8-GPU machines for 6 days, which was not a viable option for this project. Therefore while the original paper uses a channel width a 128 for both the encoder and the WaveNet decoder, for faster training this project uses a width of 64 for both networks. The width of the final layer of the encoder was kept as 64 in accordance with the paper. The results of the encoder was pooled with a filter and stride size of 512, instead of 400 which was used by the original model, because the sample rate of the audio samples was increased from 8000 to 8192Hz.
 
 Moreover, the details of the domain confusion network are absent from the referenced paper, other than the fact that it contains three convolutional layers and computes the mean of the output. Through trial-and-error, therefore, filter size of 1 and channel size of 64 were selected.
 
 \paragraph{\texttt{nv-wavenet}} A modified version of WaveNet implemented by Nvidia was used for the decoder for faster inference. Nvidia's implementation includes an optimized WaveNet inference kernel for their GPUs, which drastically increases the speed of inference. The upsampling layer in the implementation was removed, since the architecture includes a separate interpolation layer which extends the encoder input to the length of the audio. Related elements for conditional input processing were modified in coherence with this change.
 
-\paragraph{Loss function modification \label{loss-function-modification}} The domain confusion loss either quickly diverged or diminished to zero when trained together with the WaveNet reconstruction loss. This was due to the fact that there was no procedure to train the classifier network to classify correctly. Therefore the original loss function for the UMTN was divided into two different optimization processes. First is the reconstruction loss function, which is equal to the one introduced in section \ref{universal-music-translation-network}:
+\paragraph{Loss function modification \label{loss-function-modification}} The domain confusion loss either quickly diverged or diminished to zero when trained together with the WaveNet reconstruction loss. This was due to the fact that there was no procedure to train the classifier network to classify correctly. Therefore the original loss function for the UMTN was divided into two different optimization processes. First is the reconstruction loss function, which is equal to the one introduced in Section \ref{universal-music-translation-network}:
 
 \begin{multline}
 	\mathcal{L}_{recon} = \sum_{i \in I} \mathbb{E}_{x \sim p_{data}(x), \{r, s, t, u\} \sim p_{z}} \\
@@ -682,9 +770,13 @@ Moreover, the paper states that they have trained the model with a learning rate
 
 ### Spectral Translation Model
 
-TODO: a figure for the new model
+\begin{figure}
+	\includegraphics{figures/spectral.tikz}
+	\centering
+	\caption{Diagram of the Spectral Translation Model}
+\end{figure}
 
-I have designed another model which borrows the same domain-adversarial network design from UMTN, but uses the generator and discriminators designed for CycleGAN models. Deep Voice and earlier conditional WaveNet models used Mel-STFT inputs to WaveNet to create voice transfer. [@deepvoice] Similarly, here I use encoder and classifier networks designed for such spectral representation in order to condition the WaveNet decoder. Unlike UMTN, there is no pooling layer for this model; however the output of the encoder is interpolated by the nearest neighbor algorithm like the original model.
+I have designed another model which borrows the same domain-adversarial network design from UMTN, but uses the generator and discriminators designed for CycleGAN models. Deep Voice and earlier conditional WaveNet models used Mel-STFT inputs to WaveNet to create voice transfer. [@DBLP:journals/corr/ArikCCDGKLMRSS17] Similarly, here I use encoder and classifier networks designed for such spectral representation in order to condition the WaveNet decoder. Unlike UMTN, there is no pooling layer for this model; however the output of the encoder is interpolated by the nearest neighbor algorithm like the original model.
 
 ### Evaluation Preparation
 
@@ -723,7 +815,7 @@ Representation            & ndf & piano2guitar & chillify \\ \hline
 \caption{The accuracy results of the \texttt{shallow} classifier with different parameters} \label{tab:shallow}
 \end{table}
 
-The first set of experiments was the evaluation of a number of binary classifiers, introduced in section \ref{classifiers}, against the two pairs of datasets. A number of classifiers were trained with different parameters in order to select the best classifier to be used as the discriminator for the network models below. Since the `conv1d` classifier did not converge, only the `timbral` and `shallow` classifiers were trained until convergence. For the `timbral` classifier, networks with a initial filter number (`ndf`) of 4 and filter multiplier (`mdf`) of 2, and networks with constant filter number of 64 were trained, both with and without a sigmoid activation on the final layer of the network. All `shallow` classifier, on the other hand, were trained without the sigmoid activation to adhere to the PatchGAN classifier architecture, but multiple number of filters, 32 and 64, were used. All classifiers are trained on both Mel-STFT and CQT representations.
+The first set of experiments was the evaluation of a number of binary classifiers, introduced in Section \ref{classifiers}, against the two pairs of datasets. A number of classifiers were trained with different parameters in order to select the best classifier to be used as the discriminator for the network models below. Since the `conv1d` classifier did not converge, only the `timbral` and `shallow` classifiers were trained until convergence. For the `timbral` classifier, networks with a initial filter number (`ndf`) of 4 and filter multiplier (`mdf`) of 2, and networks with constant filter number of 64 were trained, both with and without a sigmoid activation on the final layer of the network. All `shallow` classifier, on the other hand, were trained without the sigmoid activation to adhere to the PatchGAN classifier architecture, but multiple number of filters, 32 and 64, were used. All classifiers are trained on both Mel-STFT and CQT representations.
 
 Since the dataset is balanced, comparing the accuracies of the classifiers is sufficient to evaluate the performance of the network. The accuracy results are shown by tables \ref{tab:timbral} and \ref{tab:shallow}. These results were computed on a separate validation dataset, in order to choose the best set of parameters before comparing the results between the two classifiers on the test dataset. However, the results from the `piano2guitar` dataset show near perfect accuracy on the validation dataset for all models, which made it unfeasible to try to choose the best classifier based upon these results. Results varied for the `chillify` dataset, however, and therefore was used to evaluate the classifiers. Additionally, the results do not show a favour towards any hyper-parameter value.
 
@@ -755,9 +847,9 @@ Most training models showed effect 1 or 2, and even with weight adjustment did n
 
 ## Universal Music Translation Network
 
-The Universal Music Translation Network, on the other hand, showed promising results after the training process was modified, as explained in section \ref{loss-function-modification}. It, as described in the original paper, trained very slowly; it took 14 days of training to get a reasonably sounding sample used for the human perception experiment. When trained with the `piano2guitar` dataset, the WaveNet decoder recognized timbre of the instruments fairly earlier on during the training process (around 3 days into training), but for the pitch data to be correctly extracted and condition the decoder it took much longer.
+The Universal Music Translation Network, on the other hand, showed promising results after the training process was modified, as explained in Section \ref{loss-function-modification}. It, as described in the original paper, trained very slowly; it took 14 days of training to get a reasonably sounding sample used for the human perception experiment. When trained with the `piano2guitar` dataset, the WaveNet decoder recognized timbre of the instruments fairly earlier on during the training process (around 3 days into training), but for the pitch data to be correctly extracted and condition the decoder it took much longer.
 
-While the model loss converged when trained with `piano2guitar` dataset, it diverged with the `chillify` dataset, even with different values of $\lambda_{dc}$ to incentivize stronger classification and pitch recognition. This was expected, however. The temporal encoder, as shown by @nsynth, could recognize lower level audio style such as note qualities and timbre, but could not recognize higher order styles such as genre. With such an input, the classifier would not have been able to classify the two domains apart due to lack of capacity of the network. This is evidenced by the quick diverging behaviour of $\mathcal{L}_{dc}$ as shown in figure \ref{fig:umtn_loss}. Especially with the pooling and interpolation layer, which encourages the encoder to attain the collection of fundamental frequencies, i.e. pitch. If the encoder was successful in extracting pitch from the `chillify` dataset pairs, there would have been too much variance in pitch in each domain for WaveNet to correctly model.
+While the model loss converged when trained with `piano2guitar` dataset, it diverged with the `chillify` dataset, even with different values of $\lambda_{dc}$ to incentivize stronger classification and pitch recognition. This was expected, however. The temporal encoder, as shown by @DBLP:journals/corr/EngelRRDESN17, could recognize easily defined audio style such as note qualities and timbre, but could not recognize audio features that humans find harder to define, such as genre. With such an input, the classifier would not have been able to classify the two domains apart due to lack of capacity of the network. This is evidenced by the quick diverging behaviour of $\mathcal{L}_{dc}$ as shown in Figure \ref{fig:umtn_loss}. Especially with the pooling and interpolation layer, which encourages the encoder to attain the collection of fundamental frequencies, i.e. pitch. If the encoder was successful in extracting pitch from the `chillify` dataset pairs, there would have been too much variance in pitch in each domain for WaveNet to correctly model.
 
 \begin{figure}[]
 \begin{subfigure}{.5\textwidth}
@@ -802,18 +894,18 @@ While the model loss converged when trained with `piano2guitar` dataset, it dive
 
 ### Human Perception Experiment
 
-Evaluation with human participants is essential in evaluating whether the universal music translation network successfully translates audio samples from one style to another, since a musical style is itself defined by the consensus of human perception. A human perception experiment was devised, therefore, to ask a number of participants on (1) the similarity in content, and (2) the likelihood of the timbre of the instrument. The questionnaire contained 16 samples organised into two sections; first containing samples generated from piano recordings translated by the guitar WaveNet decoder, and second containing samples generated from the piano WaveNet decoder from guitar recordings. I asked the two questions above for each audio sample, and the answers to the questionnaires were recorded on a five-point likert scale, each labelled: Very Different, Different, Neutral, Similar, and Very Similar, which each corresponds to 1 through 5 in figure \ref{fig:responses}.
+Evaluation with human participants is essential in evaluating whether the universal music translation network successfully translates audio samples from one style to another, since a musical style is itself defined by the consensus of human perception. A human perception experiment was devised, therefore, to ask a number of participants on (1) the similarity in content, and (2) the likelihood of the timbre of the instrument. The questionnaire contained 16 samples organised into two sections; first containing samples generated from piano recordings translated by the guitar WaveNet decoder, and second containing samples generated from the piano WaveNet decoder from guitar recordings. I asked the two questions above for each audio sample, and the answers to the questionnaires were recorded on a five-point likert scale, each labelled: Very Different, Different, Neutral, Similar, and Very Similar, which each corresponds to 1 through 5 in Figure \ref{fig:responses}.
 
 
-\paragraph{Frequency difference} The answers to the questions shown as histograms is shown by figure \ref{fig:responses}. Answer to the question of content similarity between the original sample and the generated sample does not have a consensus for both direction of transfer. For section 1, 125 responses noted that the contents did not sound similar while 111 did; for section 2, 121 response noted that the contents were dissimilar, while 114 noted that they were.
+\paragraph{Frequency difference} The answers to the questions shown as histograms is shown by Figure \ref{fig:responses}. Answer to the question of content similarity between the original sample and the generated sample does not have a consensus for both direction of transfer. For section 1, 125 responses noted that the contents did not sound similar while 111 did; for section 2, 121 response noted that the contents were dissimilar, while 114 noted that they were.
 
 \begin{figure}[!h]
-	\includegraphics[width=.5\textwidth]{./figures/decoder.png}
+	\includegraphics[width=.7\textwidth]{./figures/decoder.png}
 	\centering
 	\caption{Loss function behaviour of the two decoders over time} \label{fig:decoder}
 \end{figure}
 
-For efficacy of style transfer the responses had a consensus. Especially for the timbre transfer from Guitar to Piano, shown by figure \ref{fig:guitarstyle}, there is a clear consensus. Its mean value of 3.4 notes that the style transfer was successful. This is not the case for the transfer from piano to guitar; with a mean value of 2.7, more people thought that the decoder does not produce audio samples of a quality good enough to generate convincing pieces. However, as mention in section \ref{limitations} and seen on figure \ref{fig:decoder}, the decoder has not converged fully, due to hardware and time limitations. The difference in responses is coherent with the loss function behaviour, shown by figure \ref{fig:decoder}, which shows a better convergence for the piano decoder.
+For efficacy of style transfer the responses had a consensus. Especially for the timbre transfer from Guitar to Piano, shown by Figure \ref{fig:guitarstyle}, there is a clear consensus. Its mean value of 3.4 notes that the style transfer was successful. This is not the case for the transfer from piano to guitar; with a mean value of 2.7, more people thought that the decoder does not produce audio samples of a quality good enough to generate convincing pieces. However, as mention in Section \ref{limitations} and seen on Figure \ref{fig:decoder}, the decoder has not converged fully, due to hardware and time limitations. The difference in responses is coherent with the loss function behaviour, shown by Figure \ref{fig:decoder}, which shows a better convergence for the piano decoder.
 
 To further investigate the differences in diverse responses in content similarity in both sections, a number of audio samples were investigated to find the pitfalls of the translation network. The questions that ranked the lowest mean value was reviewed for similarities. 
 
@@ -821,16 +913,460 @@ The generated guitar samples that performed badly in the questionnaire had clear
 
 Moreover, the generated piano samples that poorly performed in the questionnaire also had a clear similarity. The guitar samples used for generating these samples used finger-style techniques that plays a number of pitches sequentially with very little time period in between the two. Because of the pool length of 512 applied after the encoder, the fastest movement the encoder can capture is 1/16th of a second. Moreover, these type of fast arpeggio is rare and sometimes impossible on pianos, because of the time the hammer takes to get back to its original position. Therefore, the decoder has very little information in both content and style to recreate a realistic sound sample.
 
-## Spectral Translator Model
+## Spectral Translation Model
 
-Figure: loss function of the spectral translator model
+\begin{figure}[h]
+	\includegraphics[width=.7\textwidth]{figures/spectral_loss.png}
+	\centering
+	\caption{Spectral Translation Model Loss Behaviour}
+\end{figure}
 
 The spectral translator model was designed to evaluate whether the ill training behaviour of the CycleGAN model was due to the capacity of the generator network, or the lack of stability in GAN training. Since the generator network in the spectral translator model was trained to remove domain-specific characteristic, which is a simpler modification to the input data than style transfer, the encoder network should have been able to achieve this if the network had enough capacity to achieve style transfer. However when trained with same set of generators and discriminators used for the CycleGAN model on the `piano2guitar` dataset, there was very little variation in the classification loss, and the decoder behaviour after training resembled that of an unconditioned WaveNet response. Since we have shown the effectiveness of the classifier network, this strongly alludes to the lack of capacity in the design of the generator network.
 
-# Conclusion 
+# Conclusion  
 
+## Summary of Works
 
+During this project, a number of neural network constructs, from Generative Adversarial Networks to WaveNet, Timbretron, and the Universal Music Translation Network were reviewed in order to create a model that can transform audio samples by recognizing audio feature.
 
-## Summary of Results
+To approach such goal in a more methodological way, Multiple classifier models that can recognize the audio features mentioned above were designed and implemented based upon previous works, and evaluated their performance with thorough testing of parameters and relative significance testing.
+
+With the successful implementation of a neural network model that can classify audio features, I have used techniques and methods from the reviewed previous works, such as CycleGAN network architecture, to either reimplement an existing model, or design a new network structure that modify the style of input audios signals. Each model was designed to mitigate a set of limitations of the project, such as hardware constraints or the quality of the dataset. Moreover, each model was designed either to verify a claim that a previous work has made, or overcome the lack of information given in the descriptions of those works.
+
+Furthermore, in implementing a successful neural network model, I have conducted a human perception experiment to evaluate the efficacy of the model, and analysed the results to examine the performance and limitations of the neural network model. For models that failed to output the desired output, I have analysed the behaviour of the model and the reason for failure.
 
 ## Future Works
+
+As shown by Section \ref{spectral-translation-model-1}, the most likely reason for the failure of the CycleGAN and Spectral Translation Model is the generator model. With a better designed generator model that effectively transform audio features in a time-frequency analysis, the network architecture proposed in this project could work much more effectively and produce usable results. Therefore, a research on transformer networks for time-frequency representations would allow for more effective audio processing using neural networks, although it was not within the scope of this project.
+
+Generally, more research on the area of audio processing using machine learning can allow for better tools for musicians to express their creativity. A software instrument in the current music production process require a lot of storage space with a limited expressibility in sound, because it depends on pre-recorded pieces of samples. With neural networks that learn audio features, a more efficient and effective sound generation that encapsulates subtle audio qualities can take place. Timbre could itself be an area for unsupervised learning algorithms, which would allow for compositions and modifications of instrument qualities that is not possible with traditional audio mixing.
+
+During the research for previous works for this project, I noticed a lack of interest for sound in the machine learning industry, and found that most audio processing techniques using neural networks were confined to that of human voice. While this is an important area of research, especially for more natural human computer interaction, this suggested that researches that may allow us to use the computational methodologies that we have to better understand properties of sound and music were getting ignored. By conducting this project, therefore, I hoped to shine some light to many possible areas of computer science research not only in audio, but in music.
+
+\chapter*{Bibliography}
+
+::: {#refs}
+:::
+
+\appendix
+
+
+# Consent Form
+
+Experiment Purpose & Procedure
+
+The purpose of this experiment is to use neural networks to translate musical styles from instruments or curated playlists. The experiment consists of 2 sections, each with 8 questions, during which you will be asked to listen to a pair of audio samples and answer two questions, one regarding the similarity in content of the two samples, and the other regarding the difference in audio style between the two samples. Each sample will be 4 seconds long, and you can play each sample as many times as you require. The questionnaire includes more detailed instructions for you to follow.
+
+Please note that none of the tasks is a test of your personal intelligence or ability. The objective is to test the efficacy of the neural networks in translating the style of an audio sample to the other.
+
+You may also withdraw from the experiment at any time, and hold no obligation to finish the questionnaire.
+
+## Confidentiality
+The following data will be recorded to remove possibilities of duplication and participation gifts, and will be discarded after the experiments conclude:
+
+* Name
+* Email address
+
+All data will be coded so that your anonymity will be protected in any research papers and presentations that result from this work.
+
+## Finding out about result
+
+If interested, you can find out the result of the study by contacting the researcher, Charles Yoon, after 17 May, 2019. His email address is jyy24`at`cam.ac.uk.
+
+## Record of Consent
+
+By filling out the form below indicates that you have understood the information about this experiment and consent to your participation. The participation is voluntary and you may refuse to answer certain questions on the questionnaire and withdraw from the study at any time with no penalty. This does not waive your legal rights. You should have received a copy of the consent form for your own record. If you have further questions related to this research, please contact the researcher.
+
+# Questionnaire 
+
+
+## Section 1
+In this section, you will be presented with 8 pairs of sound clips, that are either original or generated from a neural network. This neural network was trained to translate the piano sound to that of the guitar. Please answer the following questions after listening to each pair.
+
+* How similar does the clip sound to a guitar?
+* How similar do the two clips sound?
+
+For the first question you will be given two choices, and you can choose the one that sounds more chilled to your taste. For the latter, you will be given a Likert scale, from 'Very Different' to 'Very Simliar'; please choose the option that describes the two clips best. You can listen to both clips as many times as you require to make your choice.
+
+*For every real and generated sample pairs*
+
+*Audio Samples A and B were displayed here for playback*
+
+1) How similar does Sample B sound to a guitar?
+
+*A Likert scale from Very Different to Very Simliar was shown here*
+
+2) How similar does Sample B sound to Sample A?
+
+*A Likert scale from Very Different to Very Simliar was shown here*
+
+## Section 2
+
+In this section, you will again be presented with 8 pairs of sound clips, that are either original or generated from a neural network. This neural network was trained to translate guitar sounds to those of piano. Please answer the following questions after listening to each pair.
+
+* How similar does the sound clip sound to a piano?
+* How similar do the two clips sound?
+
+For the first question you will be given two choices, and you can choose the one that sounds more chilled to your taste. For the latter, you will be given a Likert scale, from 'Very Different' to 'Very Simliar'; please choose the option that describes the two clips best. You can listen to both clips as many times as you require to make your choice.
+
+*For every real and generated sample pairs*
+
+*Audio Samples A and B were displayed here for playback*
+
+1) How similar does Sample B sound to a piano?
+
+*A Likert scale from Very Different to Very Simliar was shown here*
+
+2) How similar does Sample B sound to Sample A?
+
+*A Likert scale from Very Different to Very Simliar was shown here*
+
+
+# Histogram of Answers of each Questions
+
+\begin{figure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_1_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_2_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_3_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_4_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_5_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_6_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_7_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_8_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_1_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_2_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_3_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_4_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_5_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_6_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_7_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_1_8_style.png}  
+\end{subfigure}
+\end{figure}
+\begin{figure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_1_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_2_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_3_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_4_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_5_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_6_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_7_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_8_content.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_1_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_2_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_3_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_4_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_5_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_6_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_7_style.png}  
+\end{subfigure}
+\begin{subfigure}{.24\textwidth}
+\centering
+\includegraphics[width=\textwidth]{./figures/res_2_8_style.png}  
+\end{subfigure}
+\end{figure}
+
+# Project Proposal
+
+\begin{center}
+\Large
+Computer Science Tripos -- Part II -- Project Proposal\\[4mm]
+\LARGE
+Music Style Transfer\\[4mm]
+
+\large
+Candidate Number: 303488330 
+
+Originator: Prof. Alan Blackwell
+
+19 October 2018
+\end{center}
+
+\vspace{5mm}
+
+\textbf{Project Supervisor:} Dr. Andrea Franceschini
+
+\textbf{Director of Studies:} Dr. Timothy Griffin
+
+\textbf{Project Overseers:} Prof. Lawrence Paulson  \& Prof. Frank Stajano
+
+## Introduction and Description of Work
+
+This project aims to create a system that modifies a given song to mimic the style of another. Specifically, this project will create a system that achieves such goal by one or both of the following methods:
+
+1. Creating a deep neural network that learns the similarity between songs in a playlist of a common stylistic trait. Such style transfer was done for images by Gatys, Ecker, and Bethge, in their paper "A Neural Algorithm of Artistic Style", in which the network was trained to transfer the style of "Starry Night" by Van Gogh to existing paintings.[^1]
+
+2. Training a generative adversarial network[^2] that learns the transformation of stylistic trait given a set of pairs of song, the pair being similar in content but different in style. This method has been done for images by Isola, Zhu, Zhou, and Efros, which given a base image yields a more detailed image (e.g. from boxes to images of buildings).[^3]
+
+In both cases, styles of music can be perceived differently depending on the individual; therefore, the original dataset will be evaluated to see if the set of songs indeed (1) is a playlist with a common stylistic trait in the case of the first method, or (2) are pairs with the same content (i.e. the "same song"), in the case of the second. Moreover, in the case of second method, similarity between the audio pairs can be analysed by existing mechanisms, that may include the open source library Musly[^4] and the mechanisms described by McFee[^5] and Zadel[^6]. In popular culture this may be referred to as a "remix" or a "cover"; however, this project purports to yield any qualitative change, which may not be as drastic as a remix.
+
+Facebook AI Research team has done a research on transferring musical style previously, and this project largely aims to yield a similar result to their research.[^7] This research, however, aimed to transfer a piece of classical music into another instrument; we may aim to target a more general characteristic of music people perceive, and a different genre of songs in this project. Nonetheless, their paper elaborates their evaluation method in detail and this project will consult on their approach to determine the evaluation method of its own.
+
+[^1]: \tt{arXiv:1508.06576 [cs.CV]}
+[^2]: \tt{arXiv:1406.2661 [stat.ML]}
+[^3]: \tt{arXiv:1611.07004 [cs.CV]}
+[^4]: http://www.musly.org/
+[^5]: https://escholarship.org/uc/item/8s90q67r
+[^6]: http://www.music.mcgill.ca/~zadel/611/audiosimilarity/similaritypresentation.pdf 
+[^7]: \tt{arXiv:1805.07848 [cs.SD]}
+[^8]: https://www.deeplearningbook.org/
+
+## Resource Required
+
+### Computing Resource
+
+Since this project contains multiple machine learning experiments, a machine with nVidia CUDA capable GPU would be ideal. The Rainbow group has a machine with a nVidia Titan Xp, which this project will mostly train its network on. As a backup, a personal desktop computer with a nVidia GTX1080 will be used to train networks as well. 
+
+### Dataset
+
+A dataset for this project does not seem to be publicly available; therefore, preparing dataset for this project will most likely involve compiling a set of songs. For the first method, it would most likely involve compiling a playlist with a similar stylistic trait. Since there are a number of "chill" playlists publicly available on Spotify, this project will use such playlist. For the second method, acquiring an entire discography of an cover artist such as Boyce Avenue and the original songs for the listed tracks should suffice.
+
+## Starting Point
+
+Neural Networks were covered by the course "Artificial Intelligence" during Part IB; however, most in depth contents such as Convolutional Neural Network and Generative Adversarial Networks will need to be reviewed and learned as the project starts.
+
+## Substance and Structure of the Project
+
+### Previous Work Research
+
+The field of Machine Learning and structures of Neural Networks is rapidly growing. I will need to review the relevant papers and textbooks for an in-depth understanding of different network architectures and systems, and the mathematics behind them. During this time I will also follow the works done for Image and Sound Style Transfer to grab a better sense of neural networks.
+
+### Data Preparation
+
+There is not a publicly available dataset of songs, so I will need to acquire them. To do so, I have contacted Spotify but without response as of now. To start, I will try to implement an audio capturing frontend to acquire the songs, without any storage or redistribution of them. If such methods fail, songs from the public domain can be used, or can be purchased through another medium. After compiling a set of songs, the tracks may be preprocessed or split into fixed size chunks in order to yield a better performance from the classifier.
+
+### Neural Network
+
+The largest work of this project is to architect a neural network structure based on previous works that will effectively learn the common characteristic of the dataset that the project intends to transform. To do so there will be multiple trial-and-error iterations to experiment different structures of neural network.
+
+### Presentation
+
+The entire system will most likely include different preprocessors, and a web service for presentation, so that users can transform their piece of music.
+
+### Evaluation
+
+1. Technicality
+
+	Without any human input it is still possible to test the consistency of a neural network. By splitting the dataset into the training set, testing set, and a cross validation set, this project will aim to find a quantitative validation of consistency of the neural network.
+
+2.  Experiment
+
+	I will conduct an experiment on human perception to test that the network has transfered the style of a network as aimed. In order to do so in a controlled manner, experiment will be devised to meet the following standards:
+
+	* To confirm the similarity of content on the dataset, volunteers will be given set of samples of five or more sound tracks, and will be asked to select two that are of the same content. 
+	* To confirm the similarity of content on the synthesized data, users will be given the original recording with multiple synthesized sound samples and will be prompted to select the one that has a similar content.
+	* To attest to the effectiveness of the transformation, volunteers will be asked to pick one that adheres to the characteristics of the transformation.
+	* For consistency throughout the track, different sections of each song may be presented to the volunteers for evaluation.
+	* Volunteers will be asked the same questions that are phrased differently, in order to attest to the consistency and reliability.
+	* The environment in which the volunteers will be conducting the experiment will also be controlled; all volunteers will be using the same headphones in the same listening environment in order to conduct the experiment.
+
+## Success Criteria
+
+* A successful compilation of music dataset;
+* An effective rendering and creation of a neural network architecture;
+* Statistically effective behavior of the classifier;
+* Successful presentation of the functionalities of the classifier, as described above;
+* An agreement of the effectiveness of the classifier by the human perception experiment.
+ 
+## Timetable and Milestones
+
+Since both of my paper 10 modules are in Michaelmas, a larger portion of the project was allocated to Christmas break and Lent Term.
+
+### Until 2 November (4 weeks)
+
+**Preliminary Reading**
+
+* Reading up on deep neural networks and generative adversarial networks, using the textbook by Ian Goodfellow[^8]. 
+* Reviewing the papers mentioned above.
+
+**Milestone**
+
+* Write up on the Backgrounds and Introduction section.
+
+### Until 16 November (2 weeks)
+
+* Trying different implementation of the Image Style Transfer, familiarise with the machine learning systems that will be installed on the computing machines.
+* Starting to prepare dataset, by contacting music providers, implementing an audio capturing software, or purchasing.
+
+**Milestone**
+
+* Working Image Style Transfer implementation with an in-depth understanding of the network architecture.
+* A sizable dataset to start initial experiments.
+
+### Until 30 November (2 weeks)
+
+* Finishing preparation of dataset.
+* Initial Experiments on deciding which method may seem more appropriate.
+
+**Milestone**
+
+* A full set of dataset for training, testing, and cross validation.
+* A section for the dissertation on methodology chosen and initial experimentation.
+
+### Until 14 December (2 weeks)
+
+* Making a decision on the general architecture of the neural network.
+* Validating the choices made and making necessary changes
+
+**Milestone**
+
+* A working initial classifier for further enhancement.
+
+### Until 18 January 2018 (Christmas break, 2 weeks)
+
+* Improving the classifier to start evaluation.
+* Preparing the evaluation of the dataset and gathering volunteers.
+
+**Milestone**
+
+* A working transformation engine.
+* Fully planned experiment for datasets to be executed in the coming weeks.
+
+### Until 1 February (2 weeks)
+
+* Starting the coding of the presentation code around the transforming network.
+* Conducting experiments on the dataset.
+
+**Milestone**
+
+* Results on the experiments on dataset.
+* Working presentation layer.
+
+### Until 15 February (2 weeks)
+
+* Using the completed network to prepare experiments for the performance of the software.
+
+**Milestone**
+
+* Full experiment prepared for execution in the coming weeks.
+
+### Until 1 March (2 weeks)
+
+* Conduct experiments prepared and use data in order to start writing up.
+
+**Milestone**
+
+* Initial write up on the implementation and evaluation.
+
+### Until 15 March (2 weeks)
+
+* Writing up the dissertation, completing each part that may be incomplete.
+
+**Milestone**
+
+* Working draft of the write up.
+
+### Until 29 March (Easter break, 2 weeks)
+
+* Finish writing up of the dissertation, and send to supervisors for review.
+
+**Milestone**
+
+* Finished initial draft of the dissertation.
+
+### Until 12 April (Easter break, 2 weeks)
+* Start revision on the dissertation after feedback.
+
+**Milestone**
+
+* Revised copy of the dissertation.
+
+### Until 26 April (Easter break, 2 weeks)
+* Preparing for submission.
+
+**Milestone**
+
+* Final copy of the dissertation.
+
+

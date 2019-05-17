@@ -36,8 +36,6 @@
 \draw (175,52) node  [align=left] {$\displaystyle P$};
 % Text Node
 \draw (465,52) node  [align=left] {$\displaystyle G$};
-% Text Node
-\draw (326,113) node  [align=left] {$\displaystyle g\ =\ p\ -\ t_{p} \ +\ t_{g}$};
 
 
 \end{tikzpicture}
