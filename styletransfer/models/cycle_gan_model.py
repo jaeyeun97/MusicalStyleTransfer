@@ -190,7 +190,7 @@ class CycleGANModel(BaseModel):
         # self.loss_gp_B = 0
         self.loss_D_B = (self.criterionD_B(pred_B_B_real, True) + 
                          self.criterionD_B(pred_B_B_fake, False) +
-                         self.loss_gp_B) 
+                         self.loss_gp_B) * 0.5
 
         pred_A_A_real = self.netD_A(self.real_A)
         fake_A = self.fake_A.detach()
@@ -200,7 +200,7 @@ class CycleGANModel(BaseModel):
         # self.loss_gp_A = 0
         self.loss_D_A = (self.criterionD_A(pred_A_A_real, True) +
                          self.criterionD_A(pred_A_A_fake, False) +
-                         self.loss_gp_A)
+                         self.loss_gp_A) * 0.5
 
         (self.loss_D_A + self.loss_D_B).backward()
         self.optimizer_D.step() 

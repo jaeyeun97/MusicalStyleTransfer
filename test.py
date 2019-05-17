@@ -41,6 +41,7 @@ if __name__ == "__main__":
     opt.batch_size = 1    # test code only supports batch_size = 1
     # opt.serial_batches = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options 
+    print('The number of training clips = %d' % len(dataset))
     sample_rate = opt.sample_rate
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
@@ -49,8 +50,11 @@ if __name__ == "__main__":
         model.eval()
     s = 0
     total = 0
+    if opt.phase == 'test' or opt.phase == 'val':
+        f = open('{}.{}.txt'.format(opt.name, opt.phase), 'w')
+        f.write('A,B\n')
     for i, data in enumerate(dataset):
-        if i >= opt.num_test:  # only apply our model to opt.num_test images.
+        if opt.phase == 'gan' and i >= opt.num_test:  # only apply our model to opt.num_test images.
             break
         model.set_input(data)  # unpack data from data loader
         res = model.test()           # run inference
@@ -60,9 +64,12 @@ if __name__ == "__main__":
             mkdir(iter_dir)
             for name, y in clips.items():
                 librosa.output.write_wav(os.path.join(iter_dir, '{}.wav'.format(name)), y, sample_rate)
-        elif opt.phase == 'test':
-            s += 1 if float(res[0]) <= 0.5 else 0
-            s += 1 if float(res[1]) > 0.5 else 0
+        elif opt.phase == 'test' or opt.phase =='val':
+            s1 = 1 if float(res[0]) < 0.5 else 0
+            s2 = 1 if float(res[1]) > 0.5 else 0
+            s += s1 + s2
+            f.write('{},{}\n'.format(s1, s2))
         total += 2
-    if opt.phase == 'test':
+    if opt.phase == 'test' or opt.phase =='val':
         print(s/total)
+        f.close()
